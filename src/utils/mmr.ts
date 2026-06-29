@@ -4,14 +4,17 @@ export type PointEvent = {
   scoreA: number;
   scoreB: number;
   timestamp: string;
-  type?: 'substitution';
+  type?: 'substitution' | 'score';
   playerOutId?: string;
   playerInId?: string;
+  filledPosition?: string;
 };
 
 export type MatchData = {
   team_a_players: string[];
   team_b_players: string[];
+  team_a_positions?: Record<string, string>;
+  team_b_positions?: Record<string, string>;
   team_a_score: number;
   team_b_score: number;
   point_timeline: PointEvent[];
@@ -20,6 +23,7 @@ export type MatchData = {
 export type PlayerData = {
   id: string;
   mmr: number;
+  positions?: string[];
 };
 
 export type MmrUpdateResult = {
@@ -28,6 +32,7 @@ export type MmrUpdateResult = {
   newMmr: number;
   mmrChange: number;
   participationFactor: number;
+  queueIncrement: number;
 };
 
 export function calculateMmrChanges(match: MatchData, players: Record<string, PlayerData>): MmrUpdateResult[] {
@@ -38,15 +43,48 @@ export function calculateMmrChanges(match: MatchData, players: Record<string, Pl
   const teamAPlayers = new Set<string>();
   const teamBPlayers = new Set<string>();
 
-  const currentCourtA = new Set(match.team_a_players);
-  const currentCourtB = new Set(match.team_b_players);
+  const initialCourtA = new Set(match.team_a_players);
+  const initialCourtB = new Set(match.team_b_players);
+  const playerPlayedPosition = new Map<string, string>();
+
+  if (match.team_a_positions) {
+    for (const [id, pos] of Object.entries(match.team_a_positions)) {
+      playerPlayedPosition.set(id, pos);
+    }
+  }
+  if (match.team_b_positions) {
+    for (const [id, pos] of Object.entries(match.team_b_positions)) {
+      playerPlayedPosition.set(id, pos);
+    }
+  }
+
+  // Reconstruct initial court state by playing subs backwards
+  for (let i = (match.point_timeline || []).length - 1; i >= 0; i--) {
+    const event = match.point_timeline[i];
+    if (event.type === 'substitution') {
+      if (event.team === 'a') {
+        initialCourtA.delete(event.playerInId!);
+        initialCourtA.add(event.playerOutId!);
+      } else {
+        initialCourtB.delete(event.playerInId!);
+        initialCourtB.add(event.playerOutId!);
+      }
+      if (event.filledPosition) {
+        playerPlayedPosition.set(event.playerOutId!, event.filledPosition);
+        playerPlayedPosition.set(event.playerInId!, event.filledPosition);
+      }
+    }
+  }
+
+  const currentCourtA = new Set(initialCourtA);
+  const currentCourtB = new Set(initialCourtB);
 
   // Track everyone who ever played on a team
-  match.team_a_players.forEach(id => teamAPlayers.add(id));
-  match.team_b_players.forEach(id => teamBPlayers.add(id));
+  currentCourtA.forEach(id => teamAPlayers.add(id));
+  currentCourtB.forEach(id => teamBPlayers.add(id));
   
-  match.team_a_players.forEach(id => pointsPlayed.set(id, 0));
-  match.team_b_players.forEach(id => pointsPlayed.set(id, 0));
+  currentCourtA.forEach(id => pointsPlayed.set(id, 0));
+  currentCourtB.forEach(id => pointsPlayed.set(id, 0));
 
   for (const event of match.point_timeline || []) {
     if (event.type === 'substitution') {
@@ -90,7 +128,8 @@ export function calculateMmrChanges(match: MatchData, players: Record<string, Pl
       oldMmr: p.mmr,
       newMmr: p.mmr,
       mmrChange: 0,
-      participationFactor: 0
+      participationFactor: 0,
+      queueIncrement: 0
     }));
   }
 
@@ -131,7 +170,6 @@ export function calculateMmrChanges(match: MatchData, players: Record<string, Pl
   }
 
   // 4. Point Difference Multiplier (blowout modifier)
-  // loge(point_diff + 1). So diff of 2 points ~ 1.1x. diff of 10 points ~ 2.4x
   const pointDiff = Math.abs(match.team_a_score - match.team_b_score);
   const diffMultiplier = match.team_a_score === match.team_b_score ? 1 : Math.max(1, Math.log(pointDiff + 1));
 
@@ -140,6 +178,14 @@ export function calculateMmrChanges(match: MatchData, players: Record<string, Pl
   const teamBShift = K_FACTOR * diffMultiplier * (actualB - expectedB);
 
   // 5. Apply shifts to individual players based on participation
+  const isFill = (playerId: string) => {
+    const pos = playerPlayedPosition.get(playerId);
+    if (!pos || pos === 'Any') return false; 
+    const prefs = players[playerId]?.positions || [];
+    if (prefs.length === 0) return false; 
+    return !prefs.includes(pos);
+  };
+
   const results: MmrUpdateResult[] = [];
   const allParticipatingPlayers = new Set([...teamAPlayers, ...teamBPlayers]);
 
@@ -151,16 +197,38 @@ export function calculateMmrChanges(match: MatchData, players: Record<string, Pl
     // Scaling factor (0 to 1) based on how many points they were on the court for
     const participationFactor = pts / totalPoints;
     
-    const actualShift = Math.round(teamShift * participationFactor);
+    let actualShift = Math.round(teamShift * participationFactor);
+    
+    // Fill Bonus
+    if (isFill(id)) {
+      if (actualShift > 0) {
+        actualShift = Math.round(actualShift * 1.2) + 5; // Extra +5 and 20% boost for win
+      } else if (actualShift < 0) {
+        actualShift = Math.min(0, Math.round(actualShift * 0.8) + 5); // 20% reduction in loss and +5 forgiveness
+      } else {
+        actualShift += 5; // Flat +5 if 0
+      }
+    }
+
     const oldMmr = players[id]?.mmr || 1200;
     const newMmr = Math.max(0, oldMmr + actualShift); // Prevent negative MMR
+
+    let queueIncrement = participationFactor;
+    const startedMatch = initialCourtA.has(id) || initialCourtB.has(id);
+    
+    if (!startedMatch) {
+       if (!isFill(id)) {
+         queueIncrement = 0; // Maintain queue priority if subbed into preferred position
+       }
+    }
 
     results.push({
       playerId: id,
       oldMmr,
       newMmr,
       mmrChange: newMmr - oldMmr,
-      participationFactor
+      participationFactor,
+      queueIncrement
     });
   }
 

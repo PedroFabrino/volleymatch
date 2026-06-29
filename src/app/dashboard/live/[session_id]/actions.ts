@@ -152,7 +152,8 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
     timestamp: e.created_at,
     type: e.event_type,
     playerOutId: e.player_out_id,
-    playerInId: e.player_in_id
+    playerInId: e.player_in_id,
+    filledPosition: e.filled_position
   }))
 
   await supabase.from('matches').update({ 
@@ -161,16 +162,25 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
   }).eq('id', matchId)
 
   const playerRecords: Record<string, any> = {}
-  const allPlayers = [...match.team_a_players, ...match.team_b_players]
+  const allParticipatingPlayers = new Set([...match.team_a_players, ...match.team_b_players]);
+  
+  for (const e of timeline) {
+    if (e.type === 'substitution') {
+      if (e.playerOutId) allParticipatingPlayers.add(e.playerOutId);
+      if (e.playerInId) allParticipatingPlayers.add(e.playerInId);
+    }
+  }
 
-  for (const pid of allPlayers) {
-    const { data: p } = await supabase.from('players').select('games_played_today, mmr, id').eq('id', pid).single()
-    if (p) playerRecords[p.id] = { id: p.id, mmr: p.mmr, games_played_today: p.games_played_today }
+  for (const pid of allParticipatingPlayers) {
+    const { data: p } = await supabase.from('players').select('games_played_today, mmr, id, positions').eq('id', pid).single()
+    if (p) playerRecords[p.id] = { id: p.id, mmr: p.mmr, games_played_today: p.games_played_today, positions: p.positions }
   }
 
   const mmrUpdates = calculateMmrChanges({
     team_a_players: match.team_a_players,
     team_b_players: match.team_b_players,
+    team_a_positions: match.team_a_positions,
+    team_b_positions: match.team_b_positions,
     team_a_score: match.team_a_score,
     team_b_score: match.team_b_score,
     point_timeline: timeline as any
@@ -179,7 +189,7 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
   for (const update of mmrUpdates) {
     await supabase.from('players').update({ 
       mmr: update.newMmr,
-      games_played_today: playerRecords[update.playerId].games_played_today + update.participationFactor
+      games_played_today: playerRecords[update.playerId].games_played_today + update.queueIncrement
     }).eq('id', update.playerId)
   }
 
