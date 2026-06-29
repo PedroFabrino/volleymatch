@@ -98,6 +98,9 @@ export async function startSession(formData: FormData) {
     .update({ is_active: false })
     .eq('hoster_id', user.id)
 
+  // Generate a random 4-digit PIN
+  const pin = Math.floor(1000 + Math.random() * 9000).toString()
+
   // Create new session
   const { data: session, error } = await supabase
     .from('sessions')
@@ -106,7 +109,8 @@ export async function startSession(formData: FormData) {
       target_score: targetScore,
       tie_breaker_rule: tieBreaker,
       matchmaking_mode: matchmakingMode,
-      is_active: true
+      is_active: true,
+      pin: pin
     })
     .select()
     .single()

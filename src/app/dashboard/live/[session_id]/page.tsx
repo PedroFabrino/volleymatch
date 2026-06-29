@@ -38,12 +38,17 @@ export default async function LiveSessionPage(props: { params: Promise<{ session
     .eq('hoster_id', user.id)
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      {activeMatch ? (
-        <Scoreboard session={session} match={activeMatch} players={players || []} />
-      ) : (
-        <Matchmaker session={session} players={players || []} />
-      )}
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+      <div className="bg-gray-800 p-2 text-center text-sm text-gray-400 font-mono">
+        Room PIN: <span className="text-blue-400 font-bold text-lg">{session.pin || '0000'}</span>
+      </div>
+      <div className="flex-1">
+        {activeMatch ? (
+          <Scoreboard session={session} match={activeMatch} players={players || []} />
+        ) : (
+          <Matchmaker session={session} players={players || []} />
+        )}
+      </div>
     </div>
   )
 }
