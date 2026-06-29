@@ -73,7 +73,15 @@ export async function generateMatch(sessionId: string) {
     }
   }
 
-  // 4. Create the match
+  // Return the match draft instead of saving
+  return { teamA, teamB }
+}
+
+export async function saveMatch(sessionId: string, teamA: string[], teamB: string[]) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
   const { error } = await supabase.from('matches').insert({
     session_id: sessionId,
     hoster_id: user.id,

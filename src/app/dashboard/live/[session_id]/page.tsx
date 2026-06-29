@@ -42,7 +42,7 @@ export default async function LiveSessionPage(props: { params: Promise<{ session
       {activeMatch ? (
         <Scoreboard session={session} match={activeMatch} players={players || []} />
       ) : (
-        <Matchmaker session={session} />
+        <Matchmaker session={session} players={players || []} />
       )}
     </div>
   )

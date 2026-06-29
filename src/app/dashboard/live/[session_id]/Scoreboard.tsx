@@ -38,10 +38,9 @@ export default function Scoreboard({ session, match, players }: { session: any, 
     const touchEndY = e.changedTouches[0].clientY
     const diff = touchEndY - touchStartY.current
 
+    // Only handle swipe down for decrease. Taps are handled by standard onClick.
     if (diff > 50) {
       handleScoreChange(team, -1)
-    } else if (Math.abs(diff) < 10) {
-      handleScoreChange(team, 1)
     }
     touchStartY.current = null
   }
