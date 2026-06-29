@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { startSession } from './actions'
+import { startSession, endSession } from './actions'
 import AttendanceToggle from './AttendanceToggle'
 import ActiveSessionBanner from '@/components/ActiveSessionBanner'
 import { ArrowLeft, Users, Trophy } from 'lucide-react'
@@ -98,10 +98,18 @@ export default async function SessionSetupPage() {
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Edit attendance on the left, then jump back into the game.</p>
                     <Link 
                       href={`/dashboard/live/${activeSession.id}`} 
-                      className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3 rounded-xl shadow transition text-center animate-pulse"
+                      className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3 rounded-xl shadow transition text-center animate-pulse mb-3"
                     >
                       Resume Game
                     </Link>
+                    <form action={async () => {
+                      'use server'
+                      await endSession(activeSession.id)
+                    }} className="w-full">
+                      <button type="submit" className="w-full bg-red-100 hover:bg-red-200 text-red-700 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 font-bold py-2 rounded-xl transition-colors">
+                        End Game Day
+                      </button>
+                    </form>
                   </div>
                   
                   <div>

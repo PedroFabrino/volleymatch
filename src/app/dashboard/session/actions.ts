@@ -73,3 +73,24 @@ export async function startSession(formData: FormData) {
   // Redirect to the active live session page where the matchmaking will happen
   redirect(`/dashboard/live/${session.id}`)
 }
+
+export async function endSession(sessionId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  // 1. Mark session as inactive
+  await supabase
+    .from('sessions')
+    .update({ is_active: false })
+    .eq('id', sessionId)
+    .eq('hoster_id', user.id)
+
+  // 2. Reset player daily stats (attendance & games played)
+  await supabase
+    .from('players')
+    .update({ is_present_today: false, games_played_today: 0 })
+    .eq('hoster_id', user.id)
+
+  revalidatePath('/dashboard', 'layout')
+}
