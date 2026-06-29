@@ -90,16 +90,6 @@ export default function Scoreboard({ session, match, players }: { session: any, 
             </a>
             <span className="flex items-center gap-2 bg-black/40 px-3 py-1 rounded-full"><Clock className="w-4 h-4 text-blue-400" /> {elapsed}</span>
           </div>
-          <div className="pointer-events-auto">
-            {isMatchOver && (
-              <button 
-                onClick={(e) => { e.stopPropagation(); startTransition(() => finishMatch(match.id, session.id)) }}
-                className="bg-yellow-500 text-black px-4 py-1.5 rounded-full font-bold shadow-lg animate-pulse"
-              >
-                FINISH GAME
-              </button>
-            )}
-          </div>
           <div>Target: {session.target_score}</div>
         </div>
 
@@ -115,7 +105,7 @@ export default function Scoreboard({ session, match, players }: { session: any, 
           </div>
           <button 
             onClick={(e) => handleScoreChange('a', -1, e)}
-            className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/20 hover:bg-black/40 text-white p-3 rounded-full md:hidden landscape:flex"
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/20 hover:bg-black/40 text-white p-3 rounded-full md:hidden landscape:flex z-20 pointer-events-auto"
             title="Decrease Score"
           >
             <Minus className="w-6 h-6" />
@@ -137,7 +127,7 @@ export default function Scoreboard({ session, match, players }: { session: any, 
           </div>
           <button 
             onClick={(e) => handleScoreChange('b', -1, e)}
-            className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/20 hover:bg-black/40 text-white p-3 rounded-full md:hidden landscape:flex"
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/20 hover:bg-black/40 text-white p-3 rounded-full md:hidden landscape:flex z-20 pointer-events-auto"
             title="Decrease Score"
           >
             <Minus className="w-6 h-6" />
@@ -264,6 +254,55 @@ export default function Scoreboard({ session, match, players }: { session: any, 
               >
                 Cancel
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Match Over Modal */}
+      {isMatchOver && (
+        <div className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-sm overflow-hidden flex flex-col items-center p-8 shadow-2xl">
+            <h2 className="text-4xl font-black text-white mb-2 text-center uppercase tracking-wider">
+              Match Done!
+            </h2>
+            <div className="flex items-center gap-4 text-3xl font-black mb-8">
+              <span className="text-red-500">{optScoreA}</span>
+              <span className="text-gray-500">-</span>
+              <span className="text-blue-500">{optScoreB}</span>
+            </div>
+
+            <div className="flex flex-col gap-3 w-full">
+              <button 
+                onClick={() => { startTransition(() => finishMatch(match.id, session.id, 'draft')) }}
+                disabled={isPending}
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition shadow-lg disabled:opacity-50"
+              >
+                Draft Next Match
+              </button>
+              <button 
+                onClick={() => { startTransition(() => finishMatch(match.id, session.id, 'attendance')) }}
+                disabled={isPending}
+                className="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-4 rounded-xl transition disabled:opacity-50"
+              >
+                Back to Attendance
+              </button>
+              
+              <div className="mt-4 pt-4 border-t border-gray-800 w-full">
+                <button 
+                  onClick={() => {
+                    // Let them hide the modal if they want to undo a point
+                    startTransition(() => {
+                      if (optScoreA >= session.target_score) handleScoreChange('a', -1)
+                      if (optScoreB >= session.target_score) handleScoreChange('b', -1)
+                    })
+                  }}
+                  disabled={isPending}
+                  className="w-full bg-transparent text-gray-500 hover:text-gray-300 font-bold py-2 transition disabled:opacity-50"
+                >
+                  Wait, undo point!
+                </button>
+              </div>
             </div>
           </div>
         </div>

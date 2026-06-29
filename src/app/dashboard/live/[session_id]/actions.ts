@@ -128,7 +128,7 @@ export async function updateScore(matchId: string, sessionId: string, team: 'a' 
   revalidatePath(`/dashboard/live/${sessionId}`)
 }
 
-export async function finishMatch(matchId: string, sessionId: string) {
+export async function finishMatch(matchId: string, sessionId: string, destination: 'draft' | 'attendance' = 'attendance') {
   const supabase = await createClient()
   
   const { data: match } = await supabase.from('matches').select('*').eq('id', matchId).single()
@@ -151,8 +151,13 @@ export async function finishMatch(matchId: string, sessionId: string) {
 
   // (Future Step: Update MMR here)
 
-  revalidatePath(`/dashboard/session`, 'page')
-  redirect(`/dashboard/session`)
+  if (destination === 'draft') {
+    revalidatePath(`/dashboard/live/${sessionId}`, 'page')
+    // No redirect needed, revalidating the live page will naturally show the Matchmaker because is_completed is true now
+  } else {
+    revalidatePath(`/dashboard/session`, 'page')
+    redirect(`/dashboard/session`)
+  }
 }
 
 export async function cancelMatch(matchId: string, sessionId: string) {
