@@ -106,8 +106,10 @@ describe('Matchmaking Algorithm', () => {
         { ...createPlayer('OH_Winner', 1500, ['Outside Hitter']), games_played_today: 1 },
         { ...createPlayer('OH_Loser', 1500, ['Outside Hitter']), games_played_today: 1 },
       ];
-      // We fill the rest with dummies so the algorithm has enough to draft
-      for (let i = 0; i < 11; i++) players.push(createPlayer(`D${i}`, 1500, ['Setter'])); 
+      for (let i = 0; i < 3; i++) players.push(createPlayer(`S${i}`, 1500, ['Setter'])); 
+      for (let i = 0; i < 4; i++) players.push(createPlayer(`MB${i}`, 1500, ['Middle Blocker']));
+      for (let i = 0; i < 2; i++) players.push(createPlayer(`OP${i}`, 1500, ['Opposite Hitter']));
+      for (let i = 0; i < 2; i++) players.push(createPlayer(`L${i}`, 1500, ['Libero'])); 
 
       // If we only need 1 Outside Hitter total (pretend the blueprint only asks for 4, and we have 3 + 11 dummies)
       // Actually, wait, blueprint asks for 4 Outside Hitters. We only gave it 3. It will take ALL 3.
