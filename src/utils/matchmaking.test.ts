@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { draftTeams, Player } from './matchmaking';
+import { draftTeams, draftStrictTeams, Player } from './matchmaking';
 
 describe('Matchmaking Algorithm', () => {
 
@@ -76,6 +76,61 @@ describe('Matchmaking Algorithm', () => {
     } else {
       expect(mmrA).toBeGreaterThanOrEqual(mmrB);
     }
+  });
+
+  describe('Strict Positional Mode', () => {
+    it('should draft exactly 14 players according to blueprint', () => {
+      const players: Player[] = [];
+      for (let i = 0; i < 4; i++) players.push(createPlayer(`S${i}`, 1500, ['Setter']));
+      for (let i = 0; i < 6; i++) players.push(createPlayer(`OH${i}`, 1500, ['Outside Hitter']));
+      for (let i = 0; i < 3; i++) players.push(createPlayer(`OP${i}`, 1500, ['Opposite']));
+      for (let i = 0; i < 5; i++) players.push(createPlayer(`MB${i}`, 1500, ['Middle Blocker']));
+      for (let i = 0; i < 3; i++) players.push(createPlayer(`L${i}`, 1500, ['Libero']));
+
+      const { teamA, teamB } = draftStrictTeams(players, [], []);
+      
+      expect(teamA.length).toBe(7);
+      expect(teamB.length).toBe(7);
+
+      // Verify each team has exactly 1 setter
+      const settersInA = teamA.filter(id => id.startsWith('S'));
+      const settersInB = teamB.filter(id => id.startsWith('S'));
+      
+      expect(settersInA.length).toBe(1);
+      expect(settersInB.length).toBe(1);
+    });
+
+    it('should prioritize queue over losers and winners over losers', () => {
+      const players: Player[] = [
+        { ...createPlayer('OH_Queue', 1500, ['Outside Hitter']), games_played_today: 0 },
+        { ...createPlayer('OH_Winner', 1500, ['Outside Hitter']), games_played_today: 1 },
+        { ...createPlayer('OH_Loser', 1500, ['Outside Hitter']), games_played_today: 1 },
+      ];
+      // We fill the rest with dummies so the algorithm has enough to draft
+      for (let i = 0; i < 11; i++) players.push(createPlayer(`D${i}`, 1500, ['Setter'])); 
+
+      // If we only need 1 Outside Hitter total (pretend the blueprint only asks for 4, and we have 3 + 11 dummies)
+      // Actually, wait, blueprint asks for 4 Outside Hitters. We only gave it 3. It will take ALL 3.
+      // Let's give it 5 Outside Hitters so it has to leave 1 out.
+      players.push({ ...createPlayer('OH_Queue_2', 1500, ['Outside Hitter']), games_played_today: 0 });
+      players.push({ ...createPlayer('OH_Winner_2', 1500, ['Outside Hitter']), games_played_today: 1 });
+
+      const { teamA, teamB } = draftStrictTeams(players, ['OH_Winner', 'OH_Winner_2'], ['OH_Loser']);
+      
+      const drafted = [...teamA, ...teamB];
+
+      // The blueprint asks for 4 Outside Hitters.
+      // We have 5: OH_Queue, OH_Queue_2, OH_Winner, OH_Winner_2, OH_Loser
+      // Priorities: Queue (games=0) -> Winner (games=1) -> Loser (games=1)
+      // It should draft: OH_Queue, OH_Queue_2, OH_Winner, OH_Winner_2.
+      // It should NOT draft OH_Loser.
+      
+      expect(drafted).toContain('OH_Queue');
+      expect(drafted).toContain('OH_Queue_2');
+      expect(drafted).toContain('OH_Winner');
+      expect(drafted).toContain('OH_Winner_2');
+      expect(drafted).not.toContain('OH_Loser');
+    });
   });
 
 });

@@ -47,6 +47,7 @@ export async function startSession(formData: FormData) {
 
   const targetScore = parseInt(formData.get('target_score') as string)
   const tieBreaker = formData.get('tie_breaker_rule') as string
+  const matchmakingMode = formData.get('matchmaking_mode') as string || 'casual'
 
   // End any active sessions first
   await supabase
@@ -61,6 +62,7 @@ export async function startSession(formData: FormData) {
       hoster_id: user.id,
       target_score: targetScore,
       tie_breaker_rule: tieBreaker,
+      matchmaking_mode: matchmakingMode,
       is_active: true
     })
     .select()

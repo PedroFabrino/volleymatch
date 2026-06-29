@@ -172,6 +172,26 @@ export default async function SessionSetupPage() {
                     </div>
                   </div>
 
+                  <div className="flex flex-col gap-2 mt-2 pt-4 border-t dark:border-gray-800">
+                    <label className="font-semibold text-gray-700 dark:text-gray-300">Matchmaking Mode</label>
+                    <div className="flex flex-col gap-3">
+                      <label className="flex items-start gap-3 p-3 border dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                        <input type="radio" name="matchmaking_mode" value="casual" defaultChecked className="mt-1 dark:bg-gray-900 dark:border-gray-600" />
+                        <div>
+                          <div className="font-bold dark:text-gray-100">Casual Balance (6v6)</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">Automatically drafts the 12 most rested players and distributes setters.</div>
+                        </div>
+                      </label>
+                      <label className="flex items-start gap-3 p-3 border dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                        <input type="radio" name="matchmaking_mode" value="strict" className="mt-1 dark:bg-gray-900 dark:border-gray-600" />
+                        <div>
+                          <div className="font-bold dark:text-gray-100">Strict Positional (7v7 Class)</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">Drafts exactly 1 Setter, 2 Offsides, 1 Opposite, 2 Middles, and 1 Libero per team (14 players total).</div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
                   <button 
                     type="submit" 
                     disabled={presentCount < 2}

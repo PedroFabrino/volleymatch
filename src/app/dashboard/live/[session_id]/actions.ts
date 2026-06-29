@@ -3,13 +3,17 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { draftTeams } from '@/utils/matchmaking'
+import { draftTeams, draftStrictTeams } from '@/utils/matchmaking'
 import { calculateMmrChanges } from '@/utils/mmr'
 
 export async function generateMatch(sessionId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
+
+  // Get Session Details to know mode
+  const { data: session } = await supabase.from('sessions').select('*').eq('id', sessionId).single()
+  if (!session) return
 
   // 1. Get all players present today
   const { data: presentPlayers } = await supabase
@@ -20,6 +24,40 @@ export async function generateMatch(sessionId: string) {
     
   if (!presentPlayers || presentPlayers.length < 2) return
 
+  const mode = session.matchmaking_mode || 'casual'
+
+  if (mode === 'strict') {
+    // We need to know who won the last match
+    const { data: lastMatch } = await supabase
+      .from('matches')
+      .select('team_a_players, team_b_players, team_a_score, team_b_score')
+      .eq('session_id', sessionId)
+      .eq('is_completed', true)
+      .order('completed_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    let lastMatchWinningTeamIds: string[] = []
+    let lastMatchLosingTeamIds: string[] = []
+
+    if (lastMatch) {
+      if (lastMatch.team_a_score > lastMatch.team_b_score) {
+        lastMatchWinningTeamIds = lastMatch.team_a_players
+        lastMatchLosingTeamIds = lastMatch.team_b_players
+      } else if (lastMatch.team_b_score > lastMatch.team_a_score) {
+        lastMatchWinningTeamIds = lastMatch.team_b_players
+        lastMatchLosingTeamIds = lastMatch.team_a_players
+      } else {
+        // Draw, just dump them all as losers so they get lower priority than queue
+        lastMatchLosingTeamIds = [...lastMatch.team_a_players, ...lastMatch.team_b_players]
+      }
+    }
+
+    const { teamA, teamB } = draftStrictTeams(presentPlayers, lastMatchWinningTeamIds, lastMatchLosingTeamIds)
+    return { teamA, teamB }
+  }
+
+  // Casual Mode
   // 2. Determine who plays next (Hybrid Winner Stays On Logic)
   // For MVP: Simply sort by games_played_today (ascending) to guarantee rotation, then by MMR to balance.
   // We will take up to 12 players to form the match.
