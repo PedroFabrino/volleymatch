@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 
 export async function generateMatch(sessionId: string) {
   const supabase = await createClient()
@@ -126,7 +127,8 @@ export async function finishMatch(matchId: string, sessionId: string) {
 
   // (Future Step: Update MMR here)
 
-  revalidatePath(`/dashboard/live/${sessionId}`)
+  revalidatePath(`/dashboard/session`, 'page')
+  redirect(`/dashboard/session`)
 }
 
 export async function cancelMatch(matchId: string, sessionId: string) {
@@ -135,5 +137,6 @@ export async function cancelMatch(matchId: string, sessionId: string) {
   // Just delete the match so it acts like it never happened
   await supabase.from('matches').delete().eq('id', matchId)
   
-  revalidatePath(`/dashboard/live/${sessionId}`)
+  revalidatePath(`/dashboard/session`, 'page')
+  redirect(`/dashboard/session`)
 }
