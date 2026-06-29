@@ -1,11 +1,36 @@
 'use client'
 
-import { useTransition, useOptimistic } from 'react'
-import { toggleAttendance, toggleActivePosition } from './actions'
-import { Check, X } from 'lucide-react'
+import { useTransition, useOptimistic, useState } from 'react'
+import { batchToggleAttendance, toggleActivePosition } from './actions'
+import { Check, X, Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+
+// Global debounce queue for attendance toggles across all player components
+type AttendanceUpdate = { resolve: () => void, reject: (err: any) => void, payload: { playerId: string, isPresent: boolean, activeSessionId?: string } }
+let attendanceQueue: AttendanceUpdate[] = [];
+let debounceTimer: NodeJS.Timeout | null = null;
+
+function enqueueAttendanceToggle(playerId: string, isPresent: boolean, activeSessionId?: string) {
+  return new Promise<void>((resolve, reject) => {
+    attendanceQueue.push({ resolve, reject, payload: { playerId, isPresent, activeSessionId } });
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(async () => {
+      const items = [...attendanceQueue];
+      attendanceQueue = [];
+      try {
+        await batchToggleAttendance(items.map(i => i.payload));
+        items.forEach(i => i.resolve());
+      } catch (err) {
+        items.forEach(i => i.reject(err));
+      }
+    }, 400); // 400ms debounce
+  });
+}
 
 export default function AttendanceToggle({ player, activeSessionId }: { player: any, activeSessionId?: string }) {
   const [isPending, startTransition] = useTransition()
+  const [togglingPos, setTogglingPos] = useState<string | null>(null)
+  const t = useTranslations('Positions')
   
   const [optimisticIsPresent, addOptimisticIsPresent] = useOptimistic(
     player.is_present_today,
@@ -24,10 +49,16 @@ export default function AttendanceToggle({ player, activeSessionId }: { player: 
 
   const handlePositionToggle = (e: React.MouseEvent, pos: string) => {
     e.stopPropagation() // Prevent toggling the main attendance button
+    setTogglingPos(pos)
     startTransition(() => {
       addOptimisticPositions(pos)
       toggleActivePosition(player.id, pos)
     })
+  }
+
+  // Reset toggling position if transition finished
+  if (!isPending && togglingPos !== null) {
+    setTogglingPos(null)
   }
 
   return (
@@ -37,9 +68,9 @@ export default function AttendanceToggle({ player, activeSessionId }: { player: 
       {/* Attendance Row */}
       <button 
         onClick={() => {
-          startTransition(() => {
+          startTransition(async () => {
             addOptimisticIsPresent(!optimisticIsPresent)
-            toggleAttendance(player.id, !optimisticIsPresent, activeSessionId)
+            await enqueueAttendanceToggle(player.id, !optimisticIsPresent, activeSessionId)
           })
         }}
         className="flex items-center justify-between w-full text-left"
@@ -69,21 +100,24 @@ export default function AttendanceToggle({ player, activeSessionId }: { player: 
           {player.positions.map((pos: string) => {
             const isActive = optimisticPositions.includes(pos)
             const isOnlyPosition = player.positions.length === 1
+            const isLoading = isPending && togglingPos === pos
+            
             return (
               <button
                 key={pos}
                 type="button"
-                disabled={isOnlyPosition}
+                disabled={isOnlyPosition || isPending}
                 onClick={(e) => {
-                  if (!isOnlyPosition) handlePositionToggle(e, pos)
+                  if (!isOnlyPosition && !isPending) handlePositionToggle(e, pos)
                 }}
-                className={`text-xs font-bold px-2.5 py-1 rounded-full transition-colors ${
-                  isActive 
+                className={`relative flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full transition-colors ${
+                  (isActive || isOnlyPosition)
                     ? 'bg-blue-600 text-white shadow-sm' 
                     : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
-                } ${isOnlyPosition ? 'opacity-80 cursor-default' : 'cursor-pointer'}`}
+                } ${isOnlyPosition ? 'opacity-80 cursor-default' : 'cursor-pointer'} ${isLoading ? 'opacity-70' : ''}`}
               >
-                {pos}
+                {isLoading && <Loader2 className="w-3 h-3 animate-spin" />}
+                {t(pos as any)}
               </button>
             )
           })}

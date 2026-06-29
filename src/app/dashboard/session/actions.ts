@@ -26,6 +26,41 @@ export async function toggleAttendance(playerId: string, isPresent: boolean, act
   revalidatePath('/dashboard/session')
 }
 
+export async function batchToggleAttendance(updates: { playerId: string, isPresent: boolean, activeSessionId?: string }[]) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  if (updates.length === 0) return;
+
+  const presentIds = updates.filter(u => u.isPresent).map(u => u.playerId)
+  const absentIds = updates.filter(u => !u.isPresent).map(u => u.playerId)
+
+  if (presentIds.length > 0) {
+    await supabase.from('players').update({ is_present_today: true }).in('id', presentIds).eq('hoster_id', user.id)
+  }
+  
+  if (absentIds.length > 0) {
+    await supabase.from('players').update({ is_present_today: false }).in('id', absentIds).eq('hoster_id', user.id)
+  }
+
+  const activeSessionId = updates[0]?.activeSessionId
+  if (activeSessionId && presentIds.length > 0) {
+    const sessionPlayers = presentIds.map(id => ({
+      session_id: activeSessionId,
+      player_id: id,
+      games_played: 0
+    }))
+    
+    await supabase.from('session_players').upsert(
+      sessionPlayers,
+      { onConflict: 'session_id, player_id', ignoreDuplicates: true }
+    )
+  }
+
+  revalidatePath('/dashboard/session')
+}
+
 export async function toggleActivePosition(playerId: string, pos: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

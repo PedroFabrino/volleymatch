@@ -83,17 +83,17 @@ export default async function SessionSetupPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             
             {/* Attendance List */}
-            <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl shadow p-6 transition-colors">
-              <div className="flex justify-between items-center mb-4 border-b dark:border-gray-800 pb-4">
+            <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl shadow p-6 transition-colors flex flex-col h-[calc(100vh-12rem)] min-h-[500px]">
+              <div className="flex justify-between items-center mb-4 border-b dark:border-gray-800 pb-4 shrink-0">
                 <h2 className="text-xl font-bold dark:text-gray-100">{t('attendance')}</h2>
                 <span className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 text-sm font-bold px-3 py-1 rounded-full flex items-center gap-2">
                   <Users className="w-4 h-4" /> {t('present', { count: presentCount })}
                 </span>
               </div>
               
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t('attendanceDesc')}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 shrink-0">{t('attendanceDesc')}</p>
 
-              <div className="flex flex-col gap-2 max-h-[500px] overflow-y-auto pr-2">
+              <div className="flex flex-col gap-2 flex-1 overflow-y-auto pr-2">
                 {players?.map(player => (
                   <AttendanceToggle key={player.id} player={player} activeSessionId={activeSession?.id} />
                 ))}
