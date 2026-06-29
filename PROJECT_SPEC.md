@@ -24,7 +24,7 @@ VolleyMatch is a live, court-side web application designed to manage volleyball 
 ### 4.2. Session & Attendance
 *   Before games begin, the Hoster creates a "Session".
 *   The Hoster is presented with the Global Roster and simply toggles "Present" for the players who physically showed up.
-*   The Matchmaker exclusively uses "Present" players for queueing and matchmaking. Late arrivals can be checked in dynamically during the session.
+*   **Session-Specific Position Override:** When a player is marked present, their preferred positions appear as clickable chips. The Hoster can tap these chips to toggle them off for today's session (e.g., if a Setter only wants to hit today). This override applies only to the active session.
 
 ### 4.3. Matchmaking & Rotation Flow
 The app uses a hybrid "Winner Stays On" state machine:
@@ -32,7 +32,11 @@ The app uses a hybrid "Winner Stays On" state machine:
     1.  Take all 6 players from the winning team of the previous match.
     2.  Add all players currently waiting in the Queue.
     3.  Fill the remaining slots (up to 12) from the losing team, prioritizing those with the *least* amount of games played today. (Ties are broken by MMR balance).
-*   **The Rebalance:** The selected 12 players are pooled together and drafted into two brand-new, optimally balanced teams based on MMR and Positions. (The winning team does not stay together on the same side of the net, ensuring fairness).
+*   **The Rebalance (Setter Compensation Algorithm):** 
+    *   The selected 12 players are pooled together and snake-drafted into two teams based on their active MMR.
+    *   The algorithm attempts to place at least one active Setter on both teams.
+    *   *Compensation Logic:* If the pool only has 1 or 0 Setters, one or both teams will be forced to play without a Setter. To compensate for this severe disadvantage, the Matchmaker automatically grants the Setter-less team a **+10% MMR allowance boost** during the draft, effectively stacking them with stronger hitters to balance the game.
+*   **Callout UI:** When the new teams are presented, players who were waiting in the queue (the new additions to the court) are visually highlighted so the Hoster can easily call them out.
 
 ### 4.4. Live Scoreboard & Automation
 *   **House Rules:** Configurable settings available on the main dashboard (and easily switchable between games).
