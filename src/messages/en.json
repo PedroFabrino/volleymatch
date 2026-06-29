@@ -63,6 +63,9 @@
     "emptyRoster": "Your roster is empty.",
     "addFriends": "Add some friends to get started!",
     "removePlayer": "Remove player",
+    "editPlayer": "Edit player",
+    "updatePlayer": "Update Player",
+    "cancel": "Cancel",
     "noPosition": "No position set"
   },
   "Leaderboard": {

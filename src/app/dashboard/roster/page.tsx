@@ -1,13 +1,14 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { addPlayer, deletePlayer } from './actions'
-import { User, Shield, Activity, Trash2, ArrowLeft } from 'lucide-react'
+import { addPlayer, deletePlayer, updatePlayer } from './actions'
+import { User, Shield, Activity, Trash2, ArrowLeft, Edit2 } from 'lucide-react'
 import ActiveSessionBanner from '@/components/ActiveSessionBanner'
 import { getTranslations } from 'next-intl/server'
 
-export default async function RosterPage(props: { searchParams: Promise<{ error?: string }> }) {
+export default async function RosterPage(props: { searchParams: Promise<{ error?: string, edit?: string }> }) {
   const searchParams = await props.searchParams
+  const editId = searchParams?.edit
   
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -28,6 +29,8 @@ export default async function RosterPage(props: { searchParams: Promise<{ error?
     'Setter', 'Outside Hitter', 'Middle Blocker', 'Libero', 'Opposite Hitter'
   ]
 
+  const editingPlayer = editId ? players?.find(p => p.id === editId) : null
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col transition-colors">
       <ActiveSessionBanner />
@@ -46,7 +49,9 @@ export default async function RosterPage(props: { searchParams: Promise<{ error?
             {/* Add Player Form */}
             <div className="lg:col-span-1">
               <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl shadow p-6 sticky top-6 transition-colors">
-                <h2 className="text-xl font-bold mb-4 border-b dark:border-gray-800 pb-2 dark:text-gray-100">{t('addNew')}</h2>
+                <h2 className="text-xl font-bold mb-4 border-b dark:border-gray-800 pb-2 dark:text-gray-100">
+                  {editingPlayer ? t('editPlayer') : t('addNew')}
+                </h2>
                 
                 {searchParams?.error && (
                   <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm font-semibold border border-red-200">
@@ -54,7 +59,9 @@ export default async function RosterPage(props: { searchParams: Promise<{ error?
                   </div>
                 )}
                 
-                <form action={addPlayer} className="flex flex-col gap-4">
+                <form action={editingPlayer ? updatePlayer : addPlayer} className="flex flex-col gap-4">
+                {editingPlayer && <input type="hidden" name="id" value={editingPlayer.id} />}
+                
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="name" className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('playerName')}</label>
                   <input 
@@ -62,6 +69,7 @@ export default async function RosterPage(props: { searchParams: Promise<{ error?
                     name="name" 
                     type="text" 
                     required 
+                    defaultValue={editingPlayer?.name}
                     placeholder={t('playerNamePlaceholder')}
                     className="rounded-lg border dark:border-gray-700 p-2 text-black dark:text-white bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none"
                   />
@@ -72,6 +80,7 @@ export default async function RosterPage(props: { searchParams: Promise<{ error?
                   <select 
                     id="initial_tier" 
                     name="initial_tier"
+                    defaultValue={editingPlayer?.initial_tier || 'Beginner'}
                     className="rounded-lg border dark:border-gray-700 p-2 text-black dark:text-white bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none"
                   >
                     <option value="Beginner">{t('beginner')}</option>
@@ -85,7 +94,13 @@ export default async function RosterPage(props: { searchParams: Promise<{ error?
                   <div className="flex flex-col gap-2 mt-1">
                     {availablePositions.map(pos => (
                       <label key={pos} className="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" name="positions" value={pos} className="rounded text-blue-600 w-4 h-4 dark:bg-gray-800 dark:border-gray-700" />
+                        <input 
+                          type="checkbox" 
+                          name="positions" 
+                          value={pos} 
+                          defaultChecked={editingPlayer?.positions?.includes(pos)}
+                          className="rounded text-blue-600 w-4 h-4 dark:bg-gray-800 dark:border-gray-700" 
+                        />
                         <span className="text-sm text-gray-700 dark:text-gray-300">{posT(pos as any)}</span>
                       </label>
                     ))}
@@ -93,8 +108,13 @@ export default async function RosterPage(props: { searchParams: Promise<{ error?
                 </div>
 
                 <button type="submit" className="mt-4 w-full rounded-lg bg-blue-600 py-2 text-white font-bold hover:bg-blue-700 transition">
-                  {t('addToRoster')}
+                  {editingPlayer ? t('updatePlayer') : t('addToRoster')}
                 </button>
+                {editingPlayer && (
+                  <Link href="/dashboard/roster" className="text-center w-full rounded-lg bg-gray-200 dark:bg-gray-800 py-2 text-gray-700 dark:text-gray-300 font-bold hover:bg-gray-300 dark:hover:bg-gray-700 transition">
+                    {t('cancel')}
+                  </Link>
+                )}
               </form>
             </div>
           </div>
@@ -125,14 +145,19 @@ export default async function RosterPage(props: { searchParams: Promise<{ error?
                             {player.initial_tier}
                           </span>
                         </div>
-                        <form action={async () => {
-                          'use server'
-                          await deletePlayer(player.id)
-                        }}>
-                          <button type="submit" className="text-gray-400 hover:text-red-500 p-1 transition" title={t('removePlayer')}>
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </form>
+                        <div className="flex gap-2">
+                          <Link href={`/dashboard/roster?edit=${player.id}`} className="text-gray-400 hover:text-blue-500 p-1 transition" title={t('editPlayer')}>
+                            <Edit2 className="w-4 h-4" />
+                          </Link>
+                          <form action={async () => {
+                            'use server'
+                            await deletePlayer(player.id)
+                          }}>
+                            <button type="submit" className="text-gray-400 hover:text-red-500 p-1 transition" title={t('removePlayer')}>
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </form>
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mt-1">

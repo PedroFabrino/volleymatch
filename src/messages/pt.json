@@ -63,6 +63,9 @@
     "emptyRoster": "Seu elenco está vazio.",
     "addFriends": "Adicione amigos para começar!",
     "removePlayer": "Remover jogador",
+    "editPlayer": "Editar jogador",
+    "updatePlayer": "Atualizar Jogador",
+    "cancel": "Cancelar",
     "noPosition": "Nenhuma posição definida"
   },
   "Leaderboard": {

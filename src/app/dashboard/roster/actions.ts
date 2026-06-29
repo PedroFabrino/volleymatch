@@ -45,6 +45,43 @@ export async function addPlayer(formData: FormData) {
   redirect('/dashboard/roster')
 }
 
+export async function updatePlayer(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const id = formData.get('id') as string
+  const name = (formData.get('name') as string).trim()
+  const positions = formData.getAll('positions') as string[]
+  const initial_tier = formData.get('initial_tier') as string
+
+  // Check for duplicate name
+  const { data: existingPlayer } = await supabase
+    .from('players')
+    .select('id')
+    .eq('hoster_id', user.id)
+    .ilike('name', name)
+    .neq('id', id)
+    .maybeSingle()
+    
+  if (existingPlayer) {
+    redirect(`/dashboard/roster?edit=${id}&error=Duplicate+player+name`)
+  }
+
+  const { error } = await supabase.from('players').update({
+    name,
+    positions,
+    initial_tier
+  }).eq('id', id).eq('hoster_id', user.id)
+
+  if (error) {
+    console.error('Error updating player:', error)
+  }
+
+  revalidatePath('/dashboard/roster')
+  redirect('/dashboard/roster')
+}
+
 export async function deletePlayer(playerId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
