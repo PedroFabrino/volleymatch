@@ -121,16 +121,18 @@ export function calculateMmrChanges(match: MatchData, players: Record<string, Pl
 
   const totalPoints = match.team_a_score + match.team_b_score;
 
-  // If match was 0-0, no MMR changes
   if (totalPoints === 0) {
-    return Object.values(players).map(p => ({
-      playerId: p.id,
-      oldMmr: p.mmr,
-      newMmr: p.mmr,
-      mmrChange: 0,
-      participationFactor: 0,
-      queueIncrement: 0
-    }));
+    return Object.values(players).map(p => {
+      const isOnCourt = initialCourtA.has(p.id) || initialCourtB.has(p.id);
+      return {
+        playerId: p.id,
+        oldMmr: p.mmr,
+        newMmr: p.mmr,
+        mmrChange: 0,
+        participationFactor: isOnCourt ? 1 : 0,
+        queueIncrement: isOnCourt ? 1 : 0
+      };
+    });
   }
 
   // 2. Calculate Weighted Team MMRs

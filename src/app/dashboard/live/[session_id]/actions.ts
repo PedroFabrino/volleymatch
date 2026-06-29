@@ -127,15 +127,18 @@ export async function updateScore(matchId: string, sessionId: string, team: 'a' 
     team_b_score: newScoreB,
   }).eq('id', matchId)
   
-  await supabase.from('match_events').insert({
+  const { error } = await supabase.from('match_events').insert({
     match_id: matchId,
     event_type: 'score',
     team,
     increment,
     score_a: newScoreA,
-
     score_b: newScoreB
   })
+
+  if (error) {
+    console.error("FAILED TO INSERT MATCH EVENT:", error)
+  }
 
   revalidatePath(`/dashboard/live/${sessionId}`)
 }
@@ -204,11 +207,15 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
       mmr: update.newMmr
     }).eq('id', update.playerId)
 
-    await supabase.from('session_players').upsert({
+    const { error: upsertError } = await supabase.from('session_players').upsert({
       session_id: sessionId,
       player_id: update.playerId,
       games_played: playerRecords[update.playerId].games_played_today + update.queueIncrement
     }, { onConflict: 'session_id, player_id' })
+    
+    if (upsertError) {
+      console.error("FAILED TO UPSERT SESSION PLAYER:", upsertError)
+    }
   }
 
   if (destination === 'draft') {
@@ -260,7 +267,7 @@ export async function substitutePlayer(matchId: string, sessionId: string, team:
     team_b_positions: newPositionsB
   }).eq('id', matchId)
 
-  await supabase.from('match_events').insert({
+  const { error } = await supabase.from('match_events').insert({
     match_id: matchId,
     event_type: 'substitution',
     team,
@@ -268,6 +275,10 @@ export async function substitutePlayer(matchId: string, sessionId: string, team:
     player_in_id: playerInId,
     filled_position: filledPosition
   })
+
+  if (error) {
+    console.error("FAILED TO INSERT SUB EVENT:", error)
+  }
 
   revalidatePath(`/dashboard/live/${sessionId}`)
 }
