@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { draftTeams } from '@/utils/matchmaking'
 
 export async function generateMatch(sessionId: string) {
   const supabase = await createClient()
@@ -29,49 +30,7 @@ export async function generateMatch(sessionId: string) {
     return Math.random() - 0.5
   }).slice(0, 12)
 
-  // 3. Draft the 12 players into 2 teams based on MMR (Snake Draft approximation)
-  playersToDraft.sort((a, b) => b.mmr - a.mmr)
-
-  const teamA: string[] = []
-  const teamB: string[] = []
-  let teamAMmr = 0
-  let teamBMmr = 0
-
-  // Setter Compensation Logic
-  const isSetter = (p: any) => {
-    const pos = p.active_positions && p.active_positions.length > 0 ? p.active_positions : p.positions
-    return pos?.includes('Setter') || false
-  }
-
-  const setters = playersToDraft.filter(isSetter)
-  let teamAMissingSetter = false
-  let teamBMissingSetter = false
-
-  if (setters.length === 1) {
-    // Give the only setter to Team A, Team B gets compensation
-    teamA.push(setters[0].id)
-    teamAMmr += setters[0].mmr
-    playersToDraft.splice(playersToDraft.indexOf(setters[0]), 1)
-    teamBMissingSetter = true
-  }
-
-  for (const player of playersToDraft) {
-    // Apply 10% penalty to the calculated MMR of a team missing a setter
-    // This tricks the draft into giving them a better player to compensate
-    const effectiveTeamAMmr = teamAMissingSetter ? teamAMmr * 0.9 : teamAMmr
-    const effectiveTeamBMmr = teamBMissingSetter ? teamBMmr * 0.9 : teamBMmr
-
-    if (effectiveTeamAMmr <= effectiveTeamBMmr && teamA.length < 6) {
-      teamA.push(player.id)
-      teamAMmr += player.mmr
-    } else if (teamB.length < 6) {
-      teamB.push(player.id)
-      teamBMmr += player.mmr
-    } else {
-      teamA.push(player.id)
-      teamAMmr += player.mmr
-    }
-  }
+  const { teamA, teamB } = draftTeams(playersToDraft)
 
   // Return the match draft instead of saving
   return { teamA, teamB }
