@@ -25,3 +25,9 @@ CREATE POLICY "Allow public read access to players"
 ALTER PUBLICATION supabase_realtime ADD TABLE sessions;
 ALTER PUBLICATION supabase_realtime ADD TABLE matches;
 ALTER PUBLICATION supabase_realtime ADD TABLE session_players;
+
+-- Explicitly grant SELECT to anon role so unauthenticated users aren't blocked at the table level
+GRANT SELECT ON public.sessions TO anon;
+GRANT SELECT ON public.matches TO anon;
+GRANT SELECT ON public.session_players TO anon;
+GRANT SELECT ON public.players TO anon;

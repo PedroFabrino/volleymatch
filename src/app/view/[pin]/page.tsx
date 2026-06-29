@@ -11,12 +11,16 @@ export default async function ViewSessionPage(props: { params: Promise<{ pin: st
   const supabase = await createClient()
 
   // 1. Get Session Details by PIN (must be active)
-  const { data: session } = await supabase
+  const { data: session, error } = await supabase
     .from('sessions')
     .select('*')
     .eq('pin', pin)
     .eq('is_active', true)
     .single()
+
+  if (error) {
+    console.error('Supabase Error fetching session:', error)
+  }
 
   if (!session) {
     // PIN invalid or session ended

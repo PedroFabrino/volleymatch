@@ -65,7 +65,23 @@ export function draftTeams(playersToDraft: Player[]): { teamA: string[], teamB: 
 export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinningTeamIds: string[], lastMatchLosingTeamIds: string[]): { teamA: string[], teamB: string[], teamAPositions: Record<string, string>, teamBPositions: Record<string, string> } {
   // We need exactly 14 players total. 
   // Composition per team: 1 Setter, 2 Outside Hitter, 1 Opposite, 2 Middle Blocker, 1 Libero
-  const blueprint = [
+  // Helper to get effective positions
+  const getPos = (p: Player) => (p.active_positions && p.active_positions.length > 0) ? p.active_positions : p.positions;
+  const hasPos = (p: Player, pos: string | string[]) => {
+    const pPos = getPos(p);
+    if (Array.isArray(pos)) return pos.some(x => pPos.includes(x));
+    return pPos.includes(pos);
+  };
+
+  // Determine if we have enough MBs and Liberos for 7v7
+  // 7v7 needs 4 MBs + 2 Liberos = 6 total from these positions
+  const availableMBs = allAvailablePlayers.filter(p => hasPos(p, 'Middle Blocker'));
+  const availableLiberos = allAvailablePlayers.filter(p => hasPos(p, 'Libero') && !hasPos(p, 'Middle Blocker')); // avoid double counting
+  const totalMBL = availableMBs.length + availableLiberos.length;
+
+  let targetSize = 7;
+  let totalPlayersNeeded = 14;
+  let blueprint = [
     { pos: 'Setter', count: 2 },
     { pos: 'Outside Hitter', count: 4 },
     { pos: 'Opposite', count: 2 },
@@ -73,9 +89,18 @@ export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinning
     { pos: 'Libero', count: 2 }
   ];
 
-  // Helper to get effective positions
-  const getPos = (p: Player) => (p.active_positions && p.active_positions.length > 0) ? p.active_positions : p.positions;
-  const hasPos = (p: Player, pos: string) => getPos(p).includes(pos);
+  if (totalMBL < 6) {
+    // Fallback to 6v6 if we don't have enough Middle Blockers / Liberos for 7v7
+    targetSize = 6;
+    totalPlayersNeeded = 12;
+    blueprint = [
+      { pos: 'Setter', count: 2 },
+      { pos: 'Outside Hitter', count: 4 },
+      { pos: 'Opposite', count: 2 },
+      { pos: 'Middle Blocker', count: 2 },
+      { pos: 'Libero', count: 2 }
+    ];
+  }
 
   // Sorting function to pick the "most deserving" players
   const sortByDeserving = (a: Player, b: Player) => {
@@ -90,19 +115,17 @@ export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinning
     const aIsLoser = lastMatchLosingTeamIds.includes(a.id);
     const bIsLoser = lastMatchLosingTeamIds.includes(b.id);
     
-    const aPriority = aIsWinner ? 2 : (aIsLoser ? 1 : 0); // (0 means queue, but queue would win on games_played_today)
+    const aPriority = aIsWinner ? 2 : (aIsLoser ? 1 : 0);
     const bPriority = bIsWinner ? 2 : (bIsLoser ? 1 : 0);
     
     if (aPriority !== bPriority) {
-      return bPriority - aPriority; // higher priority first
+      return bPriority - aPriority;
     }
     
-    // 3. If still tied, we don't sort by MMR here. We keep them together and we'll evaluate combinations later for balancing.
-    return 0; // For now, just keep stable order. 
+    return 0;
   };
 
   let selectedPlayers: Player[] = [];
-  // Shuffle first to ensure random tie-breaking, then apply our priority sort
   let remainingPlayers = [...allAvailablePlayers]
     .sort(() => Math.random() - 0.5)
     .sort(sortByDeserving);
@@ -110,56 +133,58 @@ export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinning
   // Greedy Assignment based on blueprint
   for (const requirement of blueprint) {
     const candidates = remainingPlayers.filter(p => hasPos(p, requirement.pos));
-    // Take the top 'count' candidates
     const picked = candidates.slice(0, requirement.count);
     
     selectedPlayers.push(...picked);
-    
-    // Remove picked from remaining
     remainingPlayers = remainingPlayers.filter(p => !picked.includes(p));
   }
 
-  // Fallback: If we didn't fill all 14 slots because we lack specific positions, just grab anyone remaining to fill to 14
-  if (selectedPlayers.length < 14) {
-    const needed = 14 - selectedPlayers.length;
+  // Fallback: Fill to targetSize * 2
+  if (selectedPlayers.length < totalPlayersNeeded) {
+    const needed = totalPlayersNeeded - selectedPlayers.length;
     const fallbacks = remainingPlayers.slice(0, needed);
     selectedPlayers.push(...fallbacks);
   }
 
-  // Now we have up to 14 players. We need to split them into Team A and Team B to balance MMR perfectly!
-  // Simple greedy split balancing total MMR
   const teamA: Player[] = [];
   const teamB: Player[] = [];
   const teamAPositions: Record<string, string> = {};
   const teamBPositions: Record<string, string> = {};
   
-  // Sort selected by MMR descending for greedy distribution
   selectedPlayers.sort((a, b) => b.mmr - a.mmr);
-
   const getTeamMmr = (t: Player[]) => t.reduce((s, p) => s + p.mmr, 0);
 
-  // We should also remember what position they were drafted FOR.
-  // We can assign the position based on what blueprint slot they took, but it's simpler to just re-verify what position they have.
-  // Actually, we need to map them back to their role.
   const assignRole = (p: Player, teamObj: Record<string, string>) => {
-    // Greedy role assignment to ensure valid team
-    if (hasPos(p, 'Setter') && !Object.values(teamObj).includes('Setter')) return 'Setter';
-    if (hasPos(p, 'Opposite') && !Object.values(teamObj).includes('Opposite')) return 'Opposite';
-    if (hasPos(p, 'Libero') && !Object.values(teamObj).includes('Libero')) return 'Libero';
-    if (hasPos(p, 'Middle Blocker') && Object.values(teamObj).filter(x => x === 'Middle Blocker').length < 2) return 'Middle Blocker';
-    if (hasPos(p, 'Outside Hitter') && Object.values(teamObj).filter(x => x === 'Outside Hitter').length < 2) return 'Outside Hitter';
+    const teamVals = Object.values(teamObj);
+    if (hasPos(p, 'Setter') && !teamVals.includes('Setter')) return 'Setter';
+    if (hasPos(p, 'Opposite') && !teamVals.includes('Opposite')) return 'Opposite';
+    
+    if (targetSize === 7) {
+      if (hasPos(p, 'Libero') && !teamVals.includes('Libero')) return 'Libero';
+      if (hasPos(p, 'Middle Blocker') && teamVals.filter(x => x === 'Middle Blocker').length < 2) return 'Middle Blocker';
+    } else {
+      // In 6v6, we want exactly 1 MB and 1 Libero per team.
+      if (hasPos(p, 'Libero') && !teamVals.includes('Libero')) return 'Libero';
+      if (hasPos(p, 'Middle Blocker') && !teamVals.includes('Middle Blocker')) return 'Middle Blocker';
+      
+      // If they are an MB but the MB slot is taken, they play Libero (and vice-versa)
+      if (hasPos(p, 'Middle Blocker') && !teamVals.includes('Libero')) return 'Libero';
+      if (hasPos(p, 'Libero') && !teamVals.includes('Middle Blocker')) return 'Middle Blocker';
+    }
+
+    if (hasPos(p, 'Outside Hitter') && teamVals.filter(x => x === 'Outside Hitter').length < 2) return 'Outside Hitter';
+    
     return getPos(p)[0] || 'Any'; // fallback
   };
 
-  // Try to enforce 1 setter per team during split
   const setters = selectedPlayers.filter(p => hasPos(p, 'Setter'));
   const others = selectedPlayers.filter(p => !hasPos(p, 'Setter'));
 
   for (const s of setters) {
-    if (teamA.length < 7 && (teamA.length < teamB.length || (teamA.length === teamB.length && getTeamMmr(teamA) <= getTeamMmr(teamB)))) {
+    if (teamA.length < targetSize && (teamA.length < teamB.length || (teamA.length === teamB.length && getTeamMmr(teamA) <= getTeamMmr(teamB)))) {
       teamA.push(s);
       teamAPositions[s.id] = assignRole(s, teamAPositions);
-    } else if (teamB.length < 7) {
+    } else if (teamB.length < targetSize) {
       teamB.push(s);
       teamBPositions[s.id] = assignRole(s, teamBPositions);
     } else {
@@ -169,10 +194,10 @@ export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinning
   }
 
   for (const p of others) {
-    if (teamA.length < 7 && (teamA.length < teamB.length || (teamA.length === teamB.length && getTeamMmr(teamA) <= getTeamMmr(teamB)))) {
+    if (teamA.length < targetSize && (teamA.length < teamB.length || (teamA.length === teamB.length && getTeamMmr(teamA) <= getTeamMmr(teamB)))) {
       teamA.push(p);
       teamAPositions[p.id] = assignRole(p, teamAPositions);
-    } else if (teamB.length < 7) {
+    } else if (teamB.length < targetSize) {
       teamB.push(p);
       teamBPositions[p.id] = assignRole(p, teamBPositions);
     } else {

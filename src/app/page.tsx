@@ -4,6 +4,8 @@ import Link from 'next/link'
 import JoinSessionForm from './JoinSessionForm'
 import { Trophy } from 'lucide-react'
 
+import { Suspense } from 'react'
+
 export default async function Home() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -25,7 +27,9 @@ export default async function Home() {
           Join a live session to view the scoreboard and queue, or login to host your own.
         </p>
 
-        <JoinSessionForm />
+        <Suspense fallback={<div className="h-24"></div>}>
+          <JoinSessionForm />
+        </Suspense>
 
         <div className="w-full relative flex items-center justify-center mt-8 mb-6">
           <div className="absolute inset-0 flex items-center">

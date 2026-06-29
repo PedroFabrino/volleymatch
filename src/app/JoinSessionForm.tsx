@@ -1,13 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowRight, Loader2, Play } from 'lucide-react'
 
 export default function JoinSessionForm() {
   const [pin, setPin] = useState('')
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const error = searchParams.get('error')
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,6 +37,9 @@ export default function JoinSessionForm() {
           className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-center text-3xl font-mono tracking-widest text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
           required
         />
+        {error === 'invalid_pin' && (
+          <p className="text-red-500 text-sm mt-2 text-center font-bold">Invalid Room PIN or session has ended.</p>
+        )}
       </div>
       <button
         type="submit"

@@ -26,6 +26,18 @@ export default function Matchmaker({ session, players }: { session: any, players
 
   const getPlayerName = (id: string) => players.find(p => p.id === id)?.name || 'Unknown'
 
+  const sortOrder = ['Setter', 'Middle Blocker', 'Outside Hitter', 'Opposite', 'Libero', 'Any'];
+  const sortPlayersByPos = (teamIds: string[], positions?: Record<string, string>) => {
+    if (!positions) return teamIds;
+    return [...teamIds].sort((a, b) => {
+      const posA = positions[a] || 'Any';
+      const posB = positions[b] || 'Any';
+      const indexA = sortOrder.indexOf(posA);
+      const indexB = sortOrder.indexOf(posB);
+      return (indexA === -1 ? 99 : indexA) - (indexB === -1 ? 99 : indexB);
+    });
+  }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center relative w-full overflow-y-auto">
       <a href="/dashboard/session" className="absolute top-6 left-6 p-3 bg-gray-800 rounded-full hover:bg-gray-700 transition shadow-lg z-10">
@@ -55,27 +67,35 @@ export default function Matchmaker({ session, players }: { session: any, players
             <div className="flex-1 bg-red-900/20 border border-red-500/30 rounded-2xl p-6">
               <h3 className="text-red-400 font-bold text-xl mb-4 border-b border-red-500/30 pb-2">{t('redTeam')}</h3>
               <ul className="flex flex-col gap-2">
-                {draft.teamA.map(id => (
-                  <li key={id} className="bg-gray-800/80 p-3 rounded-lg font-semibold text-gray-100 flex justify-between items-center">
-                    <span>{getPlayerName(id)}</span>
-                    {draft.teamAPositions && draft.teamAPositions[id] && (
-                      <span className="text-xs bg-red-900/50 text-red-200 px-2 py-1 rounded">{draft.teamAPositions[id]}</span>
-                    )}
-                  </li>
-                ))}
+                {sortPlayersByPos(draft.teamA, draft.teamAPositions).map(id => {
+                  const pos = draft.teamAPositions?.[id];
+                  const isLibero = pos === 'Libero';
+                  return (
+                    <li key={id} className={`p-3 rounded-lg font-semibold flex justify-between items-center ${isLibero ? 'bg-amber-900/30 border border-amber-500/30 text-amber-100' : 'bg-gray-800/80 text-gray-100'}`}>
+                      <span>{getPlayerName(id)}</span>
+                      {pos && (
+                        <span className={`text-xs px-2 py-1 rounded ${isLibero ? 'bg-amber-900/60 text-amber-200' : 'bg-red-900/50 text-red-200'}`}>{pos}</span>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             </div>
             <div className="flex-1 bg-blue-900/20 border border-blue-500/30 rounded-2xl p-6">
               <h3 className="text-blue-400 font-bold text-xl mb-4 border-b border-blue-500/30 pb-2">{t('blueTeam')}</h3>
               <ul className="flex flex-col gap-2">
-                {draft.teamB.map(id => (
-                  <li key={id} className="bg-gray-800/80 p-3 rounded-lg font-semibold text-gray-100 flex justify-between items-center">
-                    <span>{getPlayerName(id)}</span>
-                    {draft.teamBPositions && draft.teamBPositions[id] && (
-                      <span className="text-xs bg-blue-900/50 text-blue-200 px-2 py-1 rounded">{draft.teamBPositions[id]}</span>
-                    )}
-                  </li>
-                ))}
+                {sortPlayersByPos(draft.teamB, draft.teamBPositions).map(id => {
+                  const pos = draft.teamBPositions?.[id];
+                  const isLibero = pos === 'Libero';
+                  return (
+                    <li key={id} className={`p-3 rounded-lg font-semibold flex justify-between items-center ${isLibero ? 'bg-amber-900/30 border border-amber-500/30 text-amber-100' : 'bg-gray-800/80 text-gray-100'}`}>
+                      <span>{getPlayerName(id)}</span>
+                      {pos && (
+                        <span className={`text-xs px-2 py-1 rounded ${isLibero ? 'bg-amber-900/60 text-amber-200' : 'bg-blue-900/50 text-blue-200'}`}>{pos}</span>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             </div>
           </div>
