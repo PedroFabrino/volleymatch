@@ -130,7 +130,7 @@ export default async function SessionSetupPage() {
                               </div>
                               <span className="font-semibold text-gray-900 dark:text-gray-100">{p.name}</span>
                             </div>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">{p.games_played_today} games played</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">{Math.floor(p.games_played_today)} games played</span>
                           </li>
                         ))}
                       </ul>

@@ -6,7 +6,7 @@ import { Trophy, Users, Check, RefreshCw } from 'lucide-react'
 
 export default function Matchmaker({ session, players }: { session: any, players: any[] }) {
   const [isPending, startTransition] = useTransition()
-  const [draft, setDraft] = useState<{ teamA: string[], teamB: string[] } | null>(null)
+  const [draft, setDraft] = useState<{ teamA: string[], teamB: string[], teamAPositions?: any, teamBPositions?: any } | null>(null)
 
   const handleGenerate = async () => {
     startTransition(async () => {
@@ -18,7 +18,7 @@ export default function Matchmaker({ session, players }: { session: any, players
   const handleStart = () => {
     if (!draft) return
     startTransition(() => {
-      saveMatch(session.id, draft.teamA, draft.teamB)
+      saveMatch(session.id, draft.teamA, draft.teamB, draft.teamAPositions, draft.teamBPositions)
     })
   }
 
@@ -54,7 +54,12 @@ export default function Matchmaker({ session, players }: { session: any, players
               <h3 className="text-red-400 font-bold text-xl mb-4 border-b border-red-500/30 pb-2">Red Team</h3>
               <ul className="flex flex-col gap-2">
                 {draft.teamA.map(id => (
-                  <li key={id} className="bg-gray-800/80 p-3 rounded-lg font-semibold text-gray-100">{getPlayerName(id)}</li>
+                  <li key={id} className="bg-gray-800/80 p-3 rounded-lg font-semibold text-gray-100 flex justify-between items-center">
+                    <span>{getPlayerName(id)}</span>
+                    {draft.teamAPositions && draft.teamAPositions[id] && (
+                      <span className="text-xs bg-red-900/50 text-red-200 px-2 py-1 rounded">{draft.teamAPositions[id]}</span>
+                    )}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -62,7 +67,12 @@ export default function Matchmaker({ session, players }: { session: any, players
               <h3 className="text-blue-400 font-bold text-xl mb-4 border-b border-blue-500/30 pb-2">Blue Team</h3>
               <ul className="flex flex-col gap-2">
                 {draft.teamB.map(id => (
-                  <li key={id} className="bg-gray-800/80 p-3 rounded-lg font-semibold text-gray-100">{getPlayerName(id)}</li>
+                  <li key={id} className="bg-gray-800/80 p-3 rounded-lg font-semibold text-gray-100 flex justify-between items-center">
+                    <span>{getPlayerName(id)}</span>
+                    {draft.teamBPositions && draft.teamBPositions[id] && (
+                      <span className="text-xs bg-blue-900/50 text-blue-200 px-2 py-1 rounded">{draft.teamBPositions[id]}</span>
+                    )}
+                  </li>
                 ))}
               </ul>
             </div>

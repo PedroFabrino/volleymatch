@@ -127,11 +127,26 @@ export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinning
   // Simple greedy split balancing total MMR
   const teamA: Player[] = [];
   const teamB: Player[] = [];
+  const teamAPositions: Record<string, string> = {};
+  const teamBPositions: Record<string, string> = {};
   
   // Sort selected by MMR descending for greedy distribution
   selectedPlayers.sort((a, b) => b.mmr - a.mmr);
 
   const getTeamMmr = (t: Player[]) => t.reduce((s, p) => s + p.mmr, 0);
+
+  // We should also remember what position they were drafted FOR.
+  // We can assign the position based on what blueprint slot they took, but it's simpler to just re-verify what position they have.
+  // Actually, we need to map them back to their role.
+  const assignRole = (p: Player, teamObj: Record<string, string>) => {
+    // Greedy role assignment to ensure valid team
+    if (hasPos(p, 'Setter') && !Object.values(teamObj).includes('Setter')) return 'Setter';
+    if (hasPos(p, 'Opposite') && !Object.values(teamObj).includes('Opposite')) return 'Opposite';
+    if (hasPos(p, 'Libero') && !Object.values(teamObj).includes('Libero')) return 'Libero';
+    if (hasPos(p, 'Middle Blocker') && Object.values(teamObj).filter(x => x === 'Middle Blocker').length < 2) return 'Middle Blocker';
+    if (hasPos(p, 'Outside Hitter') && Object.values(teamObj).filter(x => x === 'Outside Hitter').length < 2) return 'Outside Hitter';
+    return getPos(p)[0] || 'Any'; // fallback
+  };
 
   // Try to enforce 1 setter per team during split
   const setters = selectedPlayers.filter(p => hasPos(p, 'Setter'));
@@ -140,25 +155,33 @@ export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinning
   for (const s of setters) {
     if (teamA.length < 7 && (teamA.length < teamB.length || (teamA.length === teamB.length && getTeamMmr(teamA) <= getTeamMmr(teamB)))) {
       teamA.push(s);
+      teamAPositions[s.id] = assignRole(s, teamAPositions);
     } else if (teamB.length < 7) {
       teamB.push(s);
+      teamBPositions[s.id] = assignRole(s, teamBPositions);
     } else {
       teamA.push(s);
+      teamAPositions[s.id] = assignRole(s, teamAPositions);
     }
   }
 
   for (const p of others) {
     if (teamA.length < 7 && (teamA.length < teamB.length || (teamA.length === teamB.length && getTeamMmr(teamA) <= getTeamMmr(teamB)))) {
       teamA.push(p);
+      teamAPositions[p.id] = assignRole(p, teamAPositions);
     } else if (teamB.length < 7) {
       teamB.push(p);
+      teamBPositions[p.id] = assignRole(p, teamBPositions);
     } else {
       teamA.push(p);
+      teamAPositions[p.id] = assignRole(p, teamAPositions);
     }
   }
 
   return {
     teamA: teamA.map(p => p.id),
-    teamB: teamB.map(p => p.id)
+    teamB: teamB.map(p => p.id),
+    teamAPositions,
+    teamBPositions
   };
 }

@@ -75,7 +75,7 @@ export async function generateMatch(sessionId: string) {
   return { teamA, teamB }
 }
 
-export async function saveMatch(sessionId: string, teamA: string[], teamB: string[]) {
+export async function saveMatch(sessionId: string, teamA: string[], teamB: string[], teamAPositions?: any, teamBPositions?: any) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
@@ -87,6 +87,8 @@ export async function saveMatch(sessionId: string, teamA: string[], teamB: strin
     team_b_players: teamB,
     team_a_score: 0,
     team_b_score: 0,
+    team_a_positions: teamAPositions || {},
+    team_b_positions: teamBPositions || {},
     is_completed: false
   })
 
@@ -101,28 +103,150 @@ export async function saveMatch(sessionId: string, teamA: string[], teamB: strin
 export async function updateScore(matchId: string, sessionId: string, team: 'a' | 'b', increment: number) {
   const supabase = await createClient()
   
-  // Fetch current score and timeline
-  const { data: match } = await supabase.from('matches').select('team_a_score, team_b_score, point_timeline').eq('id', matchId).single()
+  // Fetch current score
+  const { data: match } = await supabase.from('matches').select('team_a_score, team_b_score').eq('id', matchId).single()
   if (!match) return
 
   const newScoreA = team === 'a' ? Math.max(0, match.team_a_score + increment) : match.team_a_score
   const newScoreB = team === 'b' ? Math.max(0, match.team_b_score + increment) : match.team_b_score
 
-  const timeline = match.point_timeline || []
-  timeline.push({
+  await supabase.from('matches').update({
+    team_a_score: newScoreA,
+    team_b_score: newScoreB,
+  }).eq('id', matchId)
+  
+  await supabase.from('match_events').insert({
+    match_id: matchId,
+    event_type: 'score',
     team,
     increment,
-    scoreA: newScoreA,
-    scoreB: newScoreB,
-    timestamp: new Date().toISOString()
+    score_a: newScoreA,
+'use server'
+
+import { createClient } from '@/utils/supabase/server'
+import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
+import { draftTeams, draftStrictTeams } from '@/utils/matchmaking'
+import { calculateMmrChanges } from '@/utils/mmr'
+
+export async function generateMatch(sessionId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  // Get Session Details to know mode
+  const { data: session } = await supabase.from('sessions').select('*').eq('id', sessionId).single()
+  if (!session) return
+
+  // 1. Get all players present today
+  const { data: presentPlayers } = await supabase
+    .from('players')
+    .select('*')
+    .eq('hoster_id', user.id)
+    .eq('is_present_today', true)
+    
+  if (!presentPlayers || presentPlayers.length < 2) return
+
+  const mode = session.matchmaking_mode || 'casual'
+
+  if (mode === 'strict') {
+    // We need to know who won the last match
+    const { data: lastMatch } = await supabase
+      .from('matches')
+      .select('team_a_players, team_b_players, team_a_score, team_b_score')
+      .eq('session_id', sessionId)
+      .eq('is_completed', true)
+      .order('completed_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    let lastMatchWinningTeamIds: string[] = []
+    let lastMatchLosingTeamIds: string[] = []
+
+    if (lastMatch) {
+      if (lastMatch.team_a_score > lastMatch.team_b_score) {
+        lastMatchWinningTeamIds = lastMatch.team_a_players
+        lastMatchLosingTeamIds = lastMatch.team_b_players
+      } else if (lastMatch.team_b_score > lastMatch.team_a_score) {
+        lastMatchWinningTeamIds = lastMatch.team_b_players
+        lastMatchLosingTeamIds = lastMatch.team_a_players
+      } else {
+        // Draw, just dump them all as losers so they get lower priority than queue
+        lastMatchLosingTeamIds = [...lastMatch.team_a_players, ...lastMatch.team_b_players]
+      }
+    }
+
+    const { teamA, teamB } = draftStrictTeams(presentPlayers, lastMatchWinningTeamIds, lastMatchLosingTeamIds)
+    return { teamA, teamB }
+  }
+
+  // Casual Mode
+  // 2. Determine who plays next (Hybrid Winner Stays On Logic)
+  // For MVP: Simply sort by games_played_today (ascending) to guarantee rotation, then by MMR to balance.
+  // We will take up to 12 players to form the match.
+  const playersToDraft = [...presentPlayers].sort((a, b) => {
+    if (a.games_played_today !== b.games_played_today) {
+      return a.games_played_today - b.games_played_today
+    }
+    // If they have played the same amount, sort randomly for now to mix teams, or by MMR.
+    return Math.random() - 0.5
+  }).slice(0, 12)
+
+  const { teamA, teamB } = draftTeams(playersToDraft)
+
+  // Return the match draft instead of saving
+  return { teamA, teamB }
+}
+
+export async function saveMatch(sessionId: string, teamA: string[], teamB: string[], teamAPositions?: any, teamBPositions?: any) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { error } = await supabase.from('matches').insert({
+    session_id: sessionId,
+    hoster_id: user.id,
+    team_a_players: teamA,
+    team_b_players: teamB,
+    team_a_score: 0,
+    team_b_score: 0,
+    team_a_positions: teamAPositions || {},
+    team_b_positions: teamBPositions || {},
+    is_completed: false
   })
+
+  if (error) {
+    console.error("FAILED TO INSERT MATCH", error)
+    throw new Error(error.message)
+  }
+
+  revalidatePath(`/dashboard/live/${sessionId}`)
+}
+
+export async function updateScore(matchId: string, sessionId: string, team: 'a' | 'b', increment: number) {
+  const supabase = await createClient()
+  
+  // Fetch current score
+  const { data: match } = await supabase.from('matches').select('team_a_score, team_b_score').eq('id', matchId).single()
+  if (!match) return
+
+  const newScoreA = team === 'a' ? Math.max(0, match.team_a_score + increment) : match.team_a_score
+  const newScoreB = team === 'b' ? Math.max(0, match.team_b_score + increment) : match.team_b_score
 
   await supabase.from('matches').update({
     team_a_score: newScoreA,
     team_b_score: newScoreB,
-    point_timeline: timeline
   }).eq('id', matchId)
   
+  await supabase.from('match_events').insert({
+    match_id: matchId,
+    event_type: 'score',
+    team,
+    increment,
+    score_a: newScoreA,
+    score_b: newScoreB
+  })
+
   revalidatePath(`/dashboard/live/${sessionId}`)
 }
 
@@ -132,51 +256,57 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
   const { data: match } = await supabase.from('matches').select('*').eq('id', matchId).single()
   if (!match) return
 
-  // Prevent double counting if they clicked the button multiple times
   if (match.is_completed) {
-    if (destination === 'draft') {
-      revalidatePath(`/dashboard/live/${sessionId}`, 'page')
-    } else {
-      revalidatePath(`/dashboard/session`, 'page')
-      redirect(`/dashboard/session`)
-    }
+    if (destination === 'draft') revalidatePath(`/dashboard/live/${sessionId}`, 'page')
+    else { revalidatePath(`/dashboard/session`, 'page'); redirect(`/dashboard/session`) }
     return
   }
 
-  // 1. Mark match as completed and set completed_at
+  // Fetch timeline from match_events
+  const { data: events } = await supabase.from('match_events').select('*').eq('match_id', matchId).order('created_at', { ascending: true })
+  
+  // Convert DB events back to PointEvent format for mmr.ts
+  const timeline = (events || []).map(e => ({
+    team: e.team,
+    increment: e.increment,
+    scoreA: e.score_a,
+    scoreB: e.score_b,
+    timestamp: e.created_at,
+    type: e.event_type,
+    playerOutId: e.player_out_id,
+    playerInId: e.player_in_id
+  }))
+
   await supabase.from('matches').update({ 
     is_completed: true,
     completed_at: new Date().toISOString()
   }).eq('id', matchId)
 
-  // 2. Increment games_played_today for all participants
-  const allPlayers = [...match.team_a_players, ...match.team_b_players]
   const playerRecords: Record<string, any> = {}
+  const allPlayers = [...match.team_a_players, ...match.team_b_players]
 
   for (const pid of allPlayers) {
     const { data: p } = await supabase.from('players').select('games_played_today, mmr, id').eq('id', pid).single()
-    if (p) {
-      playerRecords[p.id] = { id: p.id, mmr: p.mmr }
-      await supabase.from('players').update({ games_played_today: p.games_played_today + 1 }).eq('id', pid)
-    }
+    if (p) playerRecords[p.id] = { id: p.id, mmr: p.mmr, games_played_today: p.games_played_today }
   }
 
-  // 3. Update MMR
   const mmrUpdates = calculateMmrChanges({
     team_a_players: match.team_a_players,
     team_b_players: match.team_b_players,
     team_a_score: match.team_a_score,
     team_b_score: match.team_b_score,
-    point_timeline: match.point_timeline || []
+    point_timeline: timeline as any
   }, playerRecords)
 
   for (const update of mmrUpdates) {
-    await supabase.from('players').update({ mmr: update.newMmr }).eq('id', update.playerId)
+    await supabase.from('players').update({ 
+      mmr: update.newMmr,
+      games_played_today: playerRecords[update.playerId].games_played_today + update.participationFactor
+    }).eq('id', update.playerId)
   }
 
   if (destination === 'draft') {
     revalidatePath(`/dashboard/live/${sessionId}`, 'page')
-    // No redirect needed, revalidating the live page will naturally show the Matchmaker because is_completed is true now
   } else {
     revalidatePath(`/dashboard/session`, 'page')
     redirect(`/dashboard/session`)
@@ -185,10 +315,7 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
 
 export async function cancelMatch(matchId: string, sessionId: string) {
   const supabase = await createClient()
-  
-  // Just delete the match so it acts like it never happened
   await supabase.from('matches').delete().eq('id', matchId)
-  
   revalidatePath(`/dashboard/session`, 'page')
   redirect(`/dashboard/session`)
 }
@@ -196,34 +323,45 @@ export async function cancelMatch(matchId: string, sessionId: string) {
 export async function substitutePlayer(matchId: string, sessionId: string, team: 'a' | 'b', playerOutId: string, playerInId: string) {
   const supabase = await createClient()
   
-  const { data: match } = await supabase.from('matches').select('team_a_players, team_b_players, point_timeline').eq('id', matchId).single()
+  const { data: match } = await supabase.from('matches').select('team_a_players, team_b_players, team_a_positions, team_b_positions').eq('id', matchId).single()
   if (!match) return
 
   let newTeamA = match.team_a_players
   let newTeamB = match.team_b_players
+  let newPositionsA = match.team_a_positions || {}
+  let newPositionsB = match.team_b_positions || {}
+  
+  let filledPosition = 'Any';
 
   if (team === 'a') {
     newTeamA = newTeamA.filter((id: string) => id !== playerOutId)
     newTeamA.push(playerInId)
+    filledPosition = newPositionsA[playerOutId] || 'Any'
+    delete newPositionsA[playerOutId]
+    newPositionsA[playerInId] = filledPosition
   } else {
     newTeamB = newTeamB.filter((id: string) => id !== playerOutId)
     newTeamB.push(playerInId)
+    filledPosition = newPositionsB[playerOutId] || 'Any'
+    delete newPositionsB[playerOutId]
+    newPositionsB[playerInId] = filledPosition
   }
-
-  const timeline = match.point_timeline || []
-  timeline.push({
-    type: 'substitution',
-    team,
-    playerOutId,
-    playerInId,
-    timestamp: new Date().toISOString()
-  })
 
   await supabase.from('matches').update({
     team_a_players: newTeamA,
     team_b_players: newTeamB,
-    point_timeline: timeline
+    team_a_positions: newPositionsA,
+    team_b_positions: newPositionsB
   }).eq('id', matchId)
+
+  await supabase.from('match_events').insert({
+    match_id: matchId,
+    event_type: 'substitution',
+    team,
+    player_out_id: playerOutId,
+    player_in_id: playerInId,
+    filled_position: filledPosition
+  })
 
   revalidatePath(`/dashboard/live/${sessionId}`)
 }

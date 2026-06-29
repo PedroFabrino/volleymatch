@@ -152,9 +152,13 @@ export default function Scoreboard({ session, match, players }: { session: any, 
                 <div>
                   <div className="font-bold text-gray-100">{p.name}</div>
                   <div className="text-[10px] text-gray-400 mt-1 flex flex-wrap gap-1">
-                    {p.positions.length > 0 ? p.positions.map((pos: string) => (
-                      <span key={pos} className="bg-gray-700 px-1 rounded">{pos.slice(0, 3)}</span>
-                    )) : 'Any'}
+                    {match.team_a_positions && match.team_a_positions[p.id] ? (
+                      <span className="bg-red-900/50 text-red-200 px-2 py-0.5 rounded">{match.team_a_positions[p.id]}</span>
+                    ) : (
+                      p.positions.length > 0 ? p.positions.map((pos: string) => (
+                        <span key={pos} className="bg-gray-700 px-1 rounded">{pos.slice(0, 3)}</span>
+                      )) : 'Any'
+                    )}
                   </div>
                 </div>
                 <button 
@@ -182,9 +186,13 @@ export default function Scoreboard({ session, match, players }: { session: any, 
                 <div>
                   <div className="font-bold text-gray-100">{p.name}</div>
                   <div className="text-[10px] text-gray-400 mt-1 flex flex-wrap gap-1">
-                    {p.positions.length > 0 ? p.positions.map((pos: string) => (
-                      <span key={pos} className="bg-gray-700 px-1 rounded">{pos.slice(0, 3)}</span>
-                    )) : 'Any'}
+                    {match.team_b_positions && match.team_b_positions[p.id] ? (
+                      <span className="bg-blue-900/50 text-blue-200 px-2 py-0.5 rounded">{match.team_b_positions[p.id]}</span>
+                    ) : (
+                      p.positions.length > 0 ? p.positions.map((pos: string) => (
+                        <span key={pos} className="bg-gray-700 px-1 rounded">{pos.slice(0, 3)}</span>
+                      )) : 'Any'
+                    )}
                   </div>
                 </div>
                 <button 

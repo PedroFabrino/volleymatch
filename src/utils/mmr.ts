@@ -27,6 +27,7 @@ export type MmrUpdateResult = {
   oldMmr: number;
   newMmr: number;
   mmrChange: number;
+  participationFactor: number;
 };
 
 export function calculateMmrChanges(match: MatchData, players: Record<string, PlayerData>): MmrUpdateResult[] {
@@ -88,7 +89,8 @@ export function calculateMmrChanges(match: MatchData, players: Record<string, Pl
       playerId: p.id,
       oldMmr: p.mmr,
       newMmr: p.mmr,
-      mmrChange: 0
+      mmrChange: 0,
+      participationFactor: 0
     }));
   }
 
@@ -157,7 +159,8 @@ export function calculateMmrChanges(match: MatchData, players: Record<string, Pl
       playerId: id,
       oldMmr,
       newMmr,
-      mmrChange: newMmr - oldMmr
+      mmrChange: newMmr - oldMmr,
+      participationFactor
     });
   }
 
