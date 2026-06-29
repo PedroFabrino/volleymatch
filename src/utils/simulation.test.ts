@@ -219,4 +219,78 @@ describe('Matchmaking & MMR Simulation', () => {
     expect(minMmr).toBeGreaterThan(500);
   });
 
+  it('Simulates a 20-person session with only 2 Middle Blockers', () => {
+    const roster: Player[] = [];
+    const positionsWithoutMB = ['Setter', 'Outside Hitter', 'Opposite', 'Libero'];
+    
+    // Create exactly 2 Middle Blockers
+    for (let i = 1; i <= 2; i++) {
+      roster.push({
+        id: `mb_${i}`,
+        name: `MB ${i}`,
+        mmr: 1200,
+        positions: ['Middle Blocker'],
+        active_positions: null,
+        games_played_today: 0,
+      });
+    }
+
+    // Create 18 others (no MBs)
+    for (let i = 1; i <= 18; i++) {
+      // randomly give them 1 or 2 positions to ensure filling works
+      const posCount = randomInt(1, 2);
+      const pPositions: string[] = [];
+      while (pPositions.length < posCount) {
+        const pos = positionsWithoutMB[randomInt(0, positionsWithoutMB.length - 1)];
+        if (!pPositions.includes(pos)) pPositions.push(pos);
+      }
+
+      roster.push({
+        id: `other_${i}`,
+        name: `Other ${i}`,
+        mmr: 1200,
+        positions: pPositions,
+        active_positions: null,
+        games_played_today: 0,
+      });
+    }
+
+    let lastWinningTeam: string[] = [];
+    let lastLosingTeam: string[] = [];
+
+    for (let game = 1; game <= 20; game++) {
+      const { teamA, teamB, teamAPositions, teamBPositions } = draftStrictTeams(roster, lastWinningTeam, lastLosingTeam);
+      
+      const matchData = simulateMatchTimeline(teamA, teamB, teamAPositions, teamBPositions, roster, false);
+      const playerRecords = Object.fromEntries(roster.map(p => [p.id, { id: p.id, mmr: p.mmr, positions: p.positions }]));
+      const updates = calculateMmrChanges(matchData, playerRecords);
+
+      updates.forEach(update => {
+        const p = roster.find(r => r.id === update.playerId);
+        if (p) {
+          p.mmr = update.newMmr;
+          p.games_played_today += update.queueIncrement;
+        }
+      });
+
+      if (matchData.team_a_score > matchData.team_b_score) {
+        lastWinningTeam = matchData.team_a_players;
+        lastLosingTeam = matchData.team_b_players;
+      } else {
+        lastWinningTeam = matchData.team_b_players;
+        lastLosingTeam = matchData.team_a_players;
+      }
+    }
+
+    console.log("--- 2 MBs SCENARIO RESULTS (20 Games) ---");
+    console.log("MB 1 Games Played:", roster[0].games_played_today);
+    console.log("MB 2 Games Played:", roster[1].games_played_today);
+    
+    const othersGames = roster.slice(2).map(p => p.games_played_today);
+    console.log("Others Avg Games:", (othersGames.reduce((a,b)=>a+b, 0) / 18).toFixed(1));
+    console.log("Others Min Games:", Math.min(...othersGames));
+    console.log("Others Max Games:", Math.max(...othersGames));
+    console.log("-----------------------------------------");
+  });
+
 });
