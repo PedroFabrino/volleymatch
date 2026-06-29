@@ -164,3 +164,38 @@ export async function cancelMatch(matchId: string, sessionId: string) {
   revalidatePath(`/dashboard/session`, 'page')
   redirect(`/dashboard/session`)
 }
+
+export async function substitutePlayer(matchId: string, sessionId: string, team: 'a' | 'b', playerOutId: string, playerInId: string) {
+  const supabase = await createClient()
+  
+  const { data: match } = await supabase.from('matches').select('team_a_players, team_b_players, point_timeline').eq('id', matchId).single()
+  if (!match) return
+
+  let newTeamA = match.team_a_players
+  let newTeamB = match.team_b_players
+
+  if (team === 'a') {
+    newTeamA = newTeamA.filter((id: string) => id !== playerOutId)
+    newTeamA.push(playerInId)
+  } else {
+    newTeamB = newTeamB.filter((id: string) => id !== playerOutId)
+    newTeamB.push(playerInId)
+  }
+
+  const timeline = match.point_timeline || []
+  timeline.push({
+    type: 'substitution',
+    team,
+    playerOutId,
+    playerInId,
+    timestamp: new Date().toISOString()
+  })
+
+  await supabase.from('matches').update({
+    team_a_players: newTeamA,
+    team_b_players: newTeamB,
+    point_timeline: timeline
+  }).eq('id', matchId)
+
+  revalidatePath(`/dashboard/live/${sessionId}`)
+}

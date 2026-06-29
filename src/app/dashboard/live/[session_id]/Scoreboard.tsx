@@ -1,7 +1,7 @@
 'use client'
 
 import { useTransition, useOptimistic, useRef, useEffect, useState } from 'react'
-import { updateScore, finishMatch, cancelMatch } from './actions'
+import { updateScore, finishMatch, cancelMatch, substitutePlayer } from './actions'
 import { Minus, Clock } from 'lucide-react'
 
 export default function Scoreboard({ session, match, players }: { session: any, match: any, players: any[] }) {
@@ -9,6 +9,7 @@ export default function Scoreboard({ session, match, players }: { session: any, 
   
   // Timer State
   const [elapsed, setElapsed] = useState('00:00')
+  const [subbingPlayer, setSubbingPlayer] = useState<{ id: string, name: string, team: 'a' | 'b' } | null>(null)
 
   useEffect(() => {
     const startTime = new Date(match.created_at).getTime()
@@ -61,13 +62,22 @@ export default function Scoreboard({ session, match, players }: { session: any, 
     touchStartY.current = null
   }
 
+  const handleSubstitute = async (playerInId: string) => {
+    if (!subbingPlayer) return
+    startTransition(() => {
+      substitutePlayer(match.id, session.id, subbingPlayer.team, subbingPlayer.id, playerInId)
+      setSubbingPlayer(null)
+    })
+  }
+
   const isMatchOver = optScoreA >= session.target_score || optScoreB >= session.target_score
 
   const teamAPlayers = match.team_a_players.map((id: string) => players.find(p => p.id === id)).filter(Boolean)
   const teamBPlayers = match.team_b_players.map((id: string) => players.find(p => p.id === id)).filter(Boolean)
+  const benchedPlayers = players.filter(p => p.is_present_today && !match.team_a_players.includes(p.id) && !match.team_b_players.includes(p.id))
 
   return (
-    <div className="flex flex-col h-screen bg-gray-900 overflow-hidden">
+    <div className="flex flex-col h-screen bg-gray-900 overflow-hidden relative">
       
       {/* SCOREBOARD SECTION */}
       <div className="relative flex flex-row w-full landscape:h-screen portrait:h-[40vh] portrait:shrink-0">
@@ -148,13 +158,21 @@ export default function Scoreboard({ session, match, players }: { session: any, 
           </div>
           <ul className="flex flex-col gap-2">
             {teamAPlayers.map((p: any) => (
-              <li key={p.id} className="bg-gray-800 rounded-lg p-3 shadow">
-                <div className="font-bold text-gray-100">{p.name}</div>
-                <div className="text-xs text-gray-400 mt-1 flex flex-wrap gap-1">
-                  {p.positions.length > 0 ? p.positions.map((pos: string) => (
-                    <span key={pos} className="bg-gray-700 px-1 rounded">{pos}</span>
-                  )) : 'Any'}
+              <li key={p.id} className="bg-gray-800 rounded-lg p-3 shadow flex justify-between items-center">
+                <div>
+                  <div className="font-bold text-gray-100">{p.name}</div>
+                  <div className="text-[10px] text-gray-400 mt-1 flex flex-wrap gap-1">
+                    {p.positions.length > 0 ? p.positions.map((pos: string) => (
+                      <span key={pos} className="bg-gray-700 px-1 rounded">{pos.slice(0, 3)}</span>
+                    )) : 'Any'}
+                  </div>
                 </div>
+                <button 
+                  onClick={() => setSubbingPlayer({ id: p.id, name: p.name, team: 'a' })}
+                  className="bg-gray-700 text-xs px-2 py-1 rounded text-gray-300 hover:bg-gray-600 transition"
+                >
+                  Sub
+                </button>
               </li>
             ))}
           </ul>
@@ -170,13 +188,21 @@ export default function Scoreboard({ session, match, players }: { session: any, 
           </div>
           <ul className="flex flex-col gap-2">
             {teamBPlayers.map((p: any) => (
-              <li key={p.id} className="bg-gray-800 rounded-lg p-3 shadow">
-                <div className="font-bold text-gray-100">{p.name}</div>
-                <div className="text-xs text-gray-400 mt-1 flex flex-wrap gap-1">
-                  {p.positions.length > 0 ? p.positions.map((pos: string) => (
-                    <span key={pos} className="bg-gray-700 px-1 rounded">{pos}</span>
-                  )) : 'Any'}
+              <li key={p.id} className="bg-gray-800 rounded-lg p-3 shadow flex justify-between items-center">
+                <div>
+                  <div className="font-bold text-gray-100">{p.name}</div>
+                  <div className="text-[10px] text-gray-400 mt-1 flex flex-wrap gap-1">
+                    {p.positions.length > 0 ? p.positions.map((pos: string) => (
+                      <span key={pos} className="bg-gray-700 px-1 rounded">{pos.slice(0, 3)}</span>
+                    )) : 'Any'}
+                  </div>
                 </div>
+                <button 
+                  onClick={() => setSubbingPlayer({ id: p.id, name: p.name, team: 'b' })}
+                  className="bg-gray-700 text-xs px-2 py-1 rounded text-gray-300 hover:bg-gray-600 transition"
+                >
+                  Sub
+                </button>
               </li>
             ))}
           </ul>
@@ -203,6 +229,45 @@ export default function Scoreboard({ session, match, players }: { session: any, 
           )}
         </div>
       </div>
+
+      {/* Substitution Modal */}
+      {subbingPlayer && (
+        <div className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[80vh]">
+            <div className="p-4 border-b border-gray-800">
+              <h3 className="text-xl font-bold text-white text-center">Sub out {subbingPlayer.name}</h3>
+              <p className="text-sm text-gray-400 text-center mt-1">Select a benched player to enter the game</p>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
+              {benchedPlayers.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">No players available on the bench.</p>
+              ) : (
+                benchedPlayers.map(p => (
+                  <button 
+                    key={p.id}
+                    onClick={() => handleSubstitute(p.id)}
+                    disabled={isPending}
+                    className="flex justify-between items-center bg-gray-800 p-4 rounded-xl hover:bg-gray-700 transition disabled:opacity-50 w-full text-left"
+                  >
+                    <span className="font-bold text-white">{p.name}</span>
+                    <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">Sub In</span>
+                  </button>
+                ))
+              )}
+            </div>
+
+            <div className="p-4 border-t border-gray-800">
+              <button 
+                onClick={() => setSubbingPlayer(null)}
+                className="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   )
