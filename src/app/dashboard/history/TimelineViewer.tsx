@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronUp, Repeat, Plus } from 'lucide-react'
 
-export default function TimelineViewer({ timeline, matchStartTime, getPlayerName }: { timeline: any[], matchStartTime: string, getPlayerName: (id: string) => string }) {
+export default function TimelineViewer({ timeline, matchStartTime, playerNames }: { timeline: any[], matchStartTime: string, playerNames: Record<string, string> }) {
   const [isOpen, setIsOpen] = useState(false)
 
   if (!timeline || timeline.length === 0) {
@@ -44,8 +44,8 @@ export default function TimelineViewer({ timeline, matchStartTime, getPlayerName
                         <time className="text-xs font-mono text-gray-400">{timeString}</time>
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-300">
-                        <span className="text-red-500 line-through mr-1">{getPlayerName(event.playerOutId)}</span>
-                        <span className="text-green-500 font-bold ml-1">{getPlayerName(event.playerInId)}</span>
+                        <span className="text-red-500 line-through mr-1">{playerNames[event.playerOutId] || 'Unknown'}</span>
+                        <span className="text-green-500 font-bold ml-1">{playerNames[event.playerInId] || 'Unknown'}</span>
                       </div>
                     </div>
                   </div>

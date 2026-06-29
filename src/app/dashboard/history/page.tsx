@@ -93,7 +93,7 @@ export default async function HistoryPage() {
                   <TimelineViewer 
                     timeline={match.point_timeline} 
                     matchStartTime={match.created_at}
-                    getPlayerName={getPlayerName} 
+                    playerNames={playerNames} 
                   />
                 </div>
               ))
