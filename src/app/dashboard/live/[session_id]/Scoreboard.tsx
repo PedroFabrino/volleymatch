@@ -1,12 +1,28 @@
 'use client'
 
-import { useTransition, useOptimistic, useRef } from 'react'
+import { useTransition, useOptimistic, useRef, useEffect, useState } from 'react'
 import { updateScore, finishMatch, cancelMatch } from './actions'
-import { Minus } from 'lucide-react'
+import { Minus, Clock } from 'lucide-react'
 
 export default function Scoreboard({ session, match, players }: { session: any, match: any, players: any[] }) {
   const [isPending, startTransition] = useTransition()
   
+  // Timer State
+  const [elapsed, setElapsed] = useState('00:00')
+
+  useEffect(() => {
+    const startTime = new Date(match.created_at).getTime()
+    
+    const interval = setInterval(() => {
+      const diff = Math.floor((Date.now() - startTime) / 1000)
+      const m = Math.floor(diff / 60).toString().padStart(2, '0')
+      const s = (diff % 60).toString().padStart(2, '0')
+      setElapsed(`${m}:${s}`)
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [match.created_at])
+
   // Optimistic UI states for instant feedback
   const [optScoreA, addOptScoreA] = useOptimistic(
     match.team_a_score,
@@ -62,7 +78,7 @@ export default function Scoreboard({ session, match, players }: { session: any, 
             <a href="/dashboard/session" className="bg-gray-800 p-1.5 rounded hover:bg-gray-700 transition" title="Manage Attendance">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </a>
-            <span>Target: {session.target_score}</span>
+            <span className="flex items-center gap-2 bg-black/40 px-3 py-1 rounded-full"><Clock className="w-4 h-4 text-blue-400" /> {elapsed}</span>
           </div>
           <div className="pointer-events-auto">
             {isMatchOver && (
@@ -74,7 +90,7 @@ export default function Scoreboard({ session, match, players }: { session: any, 
               </button>
             )}
           </div>
-          <div>{session.tie_breaker_rule.replace(/_/g, ' ')}</div>
+          <div>Target: {session.target_score}</div>
         </div>
 
         {/* Team A (Red) */}

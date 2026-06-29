@@ -103,15 +103,28 @@ export async function saveMatch(sessionId: string, teamA: string[], teamB: strin
 export async function updateScore(matchId: string, sessionId: string, team: 'a' | 'b', increment: number) {
   const supabase = await createClient()
   
-  // Fetch current score
-  const { data: match } = await supabase.from('matches').select('team_a_score, team_b_score').eq('id', matchId).single()
+  // Fetch current score and timeline
+  const { data: match } = await supabase.from('matches').select('team_a_score, team_b_score, point_timeline').eq('id', matchId).single()
   if (!match) return
 
-  const updatePayload = team === 'a' 
-    ? { team_a_score: Math.max(0, match.team_a_score + increment) }
-    : { team_b_score: Math.max(0, match.team_b_score + increment) }
+  const newScoreA = team === 'a' ? Math.max(0, match.team_a_score + increment) : match.team_a_score
+  const newScoreB = team === 'b' ? Math.max(0, match.team_b_score + increment) : match.team_b_score
 
-  await supabase.from('matches').update(updatePayload).eq('id', matchId)
+  const timeline = match.point_timeline || []
+  timeline.push({
+    team,
+    increment,
+    scoreA: newScoreA,
+    scoreB: newScoreB,
+    timestamp: new Date().toISOString()
+  })
+
+  await supabase.from('matches').update({
+    team_a_score: newScoreA,
+    team_b_score: newScoreB,
+    point_timeline: timeline
+  }).eq('id', matchId)
+  
   revalidatePath(`/dashboard/live/${sessionId}`)
 }
 
@@ -121,8 +134,11 @@ export async function finishMatch(matchId: string, sessionId: string) {
   const { data: match } = await supabase.from('matches').select('*').eq('id', matchId).single()
   if (!match) return
 
-  // 1. Mark match as completed
-  await supabase.from('matches').update({ is_completed: true }).eq('id', matchId)
+  // 1. Mark match as completed and set completed_at
+  await supabase.from('matches').update({ 
+    is_completed: true,
+    completed_at: new Date().toISOString()
+  }).eq('id', matchId)
 
   // 2. Increment games_played_today for all participants
   const allPlayers = [...match.team_a_players, ...match.team_b_players]
