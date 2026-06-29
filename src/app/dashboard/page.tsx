@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import ActiveSessionBanner from '@/components/ActiveSessionBanner'
+import { Trophy, Activity, Medal, History } from 'lucide-react'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -18,6 +19,55 @@ export default async function DashboardPage() {
     .eq('is_active', true)
     .single()
 
+  const { data: players } = await supabase
+    .from('players')
+    .select('id, name, mmr')
+    .eq('hoster_id', user.id)
+
+  const { data: completedMatches } = await supabase
+    .from('matches')
+    .select('*')
+    .eq('hoster_id', user.id)
+    .eq('is_completed', true)
+    .order('created_at', { ascending: false })
+
+  // Compute Player Stats
+  const playerStats: Record<string, { matches: number; wins: number; name: string, mmr: number }> = {}
+  
+  if (players) {
+    players.forEach(p => {
+      playerStats[p.id] = { matches: 0, wins: 0, name: p.name, mmr: p.mmr }
+    })
+  }
+
+  if (completedMatches) {
+    completedMatches.forEach(match => {
+      const teamAWon = match.team_a_score > match.team_b_score
+      const teamBWon = match.team_b_score > match.team_a_score
+
+      match.team_a_players.forEach((pid: string) => {
+        if (playerStats[pid]) {
+          playerStats[pid].matches += 1
+          if (teamAWon) playerStats[pid].wins += 1
+        }
+      })
+      match.team_b_players.forEach((pid: string) => {
+        if (playerStats[pid]) {
+          playerStats[pid].matches += 1
+          if (teamBWon) playerStats[pid].wins += 1
+        }
+      })
+    })
+  }
+
+  // Sort players by Wins, then by MMR
+  const rankedPlayers = Object.values(playerStats)
+    .filter(p => p.matches > 0)
+    .sort((a, b) => b.wins - a.wins || b.mmr - a.mmr)
+    .slice(0, 5) // Top 5
+
+  const latestMatches = completedMatches ? completedMatches.slice(0, 5) : []
+
   async function signOut() {
     'use server'
     const supabase = await createClient()
@@ -26,45 +76,133 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
+  const getPlayerName = (id: string) => playerStats[id]?.name || 'Unknown'
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col transition-colors">
       <ActiveSessionBanner />
       
-      <div className="flex-1 p-8">
-        <div className="mx-auto max-w-4xl bg-white dark:bg-gray-900 rounded-2xl shadow p-8 border dark:border-gray-800 transition-colors">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">VolleyMatch Dashboard</h1>
+      <div className="flex-1 p-4 md:p-8">
+        <div className="mx-auto max-w-6xl flex flex-col gap-8">
+          
+          {/* Header Row */}
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow p-8 border dark:border-gray-800 transition-colors flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
+                <Activity className="w-8 h-8 text-blue-500" /> VolleyMatch Dashboard
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your games, track rankings, and view history.</p>
+            </div>
             <form action={signOut}>
               <button className="text-sm font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition-colors">
                 Sign Out
               </button>
             </form>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Roster Card */}
-            <div className="border dark:border-gray-800 rounded-xl p-6 hover:shadow-md transition-shadow bg-gray-50 dark:bg-gray-950">
-              <h2 className="text-xl font-semibold mb-2 dark:text-gray-100">My Roster</h2>
-              <p className="text-gray-500 dark:text-gray-400 mb-4">Manage your players, MMRs, and positions.</p>
-              <a href="/dashboard/roster" className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
-                View Players
-              </a>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            {/* Left Column: Quick Actions */}
+            <div className="flex flex-col gap-6">
+              {/* Session Card */}
+              <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-6 shadow hover:shadow-md transition-shadow">
+                <h2 className="text-xl font-semibold mb-2 dark:text-gray-100 flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-yellow-500" /> Game Day
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">Take attendance, draft teams, and start matchmaking.</p>
+                {activeSession ? (
+                  <a href="/dashboard/session" className="block text-center w-full bg-yellow-500 text-black px-4 py-3 rounded-xl font-bold hover:bg-yellow-400 transition animate-pulse">
+                    Resume Session
+                  </a>
+                ) : (
+                  <a href="/dashboard/session" className="block text-center w-full bg-green-600 text-white px-4 py-3 rounded-xl font-medium hover:bg-green-700 transition">
+                    Start New Session
+                  </a>
+                )}
+              </div>
+
+              {/* Roster Card */}
+              <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-6 shadow hover:shadow-md transition-shadow">
+                <h2 className="text-xl font-semibold mb-2 dark:text-gray-100 flex items-center gap-2">
+                  <Medal className="w-5 h-5 text-blue-500" /> My Roster
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">Manage your players, MMRs, and preferred positions.</p>
+                <a href="/dashboard/roster" className="block text-center w-full bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-4 py-3 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition border dark:border-gray-700">
+                  Manage Roster ({players?.length || 0} Players)
+                </a>
+              </div>
             </div>
 
-            {/* Session Card */}
-            <div className="border dark:border-gray-800 rounded-xl p-6 hover:shadow-md transition-shadow bg-gray-50 dark:bg-gray-950">
-              <h2 className="text-xl font-semibold mb-2 dark:text-gray-100">Game Day</h2>
-              <p className="text-gray-500 dark:text-gray-400 mb-4">Take attendance and start matchmaking.</p>
-              {activeSession ? (
-                <a href="/dashboard/session" className="inline-block bg-yellow-500 text-black px-4 py-2 rounded-lg font-bold hover:bg-yellow-400 transition">
-                  Resume Session
-                </a>
+            {/* Middle Column: Player Rankings */}
+            <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-6 shadow">
+              <h2 className="text-xl font-semibold mb-6 dark:text-gray-100 flex items-center gap-2 border-b dark:border-gray-800 pb-3">
+                <Medal className="w-5 h-5 text-yellow-500" /> Leaderboard
+              </h2>
+              
+              {rankedPlayers.length === 0 ? (
+                <p className="text-gray-500 dark:text-gray-400 text-center py-8 text-sm">No matches played yet. Start a session to rank up!</p>
               ) : (
-                <a href="/dashboard/session" className="inline-block bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition">
-                  Start Session
-                </a>
+                <ul className="flex flex-col gap-3">
+                  {rankedPlayers.map((p, i) => (
+                    <li key={p.name} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border dark:border-gray-800">
+                      <div className="flex items-center gap-3">
+                        <span className={`flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm ${i === 0 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-400' : i === 1 ? 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300' : i === 2 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-400' : 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'}`}>
+                          #{i + 1}
+                        </span>
+                        <span className="font-semibold text-gray-900 dark:text-gray-100">{p.name}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-gray-900 dark:text-gray-100">{p.wins} Wins</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">{p.matches} Matches</div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
+
+            {/* Right Column: Latest Matches */}
+            <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-6 shadow overflow-hidden flex flex-col">
+              <h2 className="text-xl font-semibold mb-6 dark:text-gray-100 flex items-center gap-2 border-b dark:border-gray-800 pb-3">
+                <History className="w-5 h-5 text-gray-400" /> Recent Matches
+              </h2>
+
+              <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-4">
+                {latestMatches.length === 0 ? (
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-8 text-sm">No match history available.</p>
+                ) : (
+                  latestMatches.map(match => (
+                    <div key={match.id} className="bg-gray-50 dark:bg-gray-800/50 border dark:border-gray-800 rounded-xl p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          {new Date(match.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        </span>
+                        <div className="flex items-center gap-2 font-black text-lg">
+                          <span className={`${match.team_a_score > match.team_b_score ? 'text-red-600 dark:text-red-400' : 'text-gray-400'}`}>{match.team_a_score}</span>
+                          <span className="text-gray-300 dark:text-gray-600">-</span>
+                          <span className={`${match.team_b_score > match.team_a_score ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400'}`}>{match.team_b_score}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-4 text-xs">
+                        <div className="flex-1">
+                          <div className="font-bold text-red-500/80 mb-1">Red Team</div>
+                          <div className="text-gray-600 dark:text-gray-400 leading-tight">
+                            {match.team_a_players.map((id: string) => getPlayerName(id)).join(', ')}
+                          </div>
+                        </div>
+                        <div className="flex-1 text-right">
+                          <div className="font-bold text-blue-500/80 mb-1">Blue Team</div>
+                          <div className="text-gray-600 dark:text-gray-400 leading-tight">
+                            {match.team_b_players.map((id: string) => getPlayerName(id)).join(', ')}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
