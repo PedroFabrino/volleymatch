@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { History, ArrowLeft } from 'lucide-react'
+import TimelineViewer from './TimelineViewer'
 
 export default async function HistoryPage() {
   const supabase = await createClient()
@@ -77,22 +78,28 @@ export default async function HistoryPage() {
                   
                   <div className="hidden sm:block w-px bg-gray-200 dark:bg-gray-800" />
                   
-                  <div className="flex-1 sm:text-right">
-                    <div className="font-bold text-blue-500 mb-3 text-lg border-b border-blue-500/20 pb-2">Blue Team</div>
-                    <ul className="flex flex-col gap-1.5 items-start sm:items-end">
-                      {match.team_b_players.map((id: string) => (
-                        <li key={id} className="text-gray-700 dark:text-gray-300 font-medium">
-                          {getPlayerName(id)}
-                        </li>
-                      ))}
-                    </ul>
+                    <div className="flex-1 sm:text-right">
+                      <div className="font-bold text-blue-500 mb-3 text-lg border-b border-blue-500/20 pb-2">Blue Team</div>
+                      <ul className="flex flex-col gap-1.5 items-start sm:items-end">
+                        {match.team_b_players.map((id: string) => (
+                          <li key={id} className="text-gray-700 dark:text-gray-300 font-medium">
+                            {getPlayerName(id)}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
+
+                  <TimelineViewer 
+                    timeline={match.point_timeline} 
+                    matchStartTime={match.created_at}
+                    getPlayerName={getPlayerName} 
+                  />
                 </div>
-              </div>
-            ))
-          )}
+              ))
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  )
-}
+    )
+  }
