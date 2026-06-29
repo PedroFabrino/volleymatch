@@ -68,16 +68,20 @@ export default function AttendanceToggle({ player }: { player: any }) {
         <div className="mt-3 pt-3 border-t border-green-200/50 flex gap-2 flex-wrap">
           {player.positions.map((pos: string) => {
             const isActive = optimisticPositions.includes(pos)
+            const isOnlyPosition = player.positions.length === 1
             return (
               <button
                 key={pos}
                 type="button"
-                onClick={(e) => handlePositionToggle(e, pos)}
+                disabled={isOnlyPosition}
+                onClick={(e) => {
+                  if (!isOnlyPosition) handlePositionToggle(e, pos)
+                }}
                 className={`text-xs font-bold px-2.5 py-1 rounded-full transition-colors ${
                   isActive 
                     ? 'bg-blue-600 text-white shadow-sm' 
                     : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
-                }`}
+                } ${isOnlyPosition ? 'opacity-80 cursor-default' : 'cursor-pointer'}`}
               >
                 {pos}
               </button>
