@@ -62,7 +62,7 @@ export function draftTeams(playersToDraft: Player[]): { teamA: string[], teamB: 
   };
 }
 
-export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinningTeamIds: string[], lastMatchLosingTeamIds: string[]): { teamA: string[], teamB: string[] } {
+export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinningTeamIds: string[], lastMatchLosingTeamIds: string[]): { teamA: string[], teamB: string[], teamAPositions: Record<string, string>, teamBPositions: Record<string, string> } {
   // We need exactly 14 players total. 
   // Composition per team: 1 Setter, 2 Outside Hitter, 1 Opposite, 2 Middle Blocker, 1 Libero
   const blueprint = [
