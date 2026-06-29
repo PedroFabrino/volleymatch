@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { draftTeams } from '@/utils/matchmaking'
+import { calculateMmrChanges } from '@/utils/mmr'
 
 export async function generateMatch(sessionId: string) {
   const supabase = await createClient()
@@ -112,14 +113,28 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
 
   // 2. Increment games_played_today for all participants
   const allPlayers = [...match.team_a_players, ...match.team_b_players]
+  const playerRecords: Record<string, any> = {}
+
   for (const pid of allPlayers) {
-    const { data: p } = await supabase.from('players').select('games_played_today').eq('id', pid).single()
+    const { data: p } = await supabase.from('players').select('games_played_today, mmr, id').eq('id', pid).single()
     if (p) {
+      playerRecords[p.id] = { id: p.id, mmr: p.mmr }
       await supabase.from('players').update({ games_played_today: p.games_played_today + 1 }).eq('id', pid)
     }
   }
 
-  // (Future Step: Update MMR here)
+  // 3. Update MMR
+  const mmrUpdates = calculateMmrChanges({
+    team_a_players: match.team_a_players,
+    team_b_players: match.team_b_players,
+    team_a_score: match.team_a_score,
+    team_b_score: match.team_b_score,
+    point_timeline: match.point_timeline || []
+  }, playerRecords)
+
+  for (const update of mmrUpdates) {
+    await supabase.from('players').update({ mmr: update.newMmr }).eq('id', update.playerId)
+  }
 
   if (destination === 'draft') {
     revalidatePath(`/dashboard/live/${sessionId}`, 'page')
