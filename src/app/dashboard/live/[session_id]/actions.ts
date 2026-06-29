@@ -134,6 +134,17 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
   const { data: match } = await supabase.from('matches').select('*').eq('id', matchId).single()
   if (!match) return
 
+  // Prevent double counting if they clicked the button multiple times
+  if (match.is_completed) {
+    if (destination === 'draft') {
+      revalidatePath(`/dashboard/live/${sessionId}`, 'page')
+    } else {
+      revalidatePath(`/dashboard/session`, 'page')
+      redirect(`/dashboard/session`)
+    }
+    return
+  }
+
   // 1. Mark match as completed and set completed_at
   await supabase.from('matches').update({ 
     is_completed: true,
