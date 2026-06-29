@@ -48,7 +48,6 @@ export default function TimelineViewer({ timeline, matchStartTime, playerNames }
           <div className="flex flex-col gap-2 min-w-max">
             {/* Row A (Red) */}
             <div className="flex gap-1.5 items-center">
-              <div className="w-10 font-bold text-red-500 text-[10px] text-right mr-2 uppercase tracking-widest">{t('red')}</div>
               {validScoreEvents.map((ev, i) => (
                 <div key={`a-${i}`} className={`w-9 h-9 rounded-md flex items-center justify-center font-black text-sm transition-all duration-300 ${ev.team === 'a' ? 'bg-red-500 text-white shadow-md scale-100' : 'bg-gray-100 dark:bg-gray-800 text-transparent scale-95 opacity-50'}`}>
                   {ev.team === 'a' ? ev.score_a : ''}
@@ -57,7 +56,6 @@ export default function TimelineViewer({ timeline, matchStartTime, playerNames }
             </div>
             {/* Row B (Blue) */}
             <div className="flex gap-1.5 items-center">
-              <div className="w-10 font-bold text-blue-500 text-[10px] text-right mr-2 uppercase tracking-widest">{t('blue')}</div>
               {validScoreEvents.map((ev, i) => (
                 <div key={`b-${i}`} className={`w-9 h-9 rounded-md flex items-center justify-center font-black text-sm transition-all duration-300 ${ev.team === 'b' ? 'bg-blue-600 text-white shadow-md scale-100' : 'bg-gray-100 dark:bg-gray-800 text-transparent scale-95 opacity-50'}`}>
                   {ev.team === 'b' ? ev.score_b : ''}
@@ -90,7 +88,7 @@ export default function TimelineViewer({ timeline, matchStartTime, playerNames }
               if (event.event_type === 'substitution') {
                 return (
                   <div key={index} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white dark:border-gray-900 bg-gray-200 dark:bg-gray-800 text-gray-500 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white dark:border-gray-900 bg-gray-200 dark:bg-gray-800 text-gray-500 shadow shrink-0 md:absolute md:left-1/2 md:-translate-x-1/2 z-10">
                       <Repeat className="w-4 h-4" />
                     </div>
                     <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
@@ -114,7 +112,7 @@ export default function TimelineViewer({ timeline, matchStartTime, playerNames }
 
               return (
                 <div key={index} className={`relative flex items-center justify-between md:justify-normal ${!isTeamA ? 'md:flex-row-reverse' : ''} group`}>
-                  <div className={`flex items-center justify-center w-10 h-10 rounded-full border-4 border-white dark:border-gray-900 ${bgIconColor} shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10`}>
+                  <div className={`flex items-center justify-center w-10 h-10 rounded-full border-4 border-white dark:border-gray-900 ${bgIconColor} shadow shrink-0 md:absolute md:left-1/2 md:-translate-x-1/2 z-10`}>
                     <Plus className="w-4 h-4" />
                   </div>
                   <div className={`w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 ${!isTeamA ? 'md:text-right' : ''}`}>
