@@ -73,7 +73,19 @@ export default function Scoreboard({ session, match, players }: { session: any, 
     })
   }
 
-  const isMatchOver = optScoreA >= session.target_score || optScoreB >= session.target_score
+  let currentTarget = session.target_score;
+  let isMatchOver = false;
+
+  if (session.tie_breaker_rule === 'flat_plus_3') {
+    if (optScoreA >= session.target_score - 1 && optScoreB >= session.target_score - 1) {
+      currentTarget = session.target_score + 2;
+    }
+    isMatchOver = optScoreA >= currentTarget || optScoreB >= currentTarget;
+  } else {
+    const reachedTarget = optScoreA >= session.target_score || optScoreB >= session.target_score;
+    const diff = Math.abs(optScoreA - optScoreB);
+    isMatchOver = reachedTarget && diff >= 2;
+  }
 
   const teamAPlayers = match.team_a_players.map((id: string) => players.find(p => p.id === id)).filter(Boolean)
   const teamBPlayers = match.team_b_players.map((id: string) => players.find(p => p.id === id)).filter(Boolean)
@@ -107,7 +119,7 @@ export default function Scoreboard({ session, match, players }: { session: any, 
             </a>
             <span className="flex items-center gap-2 bg-black/40 px-3 py-1 rounded-full"><Clock className="w-4 h-4 text-blue-400" /> {elapsed}</span>
           </div>
-          <div>{t('target')} {session.target_score}</div>
+          <div>{t('target')} {currentTarget}</div>
         </div>
 
         {/* Team A (Red) */}
@@ -326,8 +338,8 @@ export default function Scoreboard({ session, match, players }: { session: any, 
                   onClick={() => {
                     // Let them hide the modal if they want to undo a point
                     startTransition(() => {
-                      if (optScoreA >= session.target_score) handleScoreChange('a', -1)
-                      if (optScoreB >= session.target_score) handleScoreChange('b', -1)
+                      if (optScoreA > optScoreB) handleScoreChange('a', -1)
+                      else if (optScoreB > optScoreA) handleScoreChange('b', -1)
                     })
                   }}
                   disabled={isPending}
