@@ -19,7 +19,7 @@ export default async function HistoryPage() {
 
   const { data: completedMatches } = await supabase
     .from('matches')
-    .select('*')
+    .select('*, match_events(*)')
     .eq('hoster_id', user.id)
     .eq('is_completed', true)
     .order('created_at', { ascending: false })
@@ -94,7 +94,7 @@ export default async function HistoryPage() {
                   </div>
 
                   <TimelineViewer 
-                    timeline={match.point_timeline} 
+                    timeline={match.match_events} 
                     matchStartTime={match.created_at}
                     playerNames={playerNames} 
                   />
