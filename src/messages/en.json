@@ -4,6 +4,77 @@
     "logout": "Logout",
     "theme": "Toggle Theme"
   },
+  "Dashboard": {
+    "title": "VolleyMatch Dashboard",
+    "subtitle": "Manage your games, track rankings, and view history.",
+    "signOut": "Sign Out",
+    "gameDay": "Game Day",
+    "gameDayDesc": "Take attendance, draft teams, and start matchmaking.",
+    "resumeSession": "Resume Session",
+    "startNewSession": "Start New Session",
+    "myRoster": "My Roster",
+    "myRosterDesc": "Manage your players, MMRs, and preferred positions.",
+    "manageRoster": "Manage Roster ({count} Players)",
+    "leaderboard": "Leaderboard",
+    "noMatchesYet": "No matches played yet. Start a session to rank up!",
+    "wins": "{count} Wins",
+    "matches": "{count} Matches",
+    "viewFullLeaderboard": "View Full Leaderboard",
+    "recentMatches": "Recent Matches",
+    "noMatchHistory": "No match history available.",
+    "viewAllMatches": "View All Matches"
+  },
+  "History": {
+    "title": "Complete Match History",
+    "noHistory": "No match history available.",
+    "redTeam": "Red Team",
+    "blueTeam": "Blue Team"
+  },
+  "Timeline": {
+    "hideTimeline": "Hide Match Timeline",
+    "viewTimeline": "View Match Timeline",
+    "substitution": "Substitution",
+    "red": "Red",
+    "blue": "Blue",
+    "unknown": "Unknown",
+    "redScores": "Red Team Scores",
+    "blueScores": "Blue Team Scores"
+  },
+  "Positions": {
+    "Setter": "Setter",
+    "Outside Hitter": "Outside Hitter",
+    "Middle Blocker": "Middle Blocker",
+    "Libero": "Libero",
+    "Opposite Hitter": "Opposite Hitter"
+  },
+  "Roster": {
+    "title": "My Roster",
+    "addNew": "Add New Player",
+    "duplicateError": "A player with this name already exists. Please use a unique name (e.g. \"Guilherme S.\").",
+    "playerName": "Player Name",
+    "playerNamePlaceholder": "e.g. Alex",
+    "initialTier": "Initial Skill Tier",
+    "beginner": "Beginner (~800 MMR)",
+    "intermediate": "Intermediate (~1000 MMR)",
+    "advanced": "Advanced (~1200 MMR)",
+    "positionsLabel": "Positions (Select all that apply)",
+    "addToRoster": "Add to Roster",
+    "currentPlayers": "Current Players ({count})",
+    "emptyRoster": "Your roster is empty.",
+    "addFriends": "Add some friends to get started!",
+    "removePlayer": "Remove player",
+    "noPosition": "No position set"
+  },
+  "Leaderboard": {
+    "title": "Full Leaderboard",
+    "noPlayers": "No players found.",
+    "rank": "Rank",
+    "player": "Player",
+    "wins": "Wins",
+    "matches": "Matches",
+    "winRate": "Win Rate",
+    "mmr": "MMR"
+  },
   "Scoreboard": {
     "cancelGame": "Cancel Game",
     "finishEarly": "Finish Early",

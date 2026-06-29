@@ -1,10 +1,12 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { Medal, ArrowLeft } from 'lucide-react'
+import { getTranslations } from 'next-intl/server'
 
 export default async function LeaderboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const t = await getTranslations('Leaderboard')
 
   if (!user) redirect('/login')
 
@@ -61,25 +63,25 @@ export default async function LeaderboardPage() {
               <ArrowLeft className="w-6 h-6" />
             </a>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
-              <Medal className="w-8 h-8 text-yellow-500" /> Full Leaderboard
+              <Medal className="w-8 h-8 text-yellow-500" /> {t('title')}
             </h1>
           </div>
         </div>
 
         <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-6 shadow">
           {rankedPlayers.length === 0 ? (
-            <p className="text-gray-500 dark:text-gray-400 text-center py-12">No players found.</p>
+            <p className="text-gray-500 dark:text-gray-400 text-center py-12">{t('noPlayers')}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b dark:border-gray-800 text-gray-500 dark:text-gray-400">
-                    <th className="p-3 font-semibold">Rank</th>
-                    <th className="p-3 font-semibold">Player</th>
-                    <th className="p-3 font-semibold text-center">Wins</th>
-                    <th className="p-3 font-semibold text-center">Matches</th>
-                    <th className="p-3 font-semibold text-center">Win Rate</th>
-                    <th className="p-3 font-semibold text-right">MMR</th>
+                    <th className="p-3 font-semibold">{t('rank')}</th>
+                    <th className="p-3 font-semibold">{t('player')}</th>
+                    <th className="p-3 font-semibold text-center">{t('wins')}</th>
+                    <th className="p-3 font-semibold text-center">{t('matches')}</th>
+                    <th className="p-3 font-semibold text-center">{t('winRate')}</th>
+                    <th className="p-3 font-semibold text-right">{t('mmr')}</th>
                   </tr>
                 </thead>
                 <tbody>

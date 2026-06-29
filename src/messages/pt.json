@@ -4,6 +4,77 @@
     "logout": "Sair",
     "theme": "Alternar Tema"
   },
+  "Dashboard": {
+    "title": "Painel VolleyMatch",
+    "subtitle": "Gerencie seus jogos, acompanhe o ranking e veja o histórico.",
+    "signOut": "Sair",
+    "gameDay": "Dia de Jogo",
+    "gameDayDesc": "Faça chamadas, escale times e inicie o matchmaking.",
+    "resumeSession": "Retomar Sessão",
+    "startNewSession": "Iniciar Nova Sessão",
+    "myRoster": "Meu Elenco",
+    "myRosterDesc": "Gerencie seus jogadores, MMRs e posições preferidas.",
+    "manageRoster": "Gerenciar Elenco ({count} Jogadores)",
+    "leaderboard": "Classificação",
+    "noMatchesYet": "Nenhuma partida jogada ainda. Inicie uma sessão para pontuar!",
+    "wins": "{count} Vitórias",
+    "matches": "{count} Partidas",
+    "viewFullLeaderboard": "Ver Classificação Completa",
+    "recentMatches": "Partidas Recentes",
+    "noMatchHistory": "Nenhum histórico de partidas disponível.",
+    "viewAllMatches": "Ver Todas as Partidas"
+  },
+  "History": {
+    "title": "Histórico Completo de Partidas",
+    "noHistory": "Nenhum histórico de partidas disponível.",
+    "redTeam": "Equipe Vermelha",
+    "blueTeam": "Equipe Azul"
+  },
+  "Timeline": {
+    "hideTimeline": "Ocultar Linha do Tempo",
+    "viewTimeline": "Ver Linha do Tempo da Partida",
+    "substitution": "Substituição",
+    "red": "Vermelho",
+    "blue": "Azul",
+    "unknown": "Desconhecido",
+    "redScores": "Equipe Vermelha Pontua",
+    "blueScores": "Equipe Azul Pontua"
+  },
+  "Positions": {
+    "Setter": "Levantador",
+    "Outside Hitter": "Ponteiro",
+    "Middle Blocker": "Central",
+    "Libero": "Líbero",
+    "Opposite Hitter": "Oposto"
+  },
+  "Roster": {
+    "title": "Meu Elenco",
+    "addNew": "Adicionar Novo Jogador",
+    "duplicateError": "Um jogador com este nome já existe. Use um nome único (ex: \"Guilherme S.\").",
+    "playerName": "Nome do Jogador",
+    "playerNamePlaceholder": "ex: Alex",
+    "initialTier": "Nível Inicial",
+    "beginner": "Iniciante (~800 MMR)",
+    "intermediate": "Intermediário (~1000 MMR)",
+    "advanced": "Avançado (~1200 MMR)",
+    "positionsLabel": "Posições (Selecione todas aplicáveis)",
+    "addToRoster": "Adicionar ao Elenco",
+    "currentPlayers": "Jogadores Atuais ({count})",
+    "emptyRoster": "Seu elenco está vazio.",
+    "addFriends": "Adicione amigos para começar!",
+    "removePlayer": "Remover jogador",
+    "noPosition": "Nenhuma posição definida"
+  },
+  "Leaderboard": {
+    "title": "Classificação Completa",
+    "noPlayers": "Nenhum jogador encontrado.",
+    "rank": "Posição",
+    "player": "Jogador",
+    "wins": "Vitórias",
+    "matches": "Partidas",
+    "winRate": "Taxa de Vitórias",
+    "mmr": "MMR"
+  },
   "Scoreboard": {
     "cancelGame": "Cancelar Jogo",
     "finishEarly": "Encerrar Cedo",

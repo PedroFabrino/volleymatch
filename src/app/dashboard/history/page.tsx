@@ -1,11 +1,14 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { History, ArrowLeft } from 'lucide-react'
+import { History as HistoryIcon, ArrowLeft } from 'lucide-react'
 import TimelineViewer from './TimelineViewer'
+import { getTranslations } from 'next-intl/server'
 
 export default async function HistoryPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+
+  const t = await getTranslations('History')
 
   if (!user) redirect('/login')
 
@@ -40,7 +43,7 @@ export default async function HistoryPage() {
               <ArrowLeft className="w-6 h-6" />
             </a>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
-              <History className="w-8 h-8 text-gray-400" /> Complete Match History
+              <HistoryIcon className="w-8 h-8 text-gray-400" /> {t('title')}
             </h1>
           </div>
         </div>
@@ -48,7 +51,7 @@ export default async function HistoryPage() {
         <div className="flex flex-col gap-4">
           {!completedMatches || completedMatches.length === 0 ? (
             <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-12 shadow text-center">
-              <p className="text-gray-500 dark:text-gray-400">No match history available.</p>
+              <p className="text-gray-500 dark:text-gray-400">{t('noHistory')}</p>
             </div>
           ) : (
             completedMatches.map(match => (
@@ -66,7 +69,7 @@ export default async function HistoryPage() {
                 
                 <div className="flex flex-col sm:flex-row gap-8">
                   <div className="flex-1">
-                    <div className="font-bold text-red-500 mb-3 text-lg border-b border-red-500/20 pb-2">Red Team</div>
+                    <div className="font-bold text-red-500 mb-3 text-lg border-b border-red-500/20 pb-2">{t('redTeam')}</div>
                     <ul className="flex flex-col gap-1.5">
                       {match.team_a_players.map((id: string) => (
                         <li key={id} className="text-gray-700 dark:text-gray-300 font-medium">
@@ -79,7 +82,7 @@ export default async function HistoryPage() {
                   <div className="hidden sm:block w-px bg-gray-200 dark:bg-gray-800" />
                   
                     <div className="flex-1 sm:text-right">
-                      <div className="font-bold text-blue-500 mb-3 text-lg border-b border-blue-500/20 pb-2">Blue Team</div>
+                      <div className="font-bold text-blue-500 mb-3 text-lg border-b border-blue-500/20 pb-2">{t('blueTeam')}</div>
                       <ul className="flex flex-col gap-1.5 items-start sm:items-end">
                         {match.team_b_players.map((id: string) => (
                           <li key={id} className="text-gray-700 dark:text-gray-300 font-medium">

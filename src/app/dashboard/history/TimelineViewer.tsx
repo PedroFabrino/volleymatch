@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { ChevronDown, ChevronUp, Repeat, Plus } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export default function TimelineViewer({ timeline, matchStartTime, playerNames }: { timeline: any[], matchStartTime: string, playerNames: Record<string, string> }) {
   const [isOpen, setIsOpen] = useState(false)
+  const t = useTranslations('Timeline')
 
   if (!timeline || timeline.length === 0) {
     return null
@@ -19,7 +21,7 @@ export default function TimelineViewer({ timeline, matchStartTime, playerNames }
         className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition"
       >
         {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-        {isOpen ? 'Hide Match Timeline' : 'View Match Timeline'}
+        {isOpen ? t('hideTimeline') : t('viewTimeline')}
       </button>
 
       {isOpen && (
@@ -40,12 +42,12 @@ export default function TimelineViewer({ timeline, matchStartTime, playerNames }
                     </div>
                     <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-bold text-gray-900 dark:text-white text-sm">Substitution ({event.team === 'a' ? 'Red' : 'Blue'})</span>
+                        <span className="font-bold text-gray-900 dark:text-white text-sm">{t('substitution')} ({event.team === 'a' ? t('red') : t('blue')})</span>
                         <time className="text-xs font-mono text-gray-400">{timeString}</time>
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-300">
-                        <span className="text-red-500 line-through mr-1">{playerNames[event.playerOutId] || 'Unknown'}</span>
-                        <span className="text-green-500 font-bold ml-1">{playerNames[event.playerInId] || 'Unknown'}</span>
+                        <span className="text-red-500 line-through mr-1">{playerNames[event.playerOutId] || t('unknown')}</span>
+                        <span className="text-green-500 font-bold ml-1">{playerNames[event.playerInId] || t('unknown')}</span>
                       </div>
                     </div>
                   </div>
@@ -70,7 +72,7 @@ export default function TimelineViewer({ timeline, matchStartTime, playerNames }
                       <time className="text-xs font-mono text-gray-400">{timeString}</time>
                     </div>
                     <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      {isTeamA ? 'Red Team Scores' : 'Blue Team Scores'}
+                      {isTeamA ? t('redScores') : t('blueScores')}
                     </div>
                   </div>
                 </div>

@@ -3,10 +3,13 @@ import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import ActiveSessionBanner from '@/components/ActiveSessionBanner'
 import { Trophy, Activity, Medal, History } from 'lucide-react'
+import { getTranslations } from 'next-intl/server'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  
+  const t = await getTranslations('Dashboard')
 
   if (!user) {
     redirect('/login')
@@ -89,13 +92,13 @@ export default async function DashboardPage() {
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow p-8 border dark:border-gray-800 transition-colors flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
-                <Activity className="w-8 h-8 text-blue-500" /> VolleyMatch Dashboard
+                <Activity className="w-8 h-8 text-blue-500" /> {t('title')}
               </h1>
-              <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your games, track rankings, and view history.</p>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">{t('subtitle')}</p>
             </div>
             <form action={signOut}>
               <button className="text-sm font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition-colors">
-                Sign Out
+                {t('signOut')}
               </button>
             </form>
           </div>
@@ -107,16 +110,16 @@ export default async function DashboardPage() {
               {/* Session Card */}
               <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-6 shadow hover:shadow-md transition-shadow">
                 <h2 className="text-xl font-semibold mb-2 dark:text-gray-100 flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-yellow-500" /> Game Day
+                  <Trophy className="w-5 h-5 text-yellow-500" /> {t('gameDay')}
                 </h2>
-                <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">Take attendance, draft teams, and start matchmaking.</p>
+                <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">{t('gameDayDesc')}</p>
                 {activeSession ? (
                   <a href="/dashboard/session" className="block text-center w-full bg-yellow-500 text-black px-4 py-3 rounded-xl font-bold hover:bg-yellow-400 transition animate-pulse">
-                    Resume Session
+                    {t('resumeSession')}
                   </a>
                 ) : (
                   <a href="/dashboard/session" className="block text-center w-full bg-green-600 text-white px-4 py-3 rounded-xl font-medium hover:bg-green-700 transition">
-                    Start New Session
+                    {t('startNewSession')}
                   </a>
                 )}
               </div>
@@ -124,11 +127,11 @@ export default async function DashboardPage() {
               {/* Roster Card */}
               <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-6 shadow hover:shadow-md transition-shadow">
                 <h2 className="text-xl font-semibold mb-2 dark:text-gray-100 flex items-center gap-2">
-                  <Medal className="w-5 h-5 text-blue-500" /> My Roster
+                  <Medal className="w-5 h-5 text-blue-500" /> {t('myRoster')}
                 </h2>
-                <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">Manage your players, MMRs, and preferred positions.</p>
+                <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">{t('myRosterDesc')}</p>
                 <a href="/dashboard/roster" className="block text-center w-full bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-4 py-3 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition border dark:border-gray-700">
-                  Manage Roster ({players?.length || 0} Players)
+                  {t('manageRoster', { count: players?.length || 0 })}
                 </a>
               </div>
             </div>
@@ -136,11 +139,11 @@ export default async function DashboardPage() {
             {/* Middle Column: Player Rankings */}
             <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-6 shadow">
               <h2 className="text-xl font-semibold mb-6 dark:text-gray-100 flex items-center gap-2 border-b dark:border-gray-800 pb-3">
-                <Medal className="w-5 h-5 text-yellow-500" /> Leaderboard
+                <Medal className="w-5 h-5 text-yellow-500" /> {t('leaderboard')}
               </h2>
               
               {rankedPlayers.length === 0 ? (
-                <p className="text-gray-500 dark:text-gray-400 text-center py-8 text-sm">No matches played yet. Start a session to rank up!</p>
+                <p className="text-gray-500 dark:text-gray-400 text-center py-8 text-sm">{t('noMatchesYet')}</p>
               ) : (
                 <>
                   <ul className="flex flex-col gap-3">
@@ -153,14 +156,14 @@ export default async function DashboardPage() {
                           <span className="font-semibold text-gray-900 dark:text-gray-100">{p.name}</span>
                         </div>
                         <div className="text-right">
-                          <div className="font-bold text-gray-900 dark:text-gray-100">{p.wins} Wins</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">{p.matches} Matches</div>
+                          <div className="font-bold text-gray-900 dark:text-gray-100">{t('wins', { count: p.wins })}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">{t('matches', { count: p.matches })}</div>
                         </div>
                       </li>
                     ))}
                   </ul>
                   <a href="/dashboard/leaderboard" className="block text-center mt-4 w-full bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-300 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition">
-                    View Full Leaderboard
+                    {t('viewFullLeaderboard')}
                   </a>
                 </>
               )}
@@ -169,12 +172,12 @@ export default async function DashboardPage() {
             {/* Right Column: Latest Matches */}
             <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-6 shadow flex flex-col">
               <h2 className="text-xl font-semibold mb-6 dark:text-gray-100 flex items-center gap-2 border-b dark:border-gray-800 pb-3">
-                <History className="w-5 h-5 text-gray-400" /> Recent Matches
+                <History className="w-5 h-5 text-gray-400" /> {t('recentMatches')}
               </h2>
 
               <div className="flex flex-col gap-4">
                 {latestMatches.length === 0 ? (
-                  <p className="text-gray-500 dark:text-gray-400 text-center py-8 text-sm">No match history available.</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-8 text-sm">{t('noMatchHistory')}</p>
                 ) : (
                   <>
                     {latestMatches.map(match => (
@@ -206,7 +209,7 @@ export default async function DashboardPage() {
                       </div>
                     ))}
                     <a href="/dashboard/history" className="block text-center mt-2 w-full bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-300 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition">
-                      View All Matches
+                      {t('viewAllMatches')}
                     </a>
                   </>
                 )}
