@@ -12,12 +12,12 @@ export default function AttendanceToggle({ player }: { player: any }) {
     (state: boolean, newState: boolean) => newState
   )
 
-  const defaultPositions = player.active_positions && player.active_positions.length > 0 
+  const defaultPositions = player.active_positions !== null 
     ? player.active_positions 
     : player.positions;
 
   const [optimisticPositions, addOptimisticPositions] = useOptimistic(
-    defaultPositions,
+    defaultPositions || [],
     (state: string[], newPos: string) => 
       state.includes(newPos) ? state.filter(p => p !== newPos) : [...state, newPos]
   )
@@ -48,7 +48,6 @@ export default function AttendanceToggle({ player }: { player: any }) {
           <span className={`font-bold transition-colors ${optimisticIsPresent ? 'text-green-900 dark:text-green-100' : 'text-gray-900 dark:text-gray-100'}`}>
             {player.name}
           </span>
-          <span className="text-xs text-gray-500 dark:text-gray-400">{player.mmr} MMR</span>
         </div>
         
         <div>

@@ -26,7 +26,7 @@ export async function toggleActivePosition(playerId: string, pos: string) {
   const { data: player } = await supabase.from('players').select('active_positions, positions').eq('id', playerId).single()
   if (!player) return
 
-  let currentPositions = player.active_positions && player.active_positions.length > 0 
+  let currentPositions = player.active_positions !== null
     ? player.active_positions 
     : player.positions;
     
@@ -37,6 +37,7 @@ export async function toggleActivePosition(playerId: string, pos: string) {
   }
 
   await supabase.from('players').update({ active_positions: currentPositions }).eq('id', playerId)
+  revalidatePath('/dashboard/session')
 }
 
 export async function startSession(formData: FormData) {
