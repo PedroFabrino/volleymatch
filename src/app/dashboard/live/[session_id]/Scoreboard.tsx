@@ -79,6 +79,20 @@ export default function Scoreboard({ session, match, players }: { session: any, 
   const teamBPlayers = match.team_b_players.map((id: string) => players.find(p => p.id === id)).filter(Boolean)
   const benchedPlayers = players.filter(p => p.is_present_today && !match.team_a_players.includes(p.id) && !match.team_b_players.includes(p.id))
 
+  const sortOrder = ['Setter', 'Middle Blocker', 'Outside Hitter', 'Opposite Hitter', 'Libero', 'Any'];
+  const sortPlayersByPos = (teamPlayers: any[], positions?: Record<string, string>) => {
+    return [...teamPlayers].sort((a, b) => {
+      const posA = (positions && positions[a.id] && positions[a.id] !== 'Any') ? positions[a.id] : (a.positions?.[0] || 'Any');
+      const posB = (positions && positions[b.id] && positions[b.id] !== 'Any') ? positions[b.id] : (b.positions?.[0] || 'Any');
+      const indexA = sortOrder.indexOf(posA);
+      const indexB = sortOrder.indexOf(posB);
+      return (indexA === -1 ? 99 : indexA) - (indexB === -1 ? 99 : indexB);
+    });
+  }
+
+  const sortedTeamA = sortPlayersByPos(teamAPlayers, match.team_a_positions);
+  const sortedTeamB = sortPlayersByPos(teamBPlayers, match.team_b_positions);
+
   return (
     <div className="flex flex-col h-screen bg-gray-900 overflow-hidden relative">
       
@@ -150,16 +164,20 @@ export default function Scoreboard({ session, match, players }: { session: any, 
             </button>
           </div>
           <ul className="flex flex-col gap-2">
-            {teamAPlayers.map((p: any) => (
-              <li key={p.id} className="bg-gray-800 rounded-lg p-3 shadow flex justify-between items-center">
+            {sortedTeamA.map((p: any) => {
+              const pos = match.team_a_positions?.[p.id];
+              const displayPos = (pos && pos !== 'Any') ? pos : (p.positions?.[0] || 'Any');
+              const isLibero = displayPos === 'Libero';
+              return (
+              <li key={p.id} className={`${isLibero ? 'bg-amber-900/30 border border-amber-500/30' : 'bg-gray-800'} rounded-lg p-3 shadow flex justify-between items-center`}>
                 <div>
-                  <div className="font-bold text-gray-100">{p.name}</div>
-                  <div className="text-[10px] text-gray-400 mt-1 flex flex-wrap gap-1">
-                    {match.team_a_positions && match.team_a_positions[p.id] && match.team_a_positions[p.id] !== 'Any' ? (
-                      <span className="bg-red-900/50 text-red-200 px-2 py-0.5 rounded">{posT(match.team_a_positions[p.id] as any)}</span>
+                  <div className={`font-bold ${isLibero ? 'text-amber-100' : 'text-gray-100'}`}>{p.name}</div>
+                  <div className="text-[10px] text-gray-400 mt-1 flex flex-wrap gap-1 font-bold">
+                    {pos && pos !== 'Any' ? (
+                      <span className={`${isLibero ? 'bg-amber-900/60 text-amber-200' : 'bg-red-900/50 text-red-200'} px-2 py-0.5 rounded`}>{posT(pos as any)}</span>
                     ) : (
-                      p.positions.length > 0 ? p.positions.map((pos: string) => (
-                        <span key={pos} className="bg-gray-700 px-1 rounded">{posT(pos as any).slice(0, 3)}</span>
+                      p.positions.length > 0 ? p.positions.map((ppos: string) => (
+                        <span key={ppos} className={`${ppos === 'Libero' ? 'bg-amber-900/60 text-amber-200' : 'bg-gray-700'} px-1 rounded`}>{posT(ppos as any)}</span>
                       )) : t('any')
                     )}
                   </div>
@@ -171,7 +189,7 @@ export default function Scoreboard({ session, match, players }: { session: any, 
                   {t('sub')}
                 </button>
               </li>
-            ))}
+            )})}
           </ul>
         </div>
 
@@ -184,16 +202,20 @@ export default function Scoreboard({ session, match, players }: { session: any, 
             </button>
           </div>
           <ul className="flex flex-col gap-2">
-            {teamBPlayers.map((p: any) => (
-              <li key={p.id} className="bg-gray-800 rounded-lg p-3 shadow flex justify-between items-center">
+            {sortedTeamB.map((p: any) => {
+              const pos = match.team_b_positions?.[p.id];
+              const displayPos = (pos && pos !== 'Any') ? pos : (p.positions?.[0] || 'Any');
+              const isLibero = displayPos === 'Libero';
+              return (
+              <li key={p.id} className={`${isLibero ? 'bg-amber-900/30 border border-amber-500/30' : 'bg-gray-800'} rounded-lg p-3 shadow flex justify-between items-center`}>
                 <div>
-                  <div className="font-bold text-gray-100">{p.name}</div>
-                  <div className="text-[10px] text-gray-400 mt-1 flex flex-wrap gap-1">
-                    {match.team_b_positions && match.team_b_positions[p.id] && match.team_b_positions[p.id] !== 'Any' ? (
-                      <span className="bg-blue-900/50 text-blue-200 px-2 py-0.5 rounded">{posT(match.team_b_positions[p.id] as any)}</span>
+                  <div className={`font-bold ${isLibero ? 'text-amber-100' : 'text-gray-100'}`}>{p.name}</div>
+                  <div className="text-[10px] text-gray-400 mt-1 flex flex-wrap gap-1 font-bold">
+                    {pos && pos !== 'Any' ? (
+                      <span className={`${isLibero ? 'bg-amber-900/60 text-amber-200' : 'bg-blue-900/50 text-blue-200'} px-2 py-0.5 rounded`}>{posT(pos as any)}</span>
                     ) : (
-                      p.positions.length > 0 ? p.positions.map((pos: string) => (
-                        <span key={pos} className="bg-gray-700 px-1 rounded">{posT(pos as any).slice(0, 3)}</span>
+                      p.positions.length > 0 ? p.positions.map((ppos: string) => (
+                        <span key={ppos} className={`${ppos === 'Libero' ? 'bg-amber-900/60 text-amber-200' : 'bg-gray-700'} px-1 rounded`}>{posT(ppos as any)}</span>
                       )) : t('any')
                     )}
                   </div>
@@ -205,7 +227,7 @@ export default function Scoreboard({ session, match, players }: { session: any, 
                   {t('sub')}
                 </button>
               </li>
-            ))}
+            )})}
           </ul>
         </div>
       </div>

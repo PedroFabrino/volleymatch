@@ -83,7 +83,7 @@ describe('Matchmaking Algorithm', () => {
       const players: Player[] = [];
       for (let i = 0; i < 4; i++) players.push(createPlayer(`S${i}`, 1500, ['Setter']));
       for (let i = 0; i < 6; i++) players.push(createPlayer(`OH${i}`, 1500, ['Outside Hitter']));
-      for (let i = 0; i < 3; i++) players.push(createPlayer(`OP${i}`, 1500, ['Opposite']));
+      for (let i = 0; i < 3; i++) players.push(createPlayer(`OP${i}`, 1500, ['Opposite Hitter']));
       for (let i = 0; i < 5; i++) players.push(createPlayer(`MB${i}`, 1500, ['Middle Blocker']));
       for (let i = 0; i < 3; i++) players.push(createPlayer(`L${i}`, 1500, ['Libero']));
 
@@ -136,7 +136,7 @@ describe('Matchmaking Algorithm', () => {
       // Create players with significantly different MMRs
       for (let i = 0; i < 2; i++) players.push(createPlayer(`S${i}`, 2000 - i * 500, ['Setter'])); // S0=2000, S1=1500
       for (let i = 0; i < 4; i++) players.push(createPlayer(`OH${i}`, 1800 - i * 100, ['Outside Hitter'])); // 1800, 1700, 1600, 1500
-      for (let i = 0; i < 2; i++) players.push(createPlayer(`OP${i}`, 1900 - i * 400, ['Opposite'])); // 1900, 1500
+      for (let i = 0; i < 2; i++) players.push(createPlayer(`OP${i}`, 1900 - i * 400, ['Opposite Hitter'])); // 1900, 1500
       for (let i = 0; i < 4; i++) players.push(createPlayer(`MB${i}`, 1700 - i * 100, ['Middle Blocker'])); // 1700, 1600, 1500, 1400
       for (let i = 0; i < 2; i++) players.push(createPlayer(`L${i}`, 1600 - i * 200, ['Libero'])); // 1600, 1400
 
@@ -158,8 +158,8 @@ describe('Matchmaking Algorithm', () => {
           createPlayer('S1', 1500, ['Setter']),
           createPlayer('S2', 1500, ['Setter']),
           // Only 1 pure opposite, so Flex1 HAS to be assigned Opposite for the other team
-          createPlayer('Flex1', 1500, ['Opposite', 'Outside Hitter']),
-          createPlayer('OP1', 1500, ['Opposite']),
+          createPlayer('Flex1', 1500, ['Opposite Hitter', 'Outside Hitter']),
+          createPlayer('OP1', 1500, ['Opposite Hitter']),
           // 4 pure OH to ensure we get exactly what we need
           ...Array.from({ length: 4 }, (_, i) => createPlayer(`OH${i}`, 1500, ['Outside Hitter'])),
           // Only 3 pure MB, so Flex3 HAS to be assigned MB
@@ -175,7 +175,7 @@ describe('Matchmaking Algorithm', () => {
         const allRoles = [...Object.values(teamAPositions), ...Object.values(teamBPositions)];
         
         expect(allRoles.filter(r => r === 'Setter').length).toBeGreaterThanOrEqual(2);
-        expect(allRoles.filter(r => r === 'Opposite').length).toBeGreaterThanOrEqual(2);
+        expect(allRoles.filter(r => r === 'Opposite Hitter').length).toBeGreaterThanOrEqual(2);
         expect(allRoles.filter(r => r === 'Libero').length).toBeGreaterThanOrEqual(2);
         expect(allRoles.filter(r => r === 'Middle Blocker').length).toBeGreaterThanOrEqual(4);
         expect(allRoles.filter(r => r === 'Outside Hitter').length).toBeGreaterThanOrEqual(4);

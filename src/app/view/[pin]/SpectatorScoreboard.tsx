@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl'
 export default function SpectatorScoreboard({ session, match, players, queue }: { session: any, match: any, players: any[], queue: any[] }) {
   const t = useTranslations('Scoreboard')
   const posT = useTranslations('Positions')
-  
+
   // Timer State
   const [elapsed, setElapsed] = useState('00:00')
 
@@ -31,6 +31,18 @@ export default function SpectatorScoreboard({ session, match, players, queue }: 
 
   const teamAPlayers = match.team_a_players.map((id: string) => players.find(p => p.id === id)).filter(Boolean)
   const teamBPlayers = match.team_b_players.map((id: string) => players.find(p => p.id === id)).filter(Boolean)
+
+  const sortOrder = ['Setter', 'Middle Blocker', 'Outside Hitter', 'Opposite Hitter', 'Libero', 'Any'];
+  const sortPlayersByPos = (teamPlayers: any[], positions?: Record<string, string>) => {
+    return [...teamPlayers].sort((a, b) => {
+      // Fallback to their primary position if drafted position is missing/Any
+      const posA = (positions && positions[a.id] !== 'Any') ? positions[a.id] : (a.positions?.[0] || 'Any');
+      const posB = (positions && positions[b.id] !== 'Any') ? positions[b.id] : (b.positions?.[0] || 'Any');
+      const indexA = sortOrder.indexOf(posA);
+      const indexB = sortOrder.indexOf(posB);
+      return (indexA === -1 ? 99 : indexA) - (indexB === -1 ? 99 : indexB);
+    });
+  }
 
   return (
     <div className="flex flex-col h-[80vh] bg-gray-900 overflow-hidden relative rounded-3xl border border-gray-800 shadow-2xl">
@@ -73,20 +85,24 @@ export default function SpectatorScoreboard({ session, match, players, queue }: 
             <h3 className="text-red-500 font-black text-lg uppercase tracking-wide">{t('redTeam')}</h3>
           </div>
           <ul className="flex flex-col gap-2">
-            {teamAPlayers.map((p: any) => (
-              <li key={p.id} className="bg-gray-800 rounded-lg p-3 shadow flex flex-col justify-center">
-                <div className="font-bold text-gray-100">{p.name}</div>
-                <div className="text-[10px] text-gray-400 mt-1 flex flex-wrap gap-1">
-                  {match.team_a_positions && match.team_a_positions[p.id] && match.team_a_positions[p.id] !== 'Any' ? (
-                    <span className="bg-red-900/50 text-red-200 px-2 py-0.5 rounded">{posT(match.team_a_positions[p.id] as any)}</span>
+            {sortPlayersByPos(teamAPlayers, match.team_a_positions).map((p: any) => {
+              const pos = match.team_a_positions?.[p.id];
+              const displayPos = (pos && pos !== 'Any') ? pos : (p.positions?.[0] || 'Any');
+              const isLibero = displayPos === 'Libero';
+              return (
+              <li key={p.id} className={`rounded-lg p-3 shadow flex flex-col justify-center ${isLibero ? 'bg-amber-900/30 border border-amber-500/30' : 'bg-gray-800'}`}>
+                <div className={`font-bold ${isLibero ? 'text-amber-100' : 'text-gray-100'}`}>{p.name}</div>
+                <div className="text-[10px] text-gray-400 mt-1 flex flex-wrap gap-1 font-bold">
+                  {pos && pos !== 'Any' ? (
+                    <span className={`px-2 py-0.5 rounded ${isLibero ? 'bg-amber-900/60 text-amber-200' : 'bg-red-900/50 text-red-200'}`}>{posT(pos as any)}</span>
                   ) : (
-                    p.positions.length > 0 ? p.positions.map((pos: string) => (
-                      <span key={pos} className="bg-gray-700 px-1 rounded">{posT(pos as any).slice(0, 3)}</span>
+                    p.positions.length > 0 ? p.positions.map((ppos: string) => (
+                      <span key={ppos} className={`px-1 rounded ${ppos === 'Libero' ? 'bg-amber-900/60 text-amber-200' : 'bg-gray-700'}`}>{posT(ppos as any)}</span>
                     )) : t('any')
                   )}
                 </div>
               </li>
-            ))}
+            )})}
           </ul>
         </div>
 
@@ -96,20 +112,24 @@ export default function SpectatorScoreboard({ session, match, players, queue }: 
             <h3 className="text-blue-500 font-black text-lg uppercase tracking-wide">{t('blueTeam')}</h3>
           </div>
           <ul className="flex flex-col gap-2">
-            {teamBPlayers.map((p: any) => (
-              <li key={p.id} className="bg-gray-800 rounded-lg p-3 shadow flex flex-col justify-center">
-                <div className="font-bold text-gray-100">{p.name}</div>
-                <div className="text-[10px] text-gray-400 mt-1 flex flex-wrap gap-1">
-                  {match.team_b_positions && match.team_b_positions[p.id] && match.team_b_positions[p.id] !== 'Any' ? (
-                    <span className="bg-blue-900/50 text-blue-200 px-2 py-0.5 rounded">{posT(match.team_b_positions[p.id] as any)}</span>
+            {sortPlayersByPos(teamBPlayers, match.team_b_positions).map((p: any) => {
+              const pos = match.team_b_positions?.[p.id];
+              const displayPos = (pos && pos !== 'Any') ? pos : (p.positions?.[0] || 'Any');
+              const isLibero = displayPos === 'Libero';
+              return (
+              <li key={p.id} className={`rounded-lg p-3 shadow flex flex-col justify-center ${isLibero ? 'bg-amber-900/30 border border-amber-500/30' : 'bg-gray-800'}`}>
+                <div className={`font-bold ${isLibero ? 'text-amber-100' : 'text-gray-100'}`}>{p.name}</div>
+                <div className="text-[10px] text-gray-400 mt-1 flex flex-wrap gap-1 font-bold">
+                  {pos && pos !== 'Any' ? (
+                    <span className={`px-2 py-0.5 rounded ${isLibero ? 'bg-amber-900/60 text-amber-200' : 'bg-blue-900/50 text-blue-200'}`}>{posT(pos as any)}</span>
                   ) : (
-                    p.positions.length > 0 ? p.positions.map((pos: string) => (
-                      <span key={pos} className="bg-gray-700 px-1 rounded">{posT(pos as any).slice(0, 3)}</span>
+                    p.positions.length > 0 ? p.positions.map((ppos: string) => (
+                      <span key={ppos} className={`px-1 rounded ${ppos === 'Libero' ? 'bg-amber-900/60 text-amber-200' : 'bg-gray-700'}`}>{posT(ppos as any)}</span>
                     )) : t('any')
                   )}
                 </div>
               </li>
-            ))}
+            )})}
           </ul>
         </div>
       </div>

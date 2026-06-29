@@ -79,12 +79,12 @@
     "mmr": "MMR"
   },
   "Login": {
-    "hosterLogin": "Login de Hoster",
+    "hosterLogin": "Login de Anfitrião",
     "emailAddress": "Endereço de E-mail",
     "password": "Senha",
     "logIn": "Entrar",
     "or": "Ou",
-    "createAccount": "Criar Conta de Hoster"
+    "createAccount": "Criar Conta de Anfitrião"
   },
   "Session": {
     "title": "Configuração do Dia de Jogo",

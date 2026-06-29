@@ -63,9 +63,6 @@ export function draftTeams(playersToDraft: Player[]): { teamA: string[], teamB: 
 }
 
 export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinningTeamIds: string[], lastMatchLosingTeamIds: string[]): { teamA: string[], teamB: string[], teamAPositions: Record<string, string>, teamBPositions: Record<string, string> } {
-  // We need exactly 14 players total. 
-  // Composition per team: 1 Setter, 2 Outside Hitter, 1 Opposite, 2 Middle Blocker, 1 Libero
-  // Helper to get effective positions
   const getPos = (p: Player) => (p.active_positions && p.active_positions.length > 0) ? p.active_positions : p.positions;
   const hasPos = (p: Player, pos: string | string[]) => {
     const pPos = getPos(p);
@@ -73,136 +70,115 @@ export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinning
     return pPos.includes(pos);
   };
 
-  // Determine if we have enough MBs and Liberos for 7v7
-  // 7v7 needs 4 MBs + 2 Liberos = 6 total from these positions
   const availableMBs = allAvailablePlayers.filter(p => hasPos(p, 'Middle Blocker'));
-  const availableLiberos = allAvailablePlayers.filter(p => hasPos(p, 'Libero') && !hasPos(p, 'Middle Blocker')); // avoid double counting
+  const availableLiberos = allAvailablePlayers.filter(p => hasPos(p, 'Libero') && !hasPos(p, 'Middle Blocker'));
   const totalMBL = availableMBs.length + availableLiberos.length;
 
   let targetSize = 7;
-  let totalPlayersNeeded = 14;
   let blueprint = [
     { pos: 'Setter', count: 2 },
     { pos: 'Outside Hitter', count: 4 },
-    { pos: 'Opposite', count: 2 },
+    { pos: 'Opposite Hitter', count: 2 },
     { pos: 'Middle Blocker', count: 4 },
     { pos: 'Libero', count: 2 }
   ];
 
   if (totalMBL < 6) {
-    // Fallback to 6v6 if we don't have enough Middle Blockers / Liberos for 7v7
     targetSize = 6;
-    totalPlayersNeeded = 12;
     blueprint = [
       { pos: 'Setter', count: 2 },
-      { pos: 'Outside Hitter', count: 4 },
-      { pos: 'Opposite', count: 2 },
       { pos: 'Middle Blocker', count: 2 },
+      { pos: 'Outside Hitter', count: 4 },
+      { pos: 'Opposite Hitter', count: 2 },
       { pos: 'Libero', count: 2 }
     ];
   }
 
-  // Sorting function to pick the "most deserving" players
   const sortByDeserving = (a: Player, b: Player) => {
-    // 1. Lowest games played today gets priority
     if (a.games_played_today !== b.games_played_today) {
       return a.games_played_today - b.games_played_today;
     }
-    
-    // 2. If tied, Winners of last match get priority over losers
-    const aIsWinner = lastMatchWinningTeamIds.includes(a.id);
-    const bIsWinner = lastMatchWinningTeamIds.includes(b.id);
-    const aIsLoser = lastMatchLosingTeamIds.includes(a.id);
-    const bIsLoser = lastMatchLosingTeamIds.includes(b.id);
-    
-    const aPriority = aIsWinner ? 2 : (aIsLoser ? 1 : 0);
-    const bPriority = bIsWinner ? 2 : (bIsLoser ? 1 : 0);
-    
-    if (aPriority !== bPriority) {
-      return bPriority - aPriority;
-    }
-    
-    return 0;
+    const aPriority = lastMatchWinningTeamIds.includes(a.id) ? 2 : (lastMatchLosingTeamIds.includes(a.id) ? 1 : 0);
+    const bPriority = lastMatchWinningTeamIds.includes(b.id) ? 2 : (lastMatchLosingTeamIds.includes(b.id) ? 1 : 0);
+    if (aPriority !== bPriority) return bPriority - aPriority;
+    return b.mmr - a.mmr;
   };
 
-  let selectedPlayers: Player[] = [];
   let remainingPlayers = [...allAvailablePlayers]
     .sort(() => Math.random() - 0.5)
     .sort(sortByDeserving);
-
-  // Greedy Assignment based on blueprint
-  for (const requirement of blueprint) {
-    const candidates = remainingPlayers.filter(p => hasPos(p, requirement.pos));
-    const picked = candidates.slice(0, requirement.count);
-    
-    selectedPlayers.push(...picked);
-    remainingPlayers = remainingPlayers.filter(p => !picked.includes(p));
-  }
-
-  // Fallback: Fill to targetSize * 2
-  if (selectedPlayers.length < totalPlayersNeeded) {
-    const needed = totalPlayersNeeded - selectedPlayers.length;
-    const fallbacks = remainingPlayers.slice(0, needed);
-    selectedPlayers.push(...fallbacks);
-  }
 
   const teamA: Player[] = [];
   const teamB: Player[] = [];
   const teamAPositions: Record<string, string> = {};
   const teamBPositions: Record<string, string> = {};
-  
-  selectedPlayers.sort((a, b) => b.mmr - a.mmr);
+
   const getTeamMmr = (t: Player[]) => t.reduce((s, p) => s + p.mmr, 0);
 
-  const assignRole = (p: Player, teamObj: Record<string, string>) => {
-    const teamVals = Object.values(teamObj);
-    if (hasPos(p, 'Setter') && !teamVals.includes('Setter')) return 'Setter';
-    if (hasPos(p, 'Opposite') && !teamVals.includes('Opposite')) return 'Opposite';
+  // Draft players into exact roles
+  for (const requirement of blueprint) {
+    // For 6v6 fallback, MB and Libero can swap if needed
+    let candidates = remainingPlayers.filter(p => hasPos(p, requirement.pos));
     
-    if (targetSize === 7) {
-      if (hasPos(p, 'Libero') && !teamVals.includes('Libero')) return 'Libero';
-      if (hasPos(p, 'Middle Blocker') && teamVals.filter(x => x === 'Middle Blocker').length < 2) return 'Middle Blocker';
-    } else {
-      // In 6v6, we want exactly 1 MB and 1 Libero per team.
-      if (hasPos(p, 'Libero') && !teamVals.includes('Libero')) return 'Libero';
-      if (hasPos(p, 'Middle Blocker') && !teamVals.includes('Middle Blocker')) return 'Middle Blocker';
-      
-      // If they are an MB but the MB slot is taken, they play Libero (and vice-versa)
-      if (hasPos(p, 'Middle Blocker') && !teamVals.includes('Libero')) return 'Libero';
-      if (hasPos(p, 'Libero') && !teamVals.includes('Middle Blocker')) return 'Middle Blocker';
+    if (targetSize === 6 && candidates.length < requirement.count) {
+      if (requirement.pos === 'Middle Blocker') {
+        const extra = remainingPlayers.filter(p => !candidates.includes(p) && hasPos(p, 'Libero'));
+        candidates.push(...extra);
+      } else if (requirement.pos === 'Libero') {
+        const extra = remainingPlayers.filter(p => !candidates.includes(p) && hasPos(p, 'Middle Blocker'));
+        candidates.push(...extra);
+      }
     }
 
-    if (hasPos(p, 'Outside Hitter') && teamVals.filter(x => x === 'Outside Hitter').length < 2) return 'Outside Hitter';
+    const picked = candidates.slice(0, requirement.count);
     
-    return getPos(p)[0] || 'Any'; // fallback
-  };
-
-  const setters = selectedPlayers.filter(p => hasPos(p, 'Setter'));
-  const others = selectedPlayers.filter(p => !hasPos(p, 'Setter'));
-
-  for (const s of setters) {
-    if (teamA.length < targetSize && (teamA.length < teamB.length || (teamA.length === teamB.length && getTeamMmr(teamA) <= getTeamMmr(teamB)))) {
-      teamA.push(s);
-      teamAPositions[s.id] = assignRole(s, teamAPositions);
-    } else if (teamB.length < targetSize) {
-      teamB.push(s);
-      teamBPositions[s.id] = assignRole(s, teamBPositions);
-    } else {
-      teamA.push(s);
-      teamAPositions[s.id] = assignRole(s, teamAPositions);
+    // IF WE ARE SHORT ON THIS POSITION, FORCE A FALLBACK PLAYER TO PLAY THIS ROLE
+    if (picked.length < requirement.count) {
+      const needed = requirement.count - picked.length;
+      const fallbacks = remainingPlayers.filter(p => !picked.includes(p)).slice(0, needed);
+      picked.push(...fallbacks);
     }
+    
+    // Distribute picked players evenly between A and B
+    picked.sort((a, b) => b.mmr - a.mmr); // strongest first
+
+    const maxPerTeam = requirement.count / 2;
+    for (const p of picked) {
+      const countA = teamA.filter(x => teamAPositions[x.id] === requirement.pos).length;
+      const countB = teamB.filter(x => teamBPositions[x.id] === requirement.pos).length;
+      const mmrA = getTeamMmr(teamA);
+      const mmrB = getTeamMmr(teamB);
+
+      if (countA < maxPerTeam && (countB >= maxPerTeam || mmrA <= mmrB)) {
+        teamA.push(p);
+        teamAPositions[p.id] = requirement.pos;
+      } else if (countB < maxPerTeam) {
+        teamB.push(p);
+        teamBPositions[p.id] = requirement.pos;
+      } else {
+        teamA.push(p);
+        teamAPositions[p.id] = requirement.pos;
+      }
+    }
+
+    remainingPlayers = remainingPlayers.filter(p => !picked.includes(p));
   }
 
-  for (const p of others) {
-    if (teamA.length < targetSize && (teamA.length < teamB.length || (teamA.length === teamB.length && getTeamMmr(teamA) <= getTeamMmr(teamB)))) {
-      teamA.push(p);
-      teamAPositions[p.id] = assignRole(p, teamAPositions);
-    } else if (teamB.length < targetSize) {
-      teamB.push(p);
-      teamBPositions[p.id] = assignRole(p, teamBPositions);
-    } else {
-      teamA.push(p);
-      teamAPositions[p.id] = assignRole(p, teamAPositions);
+  // Fallback for missing players (if total picked < 12 or 14)
+  const totalNeeded = targetSize * 2;
+  const currentTotal = teamA.length + teamB.length;
+  if (currentTotal < totalNeeded) {
+    const fallbacks = remainingPlayers.slice(0, totalNeeded - currentTotal);
+    fallbacks.sort((a, b) => b.mmr - a.mmr);
+
+    for (const p of fallbacks) {
+      if (teamA.length < targetSize && (teamB.length >= targetSize || getTeamMmr(teamA) <= getTeamMmr(teamB))) {
+        teamA.push(p);
+        teamAPositions[p.id] = getPos(p)[0] || 'Any';
+      } else {
+        teamB.push(p);
+        teamBPositions[p.id] = getPos(p)[0] || 'Any';
+      }
     }
   }
 

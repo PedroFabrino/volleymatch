@@ -7,14 +7,22 @@ import { useTranslations } from 'next-intl'
 
 export default function Matchmaker({ session, players }: { session: any, players: any[] }) {
   const [isPending, startTransition] = useTransition()
-  const [draft, setDraft] = useState<{ teamA: string[], teamB: string[], teamAPositions?: any, teamBPositions?: any } | null>(null)
+  const [draft, setDraft] = useState<any>(null)
+  const [isGenerating, setIsGenerating] = useState(false)
   const t = useTranslations('Matchmaker')
+  const tPos = useTranslations('Positions')
 
   const handleGenerate = async () => {
-    startTransition(async () => {
+    if (isGenerating) return;
+    setIsGenerating(true);
+    try {
       const result = await generateMatch(session.id)
       if (result) setDraft(result)
-    })
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setIsGenerating(false);
+    }
   }
 
   const handleStart = () => {
@@ -26,12 +34,13 @@ export default function Matchmaker({ session, players }: { session: any, players
 
   const getPlayerName = (id: string) => players.find(p => p.id === id)?.name || 'Unknown'
 
-  const sortOrder = ['Setter', 'Middle Blocker', 'Outside Hitter', 'Opposite', 'Libero', 'Any'];
+  const sortOrder = ['Setter', 'Middle Blocker', 'Outside Hitter', 'Opposite Hitter', 'Libero', 'Any'];
   const sortPlayersByPos = (teamIds: string[], positions?: Record<string, string>) => {
-    if (!positions) return teamIds;
     return [...teamIds].sort((a, b) => {
-      const posA = positions[a] || 'Any';
-      const posB = positions[b] || 'Any';
+      const pA = players.find(p => p.id === a);
+      const pB = players.find(p => p.id === b);
+      const posA = (positions && positions[a] && positions[a] !== 'Any') ? positions[a] : (pA?.positions?.[0] || 'Any');
+      const posB = (positions && positions[b] && positions[b] !== 'Any') ? positions[b] : (pB?.positions?.[0] || 'Any');
       const indexA = sortOrder.indexOf(posA);
       const indexB = sortOrder.indexOf(posB);
       return (indexA === -1 ? 99 : indexA) - (indexB === -1 ? 99 : indexB);
@@ -52,11 +61,11 @@ export default function Matchmaker({ session, players }: { session: any, players
           
           <button 
             onClick={handleGenerate}
-            disabled={isPending}
+            disabled={isGenerating}
             className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xl py-5 rounded-2xl transition-all shadow-lg shadow-blue-900/20 disabled:opacity-50 flex items-center justify-center gap-3"
           >
-            {isPending && <RefreshCw className="w-6 h-6 animate-spin" />}
-            {isPending ? t('drafting') : t('generate')}
+            {isGenerating && <RefreshCw className="w-6 h-6 animate-spin" />}
+            {isGenerating ? t('drafting') : t('generate')}
           </button>
         </div>
       ) : (
@@ -69,12 +78,14 @@ export default function Matchmaker({ session, players }: { session: any, players
               <ul className="flex flex-col gap-2">
                 {sortPlayersByPos(draft.teamA, draft.teamAPositions).map(id => {
                   const pos = draft.teamAPositions?.[id];
-                  const isLibero = pos === 'Libero';
+                  const p = players.find(p => p.id === id);
+                  const displayPos = (pos && pos !== 'Any') ? pos : (p?.positions?.[0] || 'Any');
+                  const isLibero = displayPos === 'Libero';
                   return (
                     <li key={id} className={`p-3 rounded-lg font-semibold flex justify-between items-center ${isLibero ? 'bg-amber-900/30 border border-amber-500/30 text-amber-100' : 'bg-gray-800/80 text-gray-100'}`}>
                       <span>{getPlayerName(id)}</span>
-                      {pos && (
-                        <span className={`text-xs px-2 py-1 rounded ${isLibero ? 'bg-amber-900/60 text-amber-200' : 'bg-red-900/50 text-red-200'}`}>{pos}</span>
+                      {displayPos !== 'Any' && (
+                        <span className={`font-bold text-xs px-2 py-1 rounded ${isLibero ? 'bg-amber-900/60 text-amber-200' : 'bg-red-900/50 text-red-200'}`}>{tPos(displayPos as any)}</span>
                       )}
                     </li>
                   )
@@ -86,12 +97,14 @@ export default function Matchmaker({ session, players }: { session: any, players
               <ul className="flex flex-col gap-2">
                 {sortPlayersByPos(draft.teamB, draft.teamBPositions).map(id => {
                   const pos = draft.teamBPositions?.[id];
-                  const isLibero = pos === 'Libero';
+                  const p = players.find(p => p.id === id);
+                  const displayPos = (pos && pos !== 'Any') ? pos : (p?.positions?.[0] || 'Any');
+                  const isLibero = displayPos === 'Libero';
                   return (
                     <li key={id} className={`p-3 rounded-lg font-semibold flex justify-between items-center ${isLibero ? 'bg-amber-900/30 border border-amber-500/30 text-amber-100' : 'bg-gray-800/80 text-gray-100'}`}>
                       <span>{getPlayerName(id)}</span>
-                      {pos && (
-                        <span className={`text-xs px-2 py-1 rounded ${isLibero ? 'bg-amber-900/60 text-amber-200' : 'bg-blue-900/50 text-blue-200'}`}>{pos}</span>
+                      {displayPos !== 'Any' && (
+                        <span className={`font-bold text-xs px-2 py-1 rounded ${isLibero ? 'bg-amber-900/60 text-amber-200' : 'bg-blue-900/50 text-blue-200'}`}>{tPos(displayPos as any)}</span>
                       )}
                     </li>
                   )
@@ -103,10 +116,11 @@ export default function Matchmaker({ session, players }: { session: any, players
           <div className="flex gap-4">
             <button 
               onClick={handleGenerate}
-              disabled={isPending}
-              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold text-lg py-4 rounded-xl transition-all disabled:opacity-50"
+              disabled={isGenerating}
+              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold text-lg py-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {t('reroll')}
+              <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${isGenerating ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+              {isGenerating ? t('generating') : t('reroll')}
             </button>
             <button 
               onClick={handleStart}

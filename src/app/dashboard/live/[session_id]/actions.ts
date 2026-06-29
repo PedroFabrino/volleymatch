@@ -65,8 +65,8 @@ export async function generateMatch(sessionId: string) {
       }
     }
 
-    const { teamA, teamB } = draftStrictTeams(presentPlayers, lastMatchWinningTeamIds, lastMatchLosingTeamIds)
-    return { teamA, teamB }
+    const draft = draftStrictTeams(presentPlayers, lastMatchWinningTeamIds, lastMatchLosingTeamIds)
+    return draft
   }
 
   // Casual Mode
