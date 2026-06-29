@@ -39,7 +39,7 @@ export async function generateMatch(sessionId: string) {
   // Setter Compensation Logic
   const isSetter = (p: any) => {
     const pos = p.active_positions && p.active_positions.length > 0 ? p.active_positions : p.positions
-    return pos.includes('Setter')
+    return pos?.includes('Setter') || false
   }
 
   const setters = playersToDraft.filter(isSetter)
@@ -73,7 +73,7 @@ export async function generateMatch(sessionId: string) {
   }
 
   // 4. Create the match
-  await supabase.from('matches').insert({
+  const { error } = await supabase.from('matches').insert({
     session_id: sessionId,
     hoster_id: user.id,
     team_a_players: teamA,
@@ -82,6 +82,11 @@ export async function generateMatch(sessionId: string) {
     team_b_score: 0,
     is_completed: false
   })
+
+  if (error) {
+    console.error("FAILED TO INSERT MATCH", error)
+    throw new Error(error.message)
+  }
 
   revalidatePath(`/dashboard/live/${sessionId}`)
 }
