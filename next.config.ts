@@ -11,4 +11,7 @@ const nextConfig: NextConfig = {
   turbopack: {}
 };
 
-export default withPWA(nextConfig);
+import createNextIntlPlugin from 'next-intl/plugin';
+const withNextIntl = createNextIntlPlugin();
+
+export default withNextIntl(withPWA(nextConfig));

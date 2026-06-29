@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import Link from 'next/link'
 import { Trophy } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 
 export default async function ActiveSessionBanner() {
   const supabase = await createClient()
@@ -29,6 +30,7 @@ export default async function ActiveSessionBanner() {
         )}
       </div>
       <div className="flex items-center gap-4">
+        <LanguageSwitcher />
         <ThemeToggle />
         {activeSession && (
           <Link 

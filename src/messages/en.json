@@ -1,0 +1,13 @@
+{
+  "Common": {
+    "dashboard": "Dashboard",
+    "logout": "Logout",
+    "theme": "Toggle Theme"
+  },
+  "Scoreboard": {
+    "cancelGame": "Cancel Game",
+    "finishEarly": "Finish Early",
+    "redTeam": "Red Team",
+    "blueTeam": "Blue Team"
+  }
+}

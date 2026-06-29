@@ -1,0 +1,13 @@
+{
+  "Common": {
+    "dashboard": "Painel",
+    "logout": "Sair",
+    "theme": "Alternar Tema"
+  },
+  "Scoreboard": {
+    "cancelGame": "Cancelar Jogo",
+    "finishEarly": "Encerrar Cedo",
+    "redTeam": "Equipe Vermelha",
+    "blueTeam": "Equipe Azul"
+  }
+}
