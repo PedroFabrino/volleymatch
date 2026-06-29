@@ -4,16 +4,24 @@ import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
-export async function toggleAttendance(playerId: string, isPresent: boolean) {
+export async function toggleAttendance(playerId: string, isPresent: boolean, activeSessionId?: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
   await supabase
     .from('players')
-    .update({ is_present_today: isPresent, games_played_today: 0 })
+    .update({ is_present_today: isPresent })
     .eq('id', playerId)
     .eq('hoster_id', user.id)
+
+  if (activeSessionId && isPresent) {
+    // Upsert to ensure they have a record but don't overwrite if they already do (so games_played is preserved)
+    await supabase.from('session_players').upsert(
+      { session_id: activeSessionId, player_id: playerId, games_played: 0 },
+      { onConflict: 'session_id, player_id', ignoreDuplicates: true }
+    )
+  }
 
   revalidatePath('/dashboard/session')
 }
@@ -73,6 +81,14 @@ export async function startSession(formData: FormData) {
     return
   }
 
+  // Initialize session_players for all present players
+  const { data: presentPlayers } = await supabase.from('players').select('id').eq('hoster_id', user.id).eq('is_present_today', true)
+  if (presentPlayers && presentPlayers.length > 0) {
+    await supabase.from('session_players').insert(
+      presentPlayers.map(p => ({ session_id: session.id, player_id: p.id, games_played: 0 }))
+    )
+  }
+
   // Redirect to the active live session page where the matchmaking will happen
   redirect(`/dashboard/live/${session.id}`)
 }
@@ -89,10 +105,10 @@ export async function endSession(sessionId: string) {
     .eq('id', sessionId)
     .eq('hoster_id', user.id)
 
-  // 2. Reset player daily stats (attendance & games played)
+  // 2. Reset player daily stats (attendance)
   await supabase
     .from('players')
-    .update({ is_present_today: false, games_played_today: 0 })
+    .update({ is_present_today: false })
     .eq('hoster_id', user.id)
 
   revalidatePath('/dashboard', 'layout')

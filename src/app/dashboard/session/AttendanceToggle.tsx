@@ -4,7 +4,7 @@ import { useTransition, useOptimistic } from 'react'
 import { toggleAttendance, toggleActivePosition } from './actions'
 import { Check, X } from 'lucide-react'
 
-export default function AttendanceToggle({ player }: { player: any }) {
+export default function AttendanceToggle({ player, activeSessionId }: { player: any, activeSessionId?: string }) {
   const [isPending, startTransition] = useTransition()
   
   const [optimisticIsPresent, addOptimisticIsPresent] = useOptimistic(
@@ -39,7 +39,7 @@ export default function AttendanceToggle({ player }: { player: any }) {
         onClick={() => {
           startTransition(() => {
             addOptimisticIsPresent(!optimisticIsPresent)
-            toggleAttendance(player.id, !optimisticIsPresent)
+            toggleAttendance(player.id, !optimisticIsPresent, activeSessionId)
           })
         }}
         className="flex items-center justify-between w-full text-left"

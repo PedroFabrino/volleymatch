@@ -42,13 +42,26 @@ export default async function SessionSetupPage() {
       
     activeMatch = match
 
+    // Get games played from session_players
+    const { data: sessionPlayers } = await supabase
+      .from('session_players')
+      .select('player_id, games_played')
+      .eq('session_id', activeSession.id)
+
+    const sessionPlayersMap = new Map(sessionPlayers?.map(sp => [sp.player_id, sp.games_played]))
+
     if (activeMatch) {
       const playingIds = new Set([...activeMatch.team_a_players, ...activeMatch.team_b_players])
       queuedPlayers = players
         ?.filter(p => p.is_present_today && !playingIds.has(p.id))
-        .sort((a, b) => a.games_played_today - b.games_played_today) || []
+        .sort((a, b) => {
+          const aGames = sessionPlayersMap.get(a.id) ?? 0
+          const bGames = sessionPlayersMap.get(b.id) ?? 0
+          return aGames - bGames
+        })
+        .map(p => ({ ...p, games_played_today: sessionPlayersMap.get(p.id) ?? 0 })) || []
     } else {
-      queuedPlayers = players?.filter(p => p.is_present_today) || []
+      queuedPlayers = players?.filter(p => p.is_present_today).map(p => ({ ...p, games_played_today: sessionPlayersMap.get(p.id) ?? 0 })) || []
     }
   }
 
@@ -82,7 +95,7 @@ export default async function SessionSetupPage() {
 
               <div className="flex flex-col gap-2 max-h-[500px] overflow-y-auto pr-2">
                 {players?.map(player => (
-                  <AttendanceToggle key={player.id} player={player} />
+                  <AttendanceToggle key={player.id} player={player} activeSessionId={activeSession?.id} />
                 ))}
                 {players?.length === 0 && (
                   <p className="text-gray-500 dark:text-gray-400 text-center py-8">{t('emptyRoster')}</p>

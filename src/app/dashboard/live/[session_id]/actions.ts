@@ -24,6 +24,18 @@ export async function generateMatch(sessionId: string) {
     
   if (!presentPlayers || presentPlayers.length < 2) return
 
+  // Merge games_played from session_players
+  const { data: sessionPlayers } = await supabase
+    .from('session_players')
+    .select('player_id, games_played')
+    .eq('session_id', sessionId)
+    
+  const sessionPlayersMap = new Map(sessionPlayers?.map(sp => [sp.player_id, sp.games_played]))
+  
+  for (const p of presentPlayers) {
+    p.games_played_today = sessionPlayersMap.get(p.id) ?? 0
+  }
+
   const mode = session.matchmaking_mode || 'casual'
 
   if (mode === 'strict') {
@@ -172,8 +184,9 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
   }
 
   for (const pid of allParticipatingPlayers) {
-    const { data: p } = await supabase.from('players').select('games_played_today, mmr, id, positions').eq('id', pid).single()
-    if (p) playerRecords[p.id] = { id: p.id, mmr: p.mmr, games_played_today: p.games_played_today, positions: p.positions }
+    const { data: p } = await supabase.from('players').select('mmr, id, positions').eq('id', pid).single()
+    const { data: sp } = await supabase.from('session_players').select('games_played').eq('player_id', pid).eq('session_id', sessionId).maybeSingle()
+    if (p) playerRecords[p.id] = { id: p.id, mmr: p.mmr, games_played_today: sp?.games_played ?? 0, positions: p.positions }
   }
 
   const mmrUpdates = calculateMmrChanges({
@@ -188,9 +201,14 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
 
   for (const update of mmrUpdates) {
     await supabase.from('players').update({ 
-      mmr: update.newMmr,
-      games_played_today: playerRecords[update.playerId].games_played_today + update.queueIncrement
+      mmr: update.newMmr
     }).eq('id', update.playerId)
+
+    await supabase.from('session_players').upsert({
+      session_id: sessionId,
+      player_id: update.playerId,
+      games_played: playerRecords[update.playerId].games_played_today + update.queueIncrement
+    }, { onConflict: 'session_id, player_id' })
   }
 
   if (destination === 'draft') {
