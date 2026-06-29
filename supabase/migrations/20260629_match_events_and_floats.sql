@@ -17,7 +17,8 @@ CREATE TABLE public.match_events (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 3. Add explicit position tracking to matches for strict drafts
+-- 3. Add explicit position tracking to matches for strict drafts, and remove the old point_timeline
 ALTER TABLE public.matches
 ADD COLUMN team_a_positions JSONB DEFAULT '{}'::jsonb,
-ADD COLUMN team_b_positions JSONB DEFAULT '{}'::jsonb;
+ADD COLUMN team_b_positions JSONB DEFAULT '{}'::jsonb,
+DROP COLUMN IF EXISTS point_timeline;
