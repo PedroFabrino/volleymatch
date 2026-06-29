@@ -102,7 +102,10 @@ export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinning
   };
 
   let selectedPlayers: Player[] = [];
-  let remainingPlayers = [...allAvailablePlayers].sort(sortByDeserving);
+  // Shuffle first to ensure random tie-breaking, then apply our priority sort
+  let remainingPlayers = [...allAvailablePlayers]
+    .sort(() => Math.random() - 0.5)
+    .sort(sortByDeserving);
 
   // Greedy Assignment based on blueprint
   for (const requirement of blueprint) {
