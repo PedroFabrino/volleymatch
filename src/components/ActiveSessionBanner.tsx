@@ -4,6 +4,7 @@ import { Trophy } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { getTranslations } from 'next-intl/server'
+import { QrCodeModal } from '@/components/QrCodeModal'
 
 export default async function ActiveSessionBanner() {
   const supabase = await createClient()
@@ -14,7 +15,7 @@ export default async function ActiveSessionBanner() {
 
   const { data: activeSession } = await supabase
     .from('sessions')
-    .select('id')
+    .select('id, pin')
     .eq('hoster_id', user.id)
     .eq('is_active', true)
     .maybeSingle()
@@ -35,12 +36,15 @@ export default async function ActiveSessionBanner() {
         <LanguageSwitcher />
         <ThemeToggle />
         {activeSession && (
-          <Link 
-            href={`/dashboard/live/${activeSession.id}`} 
-            className="bg-black text-yellow-500 px-4 py-1.5 rounded-full font-bold text-sm hover:bg-gray-900 transition shadow-sm animate-pulse"
-          >
-            {t('resumeGame')}
-          </Link>
+          <div className="flex items-center gap-2">
+            <QrCodeModal pin={activeSession.pin || '0000'} />
+            <Link 
+              href={`/dashboard/live/${activeSession.id}`} 
+              className="bg-black text-yellow-500 px-4 py-1.5 rounded-full font-bold text-sm hover:bg-gray-900 transition shadow-sm animate-pulse"
+            >
+              {t('resumeGame')}
+            </Link>
+          </div>
         )}
       </div>
     </div>

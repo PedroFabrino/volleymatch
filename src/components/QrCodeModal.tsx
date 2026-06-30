@@ -19,7 +19,7 @@ export function QrCodeModal({ pin }: { pin: string }) {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="ml-4 inline-flex items-center gap-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition text-sm font-sans font-bold"
+        className="inline-flex items-center gap-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition text-sm font-sans font-bold shadow-sm"
       >
         <QrCode className="w-4 h-4" />
         QR Code
