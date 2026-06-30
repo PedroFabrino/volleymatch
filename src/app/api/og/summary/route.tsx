@@ -50,7 +50,7 @@ export async function GET(request: Request) {
                 marginBottom: '40px',
               }}
             >
-              <div style={{ fontSize: 60, fontWeight: 900, marginRight: 20 }}>VolleyMatch</div>
+              <div style={{ display: 'flex', fontSize: 60, fontWeight: 900, marginRight: 20 }}>VolleyMatch</div>
             </div>
 
             <div
@@ -64,10 +64,10 @@ export async function GET(request: Request) {
                 border: '2px solid #1F2937', // gray-800
               }}
             >
-              <div style={{ fontSize: 40, fontWeight: 800, marginBottom: '10px', color: '#F9FAFB' }}>
+              <div style={{ display: 'flex', fontSize: 40, fontWeight: 800, marginBottom: '10px', color: '#F9FAFB' }}>
                 Game Day Recap
               </div>
-              <div style={{ fontSize: 24, color: '#9CA3AF', marginBottom: '40px' }}>
+              <div style={{ display: 'flex', fontSize: 24, color: '#9CA3AF', marginBottom: '40px' }}>
                 {date}
               </div>
 
@@ -75,22 +75,22 @@ export async function GET(request: Request) {
                 {/* MVP */}
                 {mvp && (
                   <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                    <div style={{ fontSize: 24, color: '#FBBF24', fontWeight: 700, marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', fontSize: 24, color: '#FBBF24', fontWeight: 700, marginBottom: '10px' }}>
                       MVP
                     </div>
-                    <div style={{ fontSize: 48, fontWeight: 800 }}>{mvp.name}</div>
-                    <div style={{ fontSize: 24, color: '#9CA3AF' }}>{mvp.games_played} Games</div>
+                    <div style={{ display: 'flex', fontSize: 48, fontWeight: 800 }}>{mvp.name}</div>
+                    <div style={{ display: 'flex', fontSize: 24, color: '#9CA3AF' }}>{`${mvp.games_played} Games`}</div>
                   </div>
                 )}
 
                 {/* Biggest Gainer */}
                 {biggestGainer && biggestGainer.mmrChange > 0 && (
                   <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                    <div style={{ fontSize: 24, color: '#34D399', fontWeight: 700, marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', fontSize: 24, color: '#34D399', fontWeight: 700, marginBottom: '10px' }}>
                       Biggest Gainer
                     </div>
-                    <div style={{ fontSize: 48, fontWeight: 800 }}>{biggestGainer.name}</div>
-                    <div style={{ fontSize: 24, color: '#34D399' }}>+{biggestGainer.mmrChange} MMR</div>
+                    <div style={{ display: 'flex', fontSize: 48, fontWeight: 800 }}>{biggestGainer.name}</div>
+                    <div style={{ display: 'flex', fontSize: 24, color: '#34D399' }}>{`+${biggestGainer.mmrChange} MMR`}</div>
                   </div>
                 )}
               </div>
@@ -124,8 +124,8 @@ export async function GET(request: Request) {
               color: 'white',
             }}
           >
-            <div style={{ fontSize: 60, fontWeight: 900 }}>VolleyMatch</div>
-            <div style={{ fontSize: 40, marginTop: 20, color: '#9CA3AF' }}>Host Stats Summary</div>
+            <div style={{ display: 'flex', fontSize: 60, fontWeight: 900 }}>VolleyMatch</div>
+            <div style={{ display: 'flex', fontSize: 40, marginTop: 20, color: '#9CA3AF' }}>Host Stats Summary</div>
           </div>
         ),
         { width: 1200, height: 630 }
