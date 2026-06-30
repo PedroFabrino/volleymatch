@@ -133,3 +133,34 @@ CREATE POLICY "Spectators can view match events" ON public.match_events FOR SELE
         WHERE m.id = match_events.match_id AND s.is_active = true
     )
 );
+-- ==========================================
+-- 6. mmr_history
+-- ==========================================
+CREATE TABLE public.mmr_history (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  player_id   UUID NOT NULL REFERENCES public.players(id) ON DELETE CASCADE,
+  hoster_id   UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  match_id    UUID REFERENCES public.matches(id) ON DELETE SET NULL,
+  session_id  UUID REFERENCES public.sessions(id) ON DELETE SET NULL,
+  old_mmr     INTEGER NOT NULL,
+  new_mmr     INTEGER NOT NULL,
+  mmr_change  INTEGER NOT NULL,
+  reason      TEXT NOT NULL DEFAULT 'match_result',
+  created_at  TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+ALTER TABLE public.mmr_history ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Hosters can view their players mmr history"
+  ON public.mmr_history FOR SELECT USING (auth.uid() = hoster_id);
+
+CREATE POLICY "Hosters can insert mmr history"
+  ON public.mmr_history FOR INSERT WITH CHECK (auth.uid() = hoster_id);
+
+-- ==========================================
+-- Anonymous / QR Registration Policies
+-- ==========================================
+CREATE POLICY "Allow public insert to players" ON public.players FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Allow public update to players" ON public.players FOR UPDATE TO anon USING (true);
+CREATE POLICY "Allow public insert to session_players" ON public.session_players FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Allow public update to session_players" ON public.session_players FOR UPDATE TO anon USING (true);

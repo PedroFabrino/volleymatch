@@ -15,8 +15,11 @@ This document tracks the progress of implementing the features defined in `ROADM
 - [x] `SpectatorScoreboard.tsx` — status-coloured queue strip
 
 ## 3. QR Self-Registration
-**Status:** ⏳ Not Started
-
+**Status:** ✅ Complete
+- [x] Host Dashboard QR Code generation linking to `/join/[pin]`
+- [x] Autocomplete for returning players avoiding duplicates
+- [x] Late-joiner queue sorting (FIFO) using `MAX(games_played)`
+- [x] Admin client bypass for RLS using `SUPABASE_SERVICE_ROLE_KEY`
 ## 4. MMR History Table
 **Status:** ⏳ Not Started
 

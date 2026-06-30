@@ -143,10 +143,23 @@ export async function startSession(formData: FormData) {
   }
 
   // Initialize session_players for all present players
-  const { data: presentPlayers } = await supabase.from('players').select('id').eq('hoster_id', user.id).eq('is_present_today', true)
+  const { data: presentPlayers } = await supabase.from('players').select('id, mmr').eq('hoster_id', user.id).eq('is_present_today', true)
   if (presentPlayers && presentPlayers.length > 0) {
     await supabase.from('session_players').insert(
       presentPlayers.map(p => ({ session_id: session.id, player_id: p.id, games_played: 0 }))
+    )
+    
+    // Log the starting MMR snapshot for the history table
+    await supabase.from('mmr_history').insert(
+      presentPlayers.map(p => ({
+        player_id: p.id,
+        hoster_id: user.id,
+        session_id: session.id,
+        old_mmr: p.mmr,
+        new_mmr: p.mmr,
+        mmr_change: 0,
+        reason: 'session_start_snapshot'
+      }))
     )
   }
 

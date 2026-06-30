@@ -202,6 +202,10 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
     point_timeline: timeline as any
   }, playerRecords)
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const historyInserts = []
   for (const update of mmrUpdates) {
     await supabase.from('players').update({ 
       mmr: update.newMmr
@@ -215,6 +219,24 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
     
     if (upsertError) {
       console.error("FAILED TO UPSERT SESSION PLAYER:", upsertError)
+    }
+
+    historyInserts.push({
+      player_id: update.playerId,
+      hoster_id: user.id,
+      match_id: matchId,
+      session_id: sessionId,
+      old_mmr: update.oldMmr,
+      new_mmr: update.newMmr,
+      mmr_change: update.mmrChange,
+      reason: 'match_result'
+    })
+  }
+
+  if (historyInserts.length > 0) {
+    const { error: historyError } = await supabase.from('mmr_history').insert(historyInserts)
+    if (historyError) {
+      console.error("FAILED TO INSERT MMR HISTORY:", historyError)
     }
   }
 
