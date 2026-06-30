@@ -118,8 +118,8 @@ export default function HighlightsGrid({
 
       {/* Share Modal */}
       {selected && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="relative w-full max-w-sm flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+          <div className="relative w-full max-w-sm flex flex-col gap-4 animate-in fade-in zoom-in duration-200 my-auto">
             
             {/* Modal Header Actions */}
             <div className="flex justify-between items-center px-2">
@@ -145,7 +145,7 @@ export default function HighlightsGrid({
               {selected === 'blowout' && <Swords className="absolute -right-10 -bottom-10 w-64 h-64 opacity-20" />}
 
               {/* Card Content */}
-              <div className="relative z-10 flex flex-col h-full">
+              <div className="relative z-10 flex-1 flex flex-col">
                 {/* Header */}
                 <div className="flex justify-between items-start mb-6">
                   <h3 className="text-white/80 font-bold uppercase tracking-widest text-sm">
