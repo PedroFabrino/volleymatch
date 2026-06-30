@@ -171,14 +171,14 @@ export default async function SessionSetupPage() {
                     <label className="font-semibold text-gray-700 dark:text-gray-300">{t('tieBreakerRule')}</label>
                     <div className="flex flex-col gap-3">
                       <label className="flex items-start gap-3 p-3 border dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-                        <input type="radio" name="tie_breaker_rule" value="win_by_2" defaultChecked className="mt-1 dark:bg-gray-900 dark:border-gray-600" />
+                        <input type="radio" name="tie_breaker_rule" value="win_by_2" className="mt-1 dark:bg-gray-900 dark:border-gray-600" />
                         <div>
                           <div className="font-bold dark:text-gray-100">{t('winBy2')}</div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">{t('winBy2Desc')}</div>
                         </div>
                       </label>
                       <label className="flex items-start gap-3 p-3 border dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-                        <input type="radio" name="tie_breaker_rule" value="flat_plus_3" className="mt-1 dark:bg-gray-900 dark:border-gray-600" />
+                        <input type="radio" name="tie_breaker_rule" value="flat_plus_3" defaultChecked className="mt-1 dark:bg-gray-900 dark:border-gray-600" />
                         <div>
                           <div className="font-bold dark:text-gray-100">{t('flat3')}</div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">{t('flat3Desc')}</div>
@@ -191,14 +191,14 @@ export default async function SessionSetupPage() {
                     <label className="font-semibold text-gray-700 dark:text-gray-300">{t('matchmakingMode')}</label>
                     <div className="flex flex-col gap-3">
                       <label className="flex items-start gap-3 p-3 border dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-                        <input type="radio" name="matchmaking_mode" value="casual" defaultChecked className="mt-1 dark:bg-gray-900 dark:border-gray-600" />
+                        <input type="radio" name="matchmaking_mode" value="casual" className="mt-1 dark:bg-gray-900 dark:border-gray-600" />
                         <div>
                           <div className="font-bold dark:text-gray-100">{t('casual')}</div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">{t('casualDesc')}</div>
                         </div>
                       </label>
                       <label className="flex items-start gap-3 p-3 border dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-                        <input type="radio" name="matchmaking_mode" value="strict" className="mt-1 dark:bg-gray-900 dark:border-gray-600" />
+                        <input type="radio" name="matchmaking_mode" value="strict" defaultChecked className="mt-1 dark:bg-gray-900 dark:border-gray-600" />
                         <div>
                           <div className="font-bold dark:text-gray-100">{t('strict')}</div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">{t('strictDesc')}</div>
