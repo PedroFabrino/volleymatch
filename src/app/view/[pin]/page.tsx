@@ -71,8 +71,13 @@ export default async function ViewSessionPage(props: { params: Promise<{ pin: st
     .limit(1)
     .maybeSingle()
 
-  const lastWinners = lastCompletedMatch?.team_a_players || []
-  const lastLosers = lastCompletedMatch?.team_b_players || [] // Doesn't matter which is which for the preview as long as they are separated from the bench
+  const lastWinners = activeMatch 
+    ? activeMatch.team_a_players 
+    : (lastCompletedMatch?.team_a_players || [])
+    
+  const lastLosers = activeMatch 
+    ? activeMatch.team_b_players 
+    : (lastCompletedMatch?.team_b_players || []) // Doesn't matter which is which for the preview as long as they are separated from the bench
 
   const playersWithStatus = previewNextDraft(
     sortedPlayers,
