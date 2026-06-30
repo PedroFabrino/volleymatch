@@ -164,3 +164,8 @@ CREATE POLICY "Allow public insert to players" ON public.players FOR INSERT TO a
 CREATE POLICY "Allow public update to players" ON public.players FOR UPDATE TO anon USING (true);
 CREATE POLICY "Allow public insert to session_players" ON public.session_players FOR INSERT TO anon WITH CHECK (true);
 CREATE POLICY "Allow public update to session_players" ON public.session_players FOR UPDATE TO anon USING (true);
+
+-- ==========================================
+-- Grants
+-- ==========================================
+GRANT ALL ON public.mmr_history TO authenticated, service_role, anon;
