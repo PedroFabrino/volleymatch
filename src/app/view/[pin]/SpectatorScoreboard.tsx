@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Clock } from 'lucide-react'
+import { Clock, ChevronDown, ChevronRight } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 import { PlayerWithStatus } from '@/utils/matchmaking'
@@ -9,6 +9,10 @@ import { PlayerWithStatus } from '@/utils/matchmaking'
 export default function SpectatorScoreboard({ session, match, playersWithStatus }: { session: any, match: any, playersWithStatus: PlayerWithStatus[] }) {
   const t = useTranslations('Scoreboard')
   const posT = useTranslations('Positions')
+
+  // Accordion State
+  const [teamsOpen, setTeamsOpen] = useState(false)
+  const [queueOpen, setQueueOpen] = useState(true)
 
   // Timer State
   const [elapsed, setElapsed] = useState('00:00')
@@ -52,7 +56,7 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
     <div className="flex flex-col h-[80vh] bg-gray-900 overflow-hidden relative rounded-3xl border border-gray-800 shadow-2xl">
       
       {/* SCOREBOARD SECTION */}
-      <div className="relative flex flex-row w-full h-[40vh] shrink-0">
+      <div className="relative flex flex-row w-full h-[35vh] shrink-0 border-b border-gray-800 shadow-lg z-20">
         
         {/* Top Bar Overlay */}
         <div className="flex justify-between items-center p-4 bg-gray-950/60 absolute w-full top-0 z-10 text-white font-mono uppercase tracking-widest text-xs font-bold pointer-events-none">
@@ -81,10 +85,23 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
       </div>
 
       {/* TEAM ROSTER SECTION */}
-      <div className="flex flex-row w-full flex-1 bg-gray-900 overflow-y-auto">
+      <div className="bg-gray-900 shrink-0 border-b border-gray-800 z-10 shadow-md">
+        <button 
+          onClick={() => setTeamsOpen(!teamsOpen)}
+          className="w-full flex justify-between items-center p-4 text-gray-400 hover:text-gray-200 transition-colors"
+        >
+          <h3 className="font-bold text-sm uppercase tracking-wider flex items-center gap-2">
+            {teamsOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            Live Match Rosters
+          </h3>
+          <span className="text-xs bg-gray-800 px-2 py-1 rounded">12 players</span>
+        </button>
         
-        {/* Team A Roster */}
-        <div className="flex-1 p-4 border-r border-gray-800">
+        {teamsOpen && (
+          <div className="flex flex-row w-full bg-gray-900 border-t border-gray-800">
+            
+            {/* Team A Roster */}
+            <div className="flex-1 p-4 border-r border-gray-800 max-h-[35vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700">
           <div className="flex justify-between items-center border-b border-red-900/50 pb-2 mb-3">
             <h3 className="text-red-500 font-black text-lg uppercase tracking-wide">{t('redTeam')}</h3>
           </div>
@@ -110,8 +127,8 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
           </ul>
         </div>
 
-        {/* Team B Roster */}
-        <div className="flex-1 p-4 pb-4">
+            {/* Team B Roster */}
+            <div className="flex-1 p-4 pb-4 max-h-[35vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700">
           <div className="flex justify-between items-center border-b border-blue-900/50 pb-2 mb-3">
             <h3 className="text-blue-500 font-black text-lg uppercase tracking-wide">{t('blueTeam')}</h3>
           </div>
@@ -134,42 +151,79 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
                 </div>
               </li>
             )})}
-          </ul>
+            </ul>
+          </div>
         </div>
+        )}
       </div>
 
       {/* Queue Section */}
-      <div className="p-4 bg-gray-950 border-t border-gray-800 shrink-0">
-        <h3 className="text-gray-400 font-bold text-sm uppercase tracking-wider mb-3">Up Next (Queue)</h3>
-        <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-thin scrollbar-thumb-gray-800">
-          {benchPlayers.map((p) => {
-            let statusIcon = '🕐';
-            let statusColor = 'border-gray-700 bg-gray-900 opacity-60';
-            
-            if (p.draftStatus === 'in_next_match') {
-              statusIcon = '✅';
-              statusColor = 'border-green-600 bg-green-900/30';
-            } else if (p.draftStatus === 'position_conflict') {
-              statusIcon = '⚠️';
-              statusColor = 'border-amber-600/50 bg-amber-900/20 opacity-70';
-            }
+      <div className="bg-gray-950 flex-1 flex flex-col min-h-0 relative">
+        <button 
+          onClick={() => setQueueOpen(!queueOpen)}
+          className="w-full flex justify-between items-center p-4 text-gray-400 hover:text-gray-200 transition-colors border-b border-gray-900 shadow-sm shrink-0"
+        >
+          <h3 className="font-bold text-sm uppercase tracking-wider flex items-center gap-2">
+            {queueOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            Up Next (Queue)
+          </h3>
+          <span className="text-xs bg-gray-800 px-2 py-1 rounded">{benchPlayers.length} players</span>
+        </button>
+        
+        {queueOpen && (
+          <div className="flex flex-col gap-2 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-800 flex-1">
+            {benchPlayers.map((p) => {
+              let statusIcon = '🕐';
+              let statusColor = 'border-gray-700 bg-gray-900 opacity-60';
+              
+              if (p.draftStatus === 'in_next_match') {
+                statusIcon = '✅';
+                statusColor = 'border-green-600 bg-green-900/30';
+              } else if (p.draftStatus === 'position_conflict') {
+                statusIcon = '⚠️';
+                statusColor = 'border-amber-600/50 bg-amber-900/20 opacity-70';
+              }
 
-            return (
-              <div key={p.id} className={`flex-shrink-0 rounded-lg px-3 py-2 flex flex-col min-w-[110px] border ${statusColor}`}>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <span className="text-sm">{statusIcon}</span>
-                  <span className="font-bold text-gray-200 text-sm truncate">{p.name}</span>
+              return (
+                <div key={p.id} className={`flex justify-between items-center rounded-lg px-3 py-2 border ${statusColor}`}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm">{statusIcon}</span>
+                    <span className="font-bold text-gray-200 text-sm truncate">{p.name}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] text-gray-500 font-medium tracking-wider uppercase bg-gray-800/50 px-2 py-1 rounded">
+                      {p.games_played_today} games
+                    </span>
+                    
+                    {session.is_strict_mode && p.positionSlotFill && p.positionSlotFill.length > 0 && (
+                      <div className="flex flex-col gap-1 items-end ml-2">
+                        {p.positionSlotFill.map(fill => (
+                          <div key={fill.position} className="flex items-center gap-2">
+                            <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">
+                              {fill.position.substring(0, 3)}
+                            </span>
+                            <div className="flex gap-0.5">
+                              {Array.from({ length: fill.total }).map((_, i) => (
+                                <div 
+                                  key={i} 
+                                  className={`w-1.5 h-1.5 rounded-full ${i < fill.filled ? 'bg-amber-500/70' : 'bg-gray-700'}`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <span className="text-[10px] text-gray-500 font-medium tracking-wider uppercase ml-6">
-                  {p.games_played_today} games
-                </span>
-              </div>
-            )
-          })}
-          {benchPlayers.length === 0 && (
-            <div className="text-gray-500 text-sm italic">No players on the bench.</div>
-          )}
-        </div>
+              )
+            })}
+            {benchPlayers.length === 0 && (
+              <div className="text-gray-500 text-sm italic">No players on the bench.</div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Match Over Modal */}
