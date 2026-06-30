@@ -16,9 +16,20 @@ export async function toggleAttendance(playerId: string, isPresent: boolean, act
     .eq('hoster_id', user.id)
 
   if (activeSessionId && isPresent) {
-    // Upsert to ensure they have a record but don't overwrite if they already do (so games_played is preserved)
+    // Get max games_played for this session to place at the bottom of the queue
+    const { data: sessionPlayers } = await supabase
+      .from('session_players')
+      .select('games_played')
+      .eq('session_id', activeSessionId)
+
+    let maxGamesPlayed = 0
+    if (sessionPlayers && sessionPlayers.length > 0) {
+      maxGamesPlayed = Math.max(...sessionPlayers.map(sp => sp.games_played || 0))
+    }
+
+    // Upsert to ensure they have a record but don't overwrite if they already do
     await supabase.from('session_players').upsert(
-      { session_id: activeSessionId, player_id: playerId, games_played: 0 },
+      { session_id: activeSessionId, player_id: playerId, games_played: maxGamesPlayed },
       { onConflict: 'session_id, player_id', ignoreDuplicates: true }
     )
   }
@@ -46,10 +57,21 @@ export async function batchToggleAttendance(updates: { playerId: string, isPrese
 
   const activeSessionId = updates[0]?.activeSessionId
   if (activeSessionId && presentIds.length > 0) {
+    // Get max games_played for this session to place at the bottom of the queue
+    const { data: sessionPlayersData } = await supabase
+      .from('session_players')
+      .select('games_played')
+      .eq('session_id', activeSessionId)
+
+    let maxGamesPlayed = 0
+    if (sessionPlayersData && sessionPlayersData.length > 0) {
+      maxGamesPlayed = Math.max(...sessionPlayersData.map(sp => sp.games_played || 0))
+    }
+
     const sessionPlayers = presentIds.map(id => ({
       session_id: activeSessionId,
       player_id: id,
-      games_played: 0
+      games_played: maxGamesPlayed
     }))
     
     await supabase.from('session_players').upsert(

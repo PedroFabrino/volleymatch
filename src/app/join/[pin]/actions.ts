@@ -17,13 +17,14 @@ export async function joinSessionAction(formData: FormData) {
   const positions = formData.getAll('positions') as string[]
 
   // Validate session exists and is active
-  const { data: session } = await supabase
+  const { data: session, error: sessionError } = await supabase
     .from('sessions')
     .select('id, hoster_id')
     .eq('id', sessionId)
     .single()
 
-  if (!session) {
+  if (sessionError || !session) {
+    console.error("Session lookup error:", sessionError)
     throw new Error('Invalid session.')
   }
 
@@ -72,9 +73,20 @@ export async function joinSessionAction(formData: FormData) {
     finalPlayerId = newPlayer.id
   }
 
+  // Get the current max games_played for this session to place the user at the bottom of the queue
+  const { data: sessionPlayers } = await supabase
+    .from('session_players')
+    .select('games_played')
+    .eq('session_id', sessionId)
+
+  let maxGamesPlayed = 0
+  if (sessionPlayers && sessionPlayers.length > 0) {
+    maxGamesPlayed = Math.max(...sessionPlayers.map(sp => sp.games_played || 0))
+  }
+
   // Ensure they are in the session_players table
   await supabase.from('session_players').upsert(
-    { session_id: sessionId, player_id: finalPlayerId, games_played: 0 },
+    { session_id: sessionId, player_id: finalPlayerId, games_played: maxGamesPlayed },
     { onConflict: 'session_id, player_id', ignoreDuplicates: true }
   )
 
