@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { Trophy, ArrowLeft, TrendingUp, Flame, Swords, Calendar } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 
-export default async function SessionSummaryPage({ params }: { params: { session_id: string } }) {
+export default async function SessionSummaryPage(props: { params: Promise<{ session_id: string }> }) {
+  const params = await props.params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const t = await getTranslations('Summary')
