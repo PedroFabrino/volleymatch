@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { generateMatch, saveMatch } from './actions'
-import { endSession } from '../session/actions'
+import { endSession } from '@/app/dashboard/session/actions'
 import { Trophy, Users, Check, RefreshCw, PowerOff } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
@@ -66,35 +66,36 @@ export default function Matchmaker({ session, players, isFirstMatch }: { session
         <Users className="w-6 h-6 text-gray-300" />
       </a>
 
-      <button 
-        onClick={() => {
-          if (confirm('Are you sure you want to end this session?')) {
-            startTransition(() => {
-              endSession(session.id)
-            })
-          }
-        }}
-        disabled={isPending}
-        className="absolute top-6 right-6 p-3 bg-red-900/40 border border-red-500/30 rounded-full hover:bg-red-800/60 transition shadow-lg z-10 flex items-center justify-center disabled:opacity-50 group"
-        title="End Session"
-      >
-        <PowerOff className="w-6 h-6 text-red-400 group-hover:text-red-300" />
-      </button>
-
       {!draft ? (
         <div className="bg-gray-800 p-8 rounded-3xl max-w-lg w-full shadow-2xl border border-gray-700 mt-20">
           <Trophy className="w-20 h-20 mx-auto text-yellow-500 mb-6" />
           <h2 className="text-3xl font-black mb-2 text-white">{t('ready')}</h2>
           <p className="text-gray-400 mb-8">{t('readyDesc')}</p>
           
-          <button 
-            onClick={handleGenerate}
-            disabled={isGenerating}
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xl py-5 rounded-2xl transition-all shadow-lg shadow-blue-900/20 disabled:opacity-50 flex items-center justify-center gap-3"
-          >
-            {isGenerating && <RefreshCw className="w-6 h-6 animate-spin" />}
-            {isGenerating ? t('drafting') : t('generate')}
-          </button>
+          <div className="flex flex-col gap-4">
+            <button 
+              onClick={handleGenerate}
+              disabled={isGenerating}
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xl py-5 rounded-2xl transition-all shadow-lg shadow-blue-900/20 disabled:opacity-50 flex items-center justify-center gap-3"
+            >
+              {isGenerating && <RefreshCw className="w-6 h-6 animate-spin" />}
+              {isGenerating ? t('drafting') : t('generate')}
+            </button>
+            
+            <button 
+              onClick={() => {
+                if (confirm('Are you sure you want to end this session?')) {
+                  startTransition(() => {
+                    endSession(session.id)
+                  })
+                }
+              }}
+              disabled={isPending}
+              className="w-full bg-red-900/40 hover:bg-red-800/60 border border-red-500/30 text-red-200 font-bold text-lg py-4 rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              <PowerOff className="w-5 h-5" /> End Session
+            </button>
+          </div>
         </div>
       ) : (
         <div className="w-full max-w-4xl pt-20 pb-8 flex flex-col gap-8">
