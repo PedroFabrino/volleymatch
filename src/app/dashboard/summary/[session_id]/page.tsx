@@ -27,7 +27,7 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
   // 2. Fetch all completed matches
   const { data: matches } = await supabase
     .from('matches')
-    .select('*')
+    .select('*, match_events(*)')
     .eq('session_id', sessionId)
     .eq('is_completed', true)
 
@@ -95,13 +95,13 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
 
     const winner = match.team_a_score > match.team_b_score ? 'a' : 'b'
     let maxDeficit = 0
-    const timeline = match.point_timeline || []
+    const timeline = match.match_events || []
     
     timeline.forEach((event: any) => {
-      if (!event.type || event.type === 'score') {
+      if (!event.event_type || event.event_type === 'score') {
         const deficit = winner === 'a' 
-          ? event.scoreB - event.scoreA 
-          : event.scoreA - event.scoreB
+          ? event.score_b - event.score_a 
+          : event.score_a - event.score_b
         if (deficit > maxDeficit) {
           maxDeficit = deficit
         }
