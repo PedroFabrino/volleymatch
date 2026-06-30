@@ -62,6 +62,17 @@ export function draftTeams(playersToDraft: Player[]): { teamA: string[], teamB: 
   };
 }
 
+export function sortPlayersByDraftPriority(a: Player, b: Player, isFirstMatch: boolean) {
+  if (a.games_played_today !== b.games_played_today) {
+    return a.games_played_today - b.games_played_today;
+  }
+  if (isFirstMatch) {
+    // Use ID for a stable pseudo-random sort in Game 1 to prevent UI flickering in the spectator queue
+    return a.id.localeCompare(b.id);
+  }
+  return b.mmr - a.mmr;
+}
+
 export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinningTeamIds: string[], lastMatchLosingTeamIds: string[]): { teamA: string[], teamB: string[], teamAPositions: Record<string, string>, teamBPositions: Record<string, string> } {
   const getPos = (p: Player) => (p.active_positions && p.active_positions.length > 0) ? p.active_positions : p.positions;
   const hasPos = (p: Player, pos: string | string[]) => {
@@ -96,22 +107,11 @@ export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinning
 
   const isFirstMatch = lastMatchWinningTeamIds.length === 0 && lastMatchLosingTeamIds.length === 0;
 
-  const sortByDeserving = (a: Player, b: Player) => {
-    if (a.games_played_today !== b.games_played_today) {
-      return a.games_played_today - b.games_played_today;
-    }
-    if (isFirstMatch) {
-      // Use ID for a stable pseudo-random sort in Game 1 to prevent UI flickering in the spectator queue
-      return a.id.localeCompare(b.id);
-    }
-    return b.mmr - a.mmr;
-  };
-
   const lastMatchAllIds = new Set([...lastMatchWinningTeamIds, ...lastMatchLosingTeamIds]);
 
-  const benchPlayers = allAvailablePlayers.filter(p => !lastMatchAllIds.has(p.id)).sort(sortByDeserving);
-  const winnerPlayers = allAvailablePlayers.filter(p => lastMatchWinningTeamIds.includes(p.id)).sort(sortByDeserving);
-  const loserPlayers = allAvailablePlayers.filter(p => lastMatchLosingTeamIds.includes(p.id)).sort(sortByDeserving);
+  const benchPlayers = allAvailablePlayers.filter(p => !lastMatchAllIds.has(p.id)).sort((a, b) => sortPlayersByDraftPriority(a, b, isFirstMatch));
+  const winnerPlayers = allAvailablePlayers.filter(p => lastMatchWinningTeamIds.includes(p.id)).sort((a, b) => sortPlayersByDraftPriority(a, b, isFirstMatch));
+  const loserPlayers = allAvailablePlayers.filter(p => lastMatchLosingTeamIds.includes(p.id)).sort((a, b) => sortPlayersByDraftPriority(a, b, isFirstMatch));
 
   let remainingPlayers = [...benchPlayers, ...winnerPlayers, ...loserPlayers];
 

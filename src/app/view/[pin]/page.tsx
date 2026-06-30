@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import SpectatorScoreboard from './SpectatorScoreboard'
 import SpectatorMatchmaker from './SpectatorMatchmaker'
 import RealtimeSubscriber from './RealtimeSubscriber'
-import { previewNextDraft } from '@/utils/matchmaking'
+import { previewNextDraft, sortPlayersByDraftPriority } from '@/utils/matchmaking'
 
 export default async function ViewSessionPage(props: { params: Promise<{ pin: string }> }) {
   const params = await props.params
@@ -58,9 +58,6 @@ export default async function ViewSessionPage(props: { params: Promise<{ pin: st
     }
   })
 
-  // Sort players by games played as a base
-  const sortedPlayers = [...players].sort((a, b) => a.games_played_today - b.games_played_today)
-
   // 4. Get Last Completed Match (for previewing the next draft accurately in strict mode)
   const { data: lastCompletedMatch } = await supabase
     .from('matches')
@@ -78,6 +75,11 @@ export default async function ViewSessionPage(props: { params: Promise<{ pin: st
   const lastLosers = activeMatch 
     ? activeMatch.team_b_players 
     : (lastCompletedMatch?.team_b_players || []) // Doesn't matter which is which for the preview as long as they are separated from the bench
+
+  const isFirstMatch = lastWinners.length === 0 && lastLosers.length === 0;
+
+  // Sort players by draft priority so UI Queue perfectly aligns with the engine's internal logic
+  const sortedPlayers = [...players].sort((a, b) => sortPlayersByDraftPriority(a, b, isFirstMatch))
 
   const playersWithStatus = previewNextDraft(
     sortedPlayers,
