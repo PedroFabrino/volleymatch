@@ -133,7 +133,7 @@ export default function HighlightsGrid({
             </div>
 
             {/* The Shareable Card */}
-            <div id="share-card" className={`relative rounded-3xl p-8 text-white shadow-2xl overflow-hidden aspect-[4/5] flex flex-col justify-between ${
+            <div id="share-card" className={`relative rounded-3xl p-8 text-white shadow-2xl overflow-hidden min-h-[500px] flex flex-col justify-between ${
               selected === 'mvp' ? 'bg-gradient-to-br from-yellow-400 to-amber-600' : 
               selected === 'comeback' ? 'bg-gradient-to-br from-red-500 to-rose-700' :
               'bg-gradient-to-br from-indigo-500 to-blue-700'
