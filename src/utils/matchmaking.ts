@@ -277,6 +277,18 @@ export function previewNextDraft(
 
     if (draftedIds.has(p.id)) {
       const draftedPosition = drafted.teamAPositions[p.id] || drafted.teamBPositions[p.id] || 'Any';
+      
+      if (draftedPosition !== 'Any' && !positionSlotFill.some(x => x.position === draftedPosition)) {
+        const b = blueprint.find(x => x.pos === draftedPosition);
+        if (b) {
+          positionSlotFill.push({
+            position: draftedPosition,
+            filled: positionFills[draftedPosition] || 0,
+            total: b.count
+          });
+        }
+      }
+
       return { 
         ...p, 
         draftStatus: 'in_next_match',
