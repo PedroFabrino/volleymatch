@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Trophy, ArrowLeft, TrendingUp, Flame, Swords, Calendar } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
+import HighlightsGrid from './HighlightsGrid'
 
 export default async function SessionSummaryPage(props: { params: Promise<{ session_id: string }> }) {
   const params = await props.params
@@ -78,6 +79,37 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
   const mvp = leaderboard.length > 0 ? leaderboard[0] : null
   const mostGamesPlayed = [...leaderboard].sort((a, b) => b.games_played - a.games_played)[0]
 
+  // --- MVP Extras ---
+  let bestPartner: { name: string, wins: number } | null = null;
+  if (mvp) {
+    const partnerWins: Record<string, number> = {};
+    matches?.forEach(match => {
+      const winner = match.team_a_score > match.team_b_score ? 'a' : 'b';
+      const winningTeam = winner === 'a' ? match.team_a_players : match.team_b_players;
+      if (winningTeam.includes(mvp.id)) {
+        winningTeam.forEach((pid: string) => {
+          if (pid !== mvp.id) {
+            partnerWins[pid] = (partnerWins[pid] || 0) + 1;
+          }
+        });
+      }
+    });
+    
+    let maxWins = 0;
+    let bestPartnerId: string | null = null;
+    Object.entries(partnerWins).forEach(([pid, wins]) => {
+      if (wins > maxWins) {
+        maxWins = wins;
+        bestPartnerId = pid;
+      }
+    });
+
+    if (bestPartnerId) {
+      const pData = playersData.find(p => p.id === bestPartnerId);
+      if (pData) bestPartner = { name: pData.name, wins: maxWins };
+    }
+  }
+
   // --- Calculate Biggest Difference ---
   let biggestDiffMatch: any = null
   let maxDiff = -1
@@ -85,6 +117,7 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
   // --- Calculate Biggest Comeback ---
   let biggestComebackMatch: any = null
   let maxComeback = -1
+  let turningPoint = { winningScore: 0, losingScore: 0 }
 
   matches?.forEach(match => {
     const diff = Math.abs(match.team_a_score - match.team_b_score)
@@ -95,6 +128,8 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
 
     const winner = match.team_a_score > match.team_b_score ? 'a' : 'b'
     let maxDeficit = 0
+    let localTurningPoint = { winningScore: 0, losingScore: 0 }
+
     const timeline = match.match_events || []
     
     timeline.forEach((event: any) => {
@@ -104,6 +139,10 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
           : event.score_a - event.score_b
         if (deficit > maxDeficit) {
           maxDeficit = deficit
+          localTurningPoint = {
+            winningScore: winner === 'a' ? event.score_a : event.score_b,
+            losingScore: winner === 'a' ? event.score_b : event.score_a
+          }
         }
       }
     })
@@ -111,6 +150,7 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
     if (maxDeficit > maxComeback) {
       maxComeback = maxDeficit
       biggestComebackMatch = match
+      turningPoint = localTurningPoint
     }
   })
 
@@ -138,64 +178,17 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
         </div>
 
         {/* Highlights Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          
-          {/* MVP Card */}
-          <div className="bg-gradient-to-br from-yellow-400 to-amber-600 rounded-3xl p-6 text-white shadow-xl shadow-amber-900/20 relative overflow-hidden">
-            <Trophy className="absolute -right-4 -bottom-4 w-32 h-32 opacity-20" />
-            <div className="relative z-10">
-              <h3 className="text-amber-100 font-bold uppercase tracking-wider text-sm mb-2">{t('mvp')}</h3>
-              {mvp ? (
-                <>
-                  <div className="text-3xl font-black mb-1">{mvp.name}</div>
-                  <div className="text-amber-100 flex items-center gap-2 font-bold text-lg">
-                    <TrendingUp className="w-5 h-5" /> 
-                    +{mvp.mmrChange} MMR
-                  </div>
-                </>
-              ) : (
-                <div className="text-xl font-bold">{t('noData')}</div>
-              )}
-            </div>
-          </div>
-
-          {/* Biggest Comeback */}
-          <div className="bg-gradient-to-br from-red-500 to-rose-700 rounded-3xl p-6 text-white shadow-xl shadow-red-900/20 relative overflow-hidden">
-            <Flame className="absolute -right-4 -bottom-4 w-32 h-32 opacity-20" />
-            <div className="relative z-10">
-              <h3 className="text-red-200 font-bold uppercase tracking-wider text-sm mb-2">{t('biggestComeback')}</h3>
-              {biggestComebackMatch && maxComeback > 0 ? (
-                <>
-                  <div className="text-3xl font-black mb-1">{maxComeback} {t('points')}</div>
-                  <div className="text-red-200 font-bold">
-                    {t('finalScore')}: {biggestComebackMatch.team_a_score} - {biggestComebackMatch.team_b_score}
-                  </div>
-                </>
-              ) : (
-                <div className="text-xl font-bold">{t('noComebacks')}</div>
-              )}
-            </div>
-          </div>
-
-          {/* Biggest Blowout / Difference */}
-          <div className="bg-gradient-to-br from-indigo-500 to-blue-700 rounded-3xl p-6 text-white shadow-xl shadow-indigo-900/20 relative overflow-hidden">
-            <Swords className="absolute -right-4 -bottom-4 w-32 h-32 opacity-20" />
-            <div className="relative z-10">
-              <h3 className="text-indigo-200 font-bold uppercase tracking-wider text-sm mb-2">{t('biggestDifference')}</h3>
-              {biggestDiffMatch && maxDiff > 0 ? (
-                <>
-                  <div className="text-3xl font-black mb-1">{maxDiff} {t('points')}</div>
-                  <div className="text-indigo-200 font-bold">
-                    {t('score')}: {Math.max(biggestDiffMatch.team_a_score, biggestDiffMatch.team_b_score)} - {Math.min(biggestDiffMatch.team_a_score, biggestDiffMatch.team_b_score)}
-                  </div>
-                </>
-              ) : (
-                <div className="text-xl font-bold">{t('noData')}</div>
-              )}
-            </div>
-          </div>
-
-        </div>
+        <HighlightsGrid 
+          sessionId={sessionId}
+          mvp={mvp}
+          bestPartner={bestPartner}
+          biggestComebackMatch={biggestComebackMatch}
+          maxComeback={maxComeback}
+          turningPoint={turningPoint}
+          biggestDiffMatch={biggestDiffMatch}
+          maxDiff={maxDiff}
+          playersData={playersData}
+        />
 
         {/* Leaderboard Table */}
         <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-xl border dark:border-gray-800 overflow-hidden">
