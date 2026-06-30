@@ -78,11 +78,11 @@ export default async function SessionSummaryPage({ params }: { params: { session
   const mostGamesPlayed = [...leaderboard].sort((a, b) => b.games_played - a.games_played)[0]
 
   // --- Calculate Biggest Difference ---
-  let biggestDiffMatch = null
+  let biggestDiffMatch: any = null
   let maxDiff = -1
   
   // --- Calculate Biggest Comeback ---
-  let biggestComebackMatch = null
+  let biggestComebackMatch: any = null
   let maxComeback = -1
 
   matches?.forEach(match => {
