@@ -38,6 +38,14 @@ export default async function LiveSessionPage(props: { params: Promise<{ session
     .select('*')
     .eq('hoster_id', user.id)
 
+  const { count: completedMatchesCount } = await supabase
+    .from('matches')
+    .select('*', { count: 'exact', head: true })
+    .eq('session_id', sessionId)
+    .eq('is_completed', true)
+
+  const isFirstMatch = completedMatchesCount === 0
+
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
       <div className="bg-gray-800 p-2 text-center text-sm text-gray-400 font-mono flex items-center justify-center">
@@ -48,7 +56,7 @@ export default async function LiveSessionPage(props: { params: Promise<{ session
         {activeMatch ? (
           <Scoreboard session={session} match={activeMatch} players={players || []} />
         ) : (
-          <Matchmaker session={session} players={players || []} />
+          <Matchmaker session={session} players={players || []} isFirstMatch={isFirstMatch} />
         )}
       </div>
     </div>

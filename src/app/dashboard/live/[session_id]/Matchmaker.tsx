@@ -5,7 +5,7 @@ import { generateMatch, saveMatch } from './actions'
 import { Trophy, Users, Check, RefreshCw } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
-export default function Matchmaker({ session, players }: { session: any, players: any[] }) {
+export default function Matchmaker({ session, players, isFirstMatch }: { session: any, players: any[], isFirstMatch: boolean }) {
   const [isPending, startTransition] = useTransition()
   const [draft, setDraft] = useState<any>(null)
   const [isGenerating, setIsGenerating] = useState(false)
@@ -132,14 +132,16 @@ export default function Matchmaker({ session, players }: { session: any, players
           </div>
 
           <div className="flex gap-4">
-            <button 
-              onClick={handleGenerate}
-              disabled={isGenerating}
-              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold text-lg py-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${isGenerating ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-              {isGenerating ? t('generating') : t('reroll')}
-            </button>
+            {isFirstMatch && (
+              <button 
+                onClick={handleGenerate}
+                disabled={isGenerating}
+                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold text-lg py-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${isGenerating ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                {isGenerating ? t('generating') : t('reroll')}
+              </button>
+            )}
             <button 
               onClick={handleStart}
               disabled={isPending}
