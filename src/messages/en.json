@@ -22,6 +22,9 @@
     "viewFullLeaderboard": "View Full Leaderboard",
     "recentMatches": "Recent Matches",
     "noMatchHistory": "No match history available.",
+    "pastSessions": "Past Sessions",
+    "active": "Active",
+    "viewSummary": "View Summary",
     "viewAllMatches": "View All Matches"
   },
   "History": {

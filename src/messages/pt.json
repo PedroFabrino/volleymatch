@@ -21,7 +21,10 @@
     "matches": "{count} Partidas",
     "viewFullLeaderboard": "Ver Classificação Completa",
     "recentMatches": "Partidas Recentes",
-    "noMatchHistory": "Nenhum histórico de partidas disponível.",
+    "noMatchHistory": "Nenhum histórico de partidas ainda.",
+    "pastSessions": "Sessões Anteriores",
+    "active": "Ativa",
+    "viewSummary": "Ver Resumo",
     "viewAllMatches": "Ver Todas as Partidas"
   },
   "History": {
