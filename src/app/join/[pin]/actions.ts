@@ -1,10 +1,11 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/admin'
 import { redirect } from 'next/navigation'
 
 export async function joinSessionAction(formData: FormData) {
-  const supabase = await createClient()
+  // Use admin client to bypass RLS since the QR scanner is an unauthenticated guest
+  const supabase = createAdminClient()
 
   const sessionId = formData.get('sessionId') as string
   const pin = formData.get('pin') as string
