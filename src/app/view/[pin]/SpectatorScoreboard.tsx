@@ -92,9 +92,9 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
         >
           <h3 className="font-bold text-sm uppercase tracking-wider flex items-center gap-2">
             {teamsOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-            Live Match Rosters
+            {t('liveMatchRosters')}
           </h3>
-          <span className="text-xs bg-gray-800 px-2 py-1 rounded">12 players</span>
+          <span className="text-xs bg-gray-800 px-2 py-1 rounded">{t('playersCount', { count: 12 })}</span>
         </button>
         
         {teamsOpen && (
@@ -165,9 +165,9 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
         >
           <h3 className="font-bold text-sm uppercase tracking-wider flex items-center gap-2">
             {queueOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-            Up Next (Queue)
+            {t('upNextQueue')}
           </h3>
-          <span className="text-xs bg-gray-800 px-2 py-1 rounded">{benchPlayers.length} players</span>
+          <span className="text-xs bg-gray-800 px-2 py-1 rounded">{t('playersCount', { count: benchPlayers.length })}</span>
         </button>
         
         {queueOpen && (
@@ -227,7 +227,7 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
               )
             })}
             {benchPlayers.length === 0 && (
-              <div className="text-gray-500 text-sm italic">No players on the bench.</div>
+              <div className="text-gray-500 text-sm italic">{t('noBench')}</div>
             )}
           </div>
         )}
@@ -245,7 +245,7 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
               <span className="text-gray-500">-</span>
               <span className="text-blue-500">{optScoreB}</span>
             </div>
-            <p className="text-gray-400 text-center animate-pulse">Waiting for host to proceed...</p>
+            <p className="text-gray-400 text-center animate-pulse">{t('waitingHost')}</p>
           </div>
         </div>
       )}

@@ -16,15 +16,15 @@ export default function SpectatorMatchmaker({ session, playersWithStatus }: { se
       <div className="bg-gray-800 p-8 rounded-3xl max-w-xl w-full shadow-2xl border border-gray-700 text-left">
         <div className="text-center mb-8">
           <RefreshCw className="w-16 h-16 mx-auto text-blue-500 mb-6 animate-spin" />
-          <h2 className="text-2xl font-black mb-2 text-white">Drafting Next Match</h2>
-          <p className="text-gray-400">Waiting for the host to start the next game...</p>
+          <h2 className="text-2xl font-black mb-2 text-white">{t('draftingNextMatch')}</h2>
+          <p className="text-gray-400">{t('waitingHostStart')}</p>
         </div>
         
         {/* PLAYING NEXT SECTION */}
         <div className="mb-6">
           <h3 className="text-green-400 font-bold mb-3 flex justify-between">
-            <span>✅ PLAYING NEXT</span>
-            <span className="text-gray-400 text-sm font-normal">{playingNext.length} players</span>
+            <span>{t('playingNext')}</span>
+            <span className="text-gray-400 text-sm font-normal">{t('playersCount', { count: playingNext.length })}</span>
           </h3>
           <div className="flex flex-col gap-2">
             {playingNext.map(p => (
@@ -59,15 +59,15 @@ export default function SpectatorMatchmaker({ session, playersWithStatus }: { se
                 )}
               </div>
             ))}
-            {playingNext.length === 0 && <p className="text-gray-500 text-sm">No players assigned yet.</p>}
+            {playingNext.length === 0 && <p className="text-gray-500 text-sm">{t('noPlayersAssigned')}</p>}
           </div>
         </div>
 
         {/* SITTING OUT SECTION */}
         <div>
           <h3 className="text-gray-400 font-bold mb-3 flex justify-between border-t border-gray-700 pt-6">
-            <span>🕐 SITTING OUT</span>
-            <span className="text-gray-500 text-sm font-normal">{sittingOut.length} players</span>
+            <span>{t('sittingOut')}</span>
+            <span className="text-gray-500 text-sm font-normal">{t('playersCount', { count: sittingOut.length })}</span>
           </h3>
           <div className="flex flex-col gap-2">
             {sittingOut.map(p => (
@@ -97,7 +97,7 @@ export default function SpectatorMatchmaker({ session, playersWithStatus }: { se
                 </div>
               </div>
             ))}
-            {sittingOut.length === 0 && <p className="text-gray-500 text-sm">Everyone is playing!</p>}
+            {sittingOut.length === 0 && <p className="text-gray-500 text-sm">{t('everyonePlaying')}</p>}
           </div>
         </div>
 

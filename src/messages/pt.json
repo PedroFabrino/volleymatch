@@ -151,6 +151,16 @@
     "matchDone": "Fim de Jogo!",
     "draftNext": "Próxima Partida",
     "backToAttendance": "Voltar para Presença",
-    "undoPoint": "Espera, desfazer ponto!"
+    "undoPoint": "Espera, desfazer ponto!",
+    "liveMatchRosters": "Escalações da Partida Ao Vivo",
+    "playersCount": "{count} jogadores",
+    "upNextQueue": "Próximos (Fila)",
+    "waitingHost": "Aguardando o host continuar...",
+    "draftingNextMatch": "Sorteando Próxima Partida",
+    "waitingHostStart": "Aguardando o host iniciar o próximo jogo...",
+    "playingNext": "✅ PRÓXIMOS",
+    "noPlayersAssigned": "Nenhum jogador escalado ainda.",
+    "sittingOut": "🕐 NO BANCO",
+    "everyonePlaying": "Todos estão jogando!"
   }
 }

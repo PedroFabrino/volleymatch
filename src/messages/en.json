@@ -151,6 +151,16 @@
     "matchDone": "Match Done!",
     "draftNext": "Draft Next Match",
     "backToAttendance": "Back to Attendance",
-    "undoPoint": "Wait, undo point!"
+    "undoPoint": "Wait, undo point!",
+    "liveMatchRosters": "Live Match Rosters",
+    "playersCount": "{count} players",
+    "upNextQueue": "Up Next (Queue)",
+    "waitingHost": "Waiting for host to proceed...",
+    "draftingNextMatch": "Drafting Next Match",
+    "waitingHostStart": "Waiting for the host to start the next game...",
+    "playingNext": "✅ PLAYING NEXT",
+    "noPlayersAssigned": "No players assigned yet.",
+    "sittingOut": "🕐 SITTING OUT",
+    "everyonePlaying": "Everyone is playing!"
   }
 }
