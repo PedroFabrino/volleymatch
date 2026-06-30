@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/admin'
 import { redirect } from 'next/navigation'
 import { getSessionSummaryData } from '@/utils/summaryStats'
 import { Trophy, TrendingUp, Flame, Swords, Calendar } from 'lucide-react'
@@ -14,7 +14,7 @@ export default async function PublicShareHighlightPage(props: { params: Promise<
     redirect('/')
   }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Fetch Session Info to ensure it exists and get date
   const { data: session } = await supabase

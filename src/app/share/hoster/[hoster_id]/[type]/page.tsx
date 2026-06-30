@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/admin'
 import { redirect } from 'next/navigation'
 import { getGlobalSummaryData } from '@/utils/summaryStats'
 import { Trophy, TrendingUp, Flame, Swords } from 'lucide-react'
@@ -14,7 +14,7 @@ export default async function PublicShareGlobalHighlightPage(props: { params: Pr
     redirect('/')
   }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // Verify hoster exists by checking if they have any players
   const { count } = await supabase
