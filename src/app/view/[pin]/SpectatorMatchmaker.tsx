@@ -3,8 +3,11 @@
 import { Trophy, RefreshCw } from 'lucide-react'
 
 import { PlayerWithStatus } from '@/utils/matchmaking'
+import { useTranslations } from 'next-intl'
 
 export default function SpectatorMatchmaker({ session, playersWithStatus }: { session: any, playersWithStatus: PlayerWithStatus[] }) {
+  const t = useTranslations('Scoreboard')
+  const posT = useTranslations('Positions')
   const playingNext = playersWithStatus.filter(p => p.draftStatus === 'in_next_match')
   const sittingOut = playersWithStatus.filter(p => p.draftStatus !== 'in_next_match')
 
@@ -28,9 +31,31 @@ export default function SpectatorMatchmaker({ session, playersWithStatus }: { se
               <div key={p.id} className="bg-gray-900 rounded-lg p-3 flex justify-between items-center">
                 <span className="font-bold text-gray-100">{p.name}</span>
                 {session.is_strict_mode && (
-                  <span className="text-xs font-bold text-gray-500 bg-gray-800 px-2 py-1 rounded">
-                    {p.positions[0] || 'Any'}
-                  </span>
+                  <div className="flex flex-col gap-1 items-end ml-2">
+                    {p.draftedPosition === 'Any' && (
+                      <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider bg-gray-800 px-2 py-1 rounded">
+                        {t('any')}
+                      </span>
+                    )}
+                    
+                    {p.positionSlotFill && p.positionSlotFill.length > 0 && p.draftedPosition !== 'Any' && (
+                      p.positionSlotFill.filter(f => f.position === p.draftedPosition).map(fill => (
+                        <div key={fill.position} className="flex items-center gap-2">
+                          <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">
+                            {posT(fill.position as any)}
+                          </span>
+                          <div className="flex gap-0.5">
+                            {Array.from({ length: fill.total }).map((_, i) => (
+                              <div 
+                                key={i} 
+                                className={`w-2 h-2 rounded-full ${i < fill.filled ? 'bg-amber-500/70' : 'bg-gray-700'}`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 )}
               </div>
             ))}
@@ -59,7 +84,7 @@ export default function SpectatorMatchmaker({ session, playersWithStatus }: { se
                       {p.positionSlotFill.map(fill => (
                         <div key={fill.position} className="flex items-center gap-2">
                           <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">
-                            {fill.position.substring(0, 3)}
+                            {posT(fill.position as any)}
                           </span>
                           <div className="flex gap-0.5">
                             {Array.from({ length: fill.total }).map((_, i) => (

@@ -201,6 +201,7 @@ export type PlayerDraftStatus = 'in_next_match' | 'position_conflict' | 'sitting
 
 export type PlayerWithStatus = Player & {
   draftStatus: PlayerDraftStatus;
+  draftedPosition?: string;
   positionSlotFill?: Array<{
     position: string;
     filled: number;
@@ -264,14 +265,6 @@ export function previewNextDraft(
   const lastMatchAllIds = new Set([...lastMatchWinningTeamIds, ...lastMatchLosingTeamIds]);
 
   return allAvailablePlayers.map(p => {
-    if (draftedIds.has(p.id)) {
-      return { ...p, draftStatus: 'in_next_match' };
-    }
-    
-    // Bench players who didn't make the cut are flagged as 'position_conflict'
-    const isBench = !lastMatchAllIds.has(p.id);
-    const draftStatus = isBench ? 'position_conflict' : 'sitting_out';
-    
     const pPos = getPos(p);
     const positionSlotFill = pPos.map(pos => {
       const b = blueprint.find(x => x.pos === pos);
@@ -281,6 +274,20 @@ export function previewNextDraft(
         total: b ? b.count : 0
       };
     }).filter(x => x.total > 0);
+
+    if (draftedIds.has(p.id)) {
+      const draftedPosition = drafted.teamAPositions[p.id] || drafted.teamBPositions[p.id] || 'Any';
+      return { 
+        ...p, 
+        draftStatus: 'in_next_match',
+        draftedPosition,
+        positionSlotFill
+      };
+    }
+    
+    // Bench players who didn't make the cut are flagged as 'position_conflict'
+    const isBench = !lastMatchAllIds.has(p.id);
+    const draftStatus = isBench ? 'position_conflict' : 'sitting_out';
     
     return {
       ...p,

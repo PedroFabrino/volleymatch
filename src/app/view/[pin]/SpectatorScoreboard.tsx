@@ -196,23 +196,34 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
                       {p.games_played_today} games
                     </span>
                     
-                    {session.is_strict_mode && p.positionSlotFill && p.positionSlotFill.length > 0 && (
+                    {session.is_strict_mode && (
                       <div className="flex flex-col gap-1 items-end ml-2">
-                        {p.positionSlotFill.map(fill => (
-                          <div key={fill.position} className="flex items-center gap-2">
-                            <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">
-                              {fill.position.substring(0, 3)}
-                            </span>
-                            <div className="flex gap-0.5">
-                              {Array.from({ length: fill.total }).map((_, i) => (
-                                <div 
-                                  key={i} 
-                                  className={`w-1.5 h-1.5 rounded-full ${i < fill.filled ? 'bg-amber-500/70' : 'bg-gray-700'}`}
-                                />
-                              ))}
+                        {p.draftStatus === 'in_next_match' && p.draftedPosition === 'Any' && (
+                          <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">
+                            {t('any')}
+                          </span>
+                        )}
+                        
+                        {p.positionSlotFill && p.positionSlotFill.length > 0 && (
+                          (p.draftStatus === 'in_next_match' && p.draftedPosition !== 'Any'
+                            ? p.positionSlotFill.filter(f => f.position === p.draftedPosition)
+                            : p.positionSlotFill
+                          ).map(fill => (
+                            <div key={fill.position} className="flex items-center gap-2">
+                              <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">
+                                {posT(fill.position as any)}
+                              </span>
+                              <div className="flex gap-0.5">
+                                {Array.from({ length: fill.total }).map((_, i) => (
+                                  <div 
+                                    key={i} 
+                                    className={`w-1.5 h-1.5 rounded-full ${i < fill.filled ? 'bg-amber-500/70' : 'bg-gray-700'}`}
+                                  />
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))
+                        )}
                       </div>
                     )}
                   </div>
