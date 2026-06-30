@@ -3,10 +3,12 @@ import Link from 'next/link'
 import { Trophy } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
+import { getTranslations } from 'next-intl/server'
 
 export default async function ActiveSessionBanner() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const t = await getTranslations('Session')
 
   if (!user) return null
 
@@ -23,7 +25,7 @@ export default async function ActiveSessionBanner() {
         {activeSession ? (
           <>
             <Trophy className="w-5 h-5" />
-            <span>Session is Live!</span>
+            <span>{t('sessionIsLive')}</span>
           </>
         ) : (
           <span className="text-sm">VolleyMatch</span>
@@ -37,7 +39,7 @@ export default async function ActiveSessionBanner() {
             href={`/dashboard/live/${activeSession.id}`} 
             className="bg-black text-yellow-500 px-4 py-1.5 rounded-full font-bold text-sm hover:bg-gray-900 transition shadow-sm animate-pulse"
           >
-            Resume Game
+            {t('resumeGame')}
           </Link>
         )}
       </div>

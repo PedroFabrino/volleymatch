@@ -129,7 +129,9 @@
     "redTeam": "Red Team",
     "blueTeam": "Blue Team",
     "reroll": "Re-roll Draft",
-    "startMatch": "Start Match"
+    "startMatch": "Start Match",
+    "endSession": "End Session",
+    "confirmEndSession": "Are you sure you want to end this session?"
   },
   "Scoreboard": {
     "cancelGame": "Cancel Game",

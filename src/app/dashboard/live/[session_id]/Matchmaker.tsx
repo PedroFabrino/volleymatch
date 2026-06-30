@@ -84,7 +84,7 @@ export default function Matchmaker({ session, players, isFirstMatch }: { session
             
             <button 
               onClick={() => {
-                if (confirm('Are you sure you want to end this session?')) {
+                if (confirm(t('confirmEndSession'))) {
                   startTransition(() => {
                     endSession(session.id)
                   })
@@ -93,7 +93,7 @@ export default function Matchmaker({ session, players, isFirstMatch }: { session
               disabled={isPending}
               className="w-full bg-red-900/40 hover:bg-red-800/60 border border-red-500/30 text-red-200 font-bold text-lg py-4 rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              <PowerOff className="w-5 h-5" /> End Session
+              <PowerOff className="w-5 h-5" /> {t('endSession')}
             </button>
           </div>
         </div>
