@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS public.sessions (
     matchmaking_mode TEXT NOT NULL DEFAULT 'casual',
     is_active BOOLEAN NOT NULL DEFAULT true,
     pin TEXT,
+    summary_data JSONB DEFAULT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Trophy, ArrowLeft, TrendingUp, Flame, Swords, Calendar } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import HighlightsGrid from './HighlightsGrid'
+import ShareButton from './ShareButton'
 import { getSessionSummaryData } from '@/utils/summaryStats'
 
 export default async function SessionSummaryPage(props: { params: Promise<{ session_id: string }> }) {
@@ -27,7 +28,13 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
 
   if (!session) redirect('/dashboard')
 
-  // Calculate stats
+  let summaryData = session.summary_data;
+  
+  if (!summaryData) {
+    summaryData = await getSessionSummaryData(supabase, sessionId);
+    await supabase.from('sessions').update({ summary_data: summaryData }).eq('id', sessionId);
+  }
+
   const {
     playersData,
     leaderboard,
@@ -40,7 +47,7 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
     turningPoint,
     maxDiff,
     biggestDiffMatch
-  } = await getSessionSummaryData(supabase, sessionId)
+  } = summaryData;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col transition-colors p-4 md:p-8">
@@ -60,9 +67,12 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
               </div>
             </div>
           </div>
-          <Link href="/dashboard" className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition shadow-lg shadow-blue-900/20">
-            {t('backHome')}
-          </Link>
+          <div className="flex items-center gap-4">
+            <ShareButton sessionId={sessionId} />
+            <Link href="/dashboard" className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition shadow-lg shadow-blue-900/20 hidden sm:flex">
+              {t('backHome')}
+            </Link>
+          </div>
         </div>
 
         {/* Highlights Grid */}
@@ -97,7 +107,7 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
                 </tr>
               </thead>
               <tbody>
-                {leaderboard.map((player, index) => (
+                {leaderboard.map((player: any, index: number) => (
                   <tr key={player.id} className="border-t dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition">
                     <td className="p-4 font-bold text-gray-500 dark:text-gray-400">{index + 1}</td>
                     <td className="p-4 font-bold text-gray-900 dark:text-gray-100">

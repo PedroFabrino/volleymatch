@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { getSessionSummaryData } from '@/utils/summaryStats'
 
 export async function toggleAttendance(playerId: string, isPresent: boolean, activeSessionId?: string) {
   const supabase = await createClient()
@@ -212,18 +213,24 @@ export async function endSession(sessionId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
-  // 1. Mark session as inactive
+  // 1. Compute and store summary data before marking inactive
+  const summaryData = await getSessionSummaryData(supabase, sessionId)
+
+  // 2. Mark session as inactive and store summary
   await supabase
     .from('sessions')
-    .update({ is_active: false })
+    .update({ 
+      is_active: false,
+      summary_data: summaryData 
+    })
     .eq('id', sessionId)
     .eq('hoster_id', user.id)
 
-  // 2. Reset player daily stats (attendance)
+  // 3. Reset player daily stats (attendance)
   await supabase
     .from('players')
     .update({ is_present_today: false })
     .eq('hoster_id', user.id)
 
-  revalidatePath('/dashboard', 'layout')
+  redirect(`/dashboard/summary/${sessionId}`)
 }

@@ -426,8 +426,91 @@ delta = (last 'match_result' new_mmr for player in this session)
 
 ---
 
-## 6. Player Account Reclaim
-**Effort:** High · **Risk:** Medium · **Depends on:** Item 5 · 🔮 Future
+## 6. Session End Flow & Shareable Image
+**Effort:** Small-Medium · **Risk:** Low · **Depends on:** Item 5
+
+### What Changes & Why
+Currently `endSession()` just marks the session inactive and revalidates the dashboard — the Hoster lands back on the session page with no recap. This item closes the loop:
+1. **Auto-redirect** to the summary page the moment the session ends, so the Hoster sees the recap without any extra navigation.
+2. **Shareable PNG image** — the summary card already renders in the browser; exporting it as an image makes it trivially shareable to WhatsApp groups without the recipient needing an account.
+
+### 6a. `endSession()` Redirect
+
+**`src/app/dashboard/session/actions.ts` — `endSession()`:**
+
+Replace the final `revalidatePath('/dashboard', 'layout')` with a redirect to the summary page:
+
+```typescript
+// After marking session inactive and resetting attendance:
+redirect(`/dashboard/summary/${sessionId}`)
+```
+
+The same change applies wherever `endSession()` is called from the live page (`Matchmaker.tsx`).
+
+### 6b. `sessions.summary_data` Column (Pre-computation)
+
+**Why pre-compute:** The share image route needs to render the exact same snapshot every time someone opens the share link. On-demand recomputation is acceptable while iterating, but for a stable shareable card the data must be frozen at session end.
+
+**Database:**
+```sql
+ALTER TABLE public.sessions
+  ADD COLUMN summary_data JSONB DEFAULT NULL;
+```
+
+**`endSession()` — compute and persist before redirect:**
+```typescript
+const summaryData = await getSessionSummaryData(supabase, sessionId)
+await supabase
+  .from('sessions')
+  .update({ summary_data: summaryData })
+  .eq('id', sessionId)
+
+redirect(`/dashboard/summary/${sessionId}`)
+```
+
+The summary page reads `summary_data` first; falls back to live computation if null (for sessions created before this migration).
+
+### 6c. Shareable PNG — `src/app/api/og/session-summary/route.ts`
+
+Use `@vercel/og` to return a PNG image response from the frozen `summary_data`:
+
+```typescript
+// GET /api/og/session-summary?session_id=<uuid>
+import { ImageResponse } from '@vercel/og'
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const sessionId = searchParams.get('session_id')
+  // Fetch session.summary_data (public read — no auth needed for the image)
+  // Render the card layout as JSX → PNG
+  return new ImageResponse(<SummaryCardImage data={summaryData} />, { width: 1080, height: 1080 })
+}
+```
+
+**Share button** in the summary page (`HighlightsGrid.tsx` or a new `ShareButton.tsx` client component):
+```typescript
+const blob = await fetch(`/api/og/session-summary?session_id=${sessionId}`).then(r => r.blob())
+const file = new File([blob], 'game-day-recap.png', { type: 'image/png' })
+if (navigator.canShare?.({ files: [file] })) {
+  await navigator.share({ files: [file], title: 'Game Day Recap' })
+} else {
+  // Fallback: trigger download
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a'); a.href = url; a.download = 'game-day-recap.png'; a.click()
+}
+```
+
+**Note:** This is the one exception to the project's server-actions-only pattern. `@vercel/og` returns a `Response` with an image body — this cannot be done via a server action and requires a Route Handler.
+
+### Edge Cases
+- Session with 0 matches → summary shows empty state, no error
+- `navigator.share` not supported (desktop) → fallback to download
+- `summary_data` null (pre-migration sessions) → page falls back to live DB computation, share button disabled or hidden
+
+---
+
+## 7. Player Account Reclaim
+**Effort:** High · **Risk:** Medium · **Depends on:** Item 6 · 🔮 Future
 
 ### What Changes & Why
 Players are currently name records owned by a Hoster. This feature lets a real Supabase Auth user claim their record — linking their identity to their history — without disrupting the Hoster's data.
@@ -469,7 +552,7 @@ CREATE TABLE public.player_claims (
 
 ---
 
-## 7. AppSumo Lifetime Deal
+## 8. AppSumo Lifetime Deal
 **Effort:** Business only · **Risk:** Low · 🔮🔮 Far Future
 
 ### Prerequisites (all must be true before applying)
@@ -493,42 +576,48 @@ Expected: 200–600 purchases → $12k–$35k one-time. Run once, cap at ~500 li
 ## Implementation Checklist
 
 ```
-[ ] 1. Algorithm Correction
-      [ ] draftStrictTeams() — three group priority, remove Math.random() pre-shuffle
-      [ ] matchmaking.test.ts — update assertions
+[x] 1. Algorithm Correction
+      [x] draftStrictTeams() — three group priority, remove Math.random() pre-shuffle
+      [x] matchmaking.test.ts — update assertions
 
-[ ] 2. Spectator Queue Redesign
-      [ ] previewNextDraft() utility function
-      [ ] view/[pin]/page.tsx — add last-match query, run preview
-      [ ] SpectatorMatchmaker.tsx — two-section layout + dot indicators
-      [ ] SpectatorScoreboard.tsx — status-coloured queue strip
+[x] 2. Spectator Queue Redesign
+      [x] previewNextDraft() utility function
+      [x] view/[pin]/page.tsx — add last-match query, run preview
+      [x] SpectatorMatchmaker.tsx — two-section layout + dot indicators
+      [x] SpectatorScoreboard.tsx — status-coloured queue strip
 
-[ ] 3. QR Self-Registration
-      [ ] invite_tokens table + RLS
-      [ ] src/utils/supabase/service.ts
-      [ ] createInviteToken() server action
-      [ ] QrInvitePanel.tsx client component
-      [ ] /join/[token] public page + joinSession() server action
+[x] 3. QR Self-Registration  (simplified: PIN-based, no token rotation)
+      [x] src/utils/supabase/admin.ts — service role client
+      [x] /join/[pin] public page + joinSessionAction() server action
+      [x] QR code in global top bar (visible on session + live pages)
+      [x] Autocomplete for returning players, late-joiner FIFO queue
 
-[ ] 4. MMR History Table
-      [ ] mmr_history table + RLS
-      [ ] startSession() — snapshot MMRs
-      [ ] finishMatch() — record history rows
+[x] 4. MMR History Table
+      [x] mmr_history table + RLS
+      [x] startSession() — snapshot MMRs
+      [x] finishMatch() — record history rows
 
-[ ] 5. Session Summary Card
-      [ ] sessions.summary_data column
-      [ ] endSession() — compute stats, store summary_data, redirect to summary
-      [ ] /dashboard/session/summary/[session_id] page
+[x] 5. Session Summary Card  (on-demand computation — see Item 6 for snapshot + share)
+      [x] /dashboard/summary/[session_id] page
+      [x] getSessionSummaryData() — MVP, comeback, blowout, leaderboard, iron man
+
+[ ] 6. Session End Flow & Shareable Image
+      [ ] endSession() — redirect to /dashboard/summary/[session_id]
+      [ ] sessions.summary_data JSONB column — supabase/migrations/*.sql migration file
+      [ ] Apply migration to production (supabase db push)
+      [ ] endSession() — compute stats via getSessionSummaryData(), persist summary_data
+      [ ] Summary page reads summary_data first, falls back to live query
       [ ] src/app/api/og/session-summary/route.ts (@vercel/og — API route exception)
+      [ ] ShareButton.tsx — Web Share API + download fallback
 
-[ ] 6. Player Account Reclaim  🔮
+[ ] 7. Player Account Reclaim  🔮
       [ ] players.user_id column
       [ ] player_claims table + RLS
       [ ] Claim request flow UI
       [ ] Hoster approval notification + UI
       [ ] Claimed player dashboard (read-only history view)
 
-[ ] 7. AppSumo Launch  🔮🔮
+[ ] 8. AppSumo Launch  🔮🔮
       [ ] Freemium paywall
       [ ] Legal pages
       [ ] Apply at appsumo.com/businesses
