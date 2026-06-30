@@ -47,6 +47,18 @@ export default function Matchmaker({ session, players }: { session: any, players
     });
   }
 
+  const getTeamAverageMMR = (teamIds: string[]) => {
+    if (!teamIds.length) return 0;
+    const total = teamIds.reduce((sum, id) => {
+      const p = players.find(p => p.id === id);
+      return sum + (p?.mmr || 0);
+    }, 0);
+    return Math.round(total / teamIds.length);
+  }
+
+  const teamAMMR = draft ? getTeamAverageMMR(draft.teamA) : 0;
+  const teamBMMR = draft ? getTeamAverageMMR(draft.teamB) : 0;
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center relative w-full overflow-y-auto">
       <a href="/dashboard/session" className="absolute top-6 left-6 p-3 bg-gray-800 rounded-full hover:bg-gray-700 transition shadow-lg z-10">
@@ -74,7 +86,10 @@ export default function Matchmaker({ session, players }: { session: any, players
           
           <div className="flex flex-col md:flex-row gap-6 w-full text-left">
             <div className="flex-1 bg-red-900/20 border border-red-500/30 rounded-2xl p-6">
-              <h3 className="text-red-400 font-bold text-xl mb-4 border-b border-red-500/30 pb-2">{t('redTeam')}</h3>
+              <h3 className="text-red-400 font-bold text-xl mb-4 border-b border-red-500/30 pb-2 flex justify-between items-end">
+                <span>{t('redTeam')}</span>
+                <span className="text-xs font-bold text-red-500/70 tracking-wider">MMR: {teamAMMR}</span>
+              </h3>
               <ul className="flex flex-col gap-2">
                 {sortPlayersByPos(draft.teamA, draft.teamAPositions).map(id => {
                   const pos = draft.teamAPositions?.[id];
@@ -93,7 +108,10 @@ export default function Matchmaker({ session, players }: { session: any, players
               </ul>
             </div>
             <div className="flex-1 bg-blue-900/20 border border-blue-500/30 rounded-2xl p-6">
-              <h3 className="text-blue-400 font-bold text-xl mb-4 border-b border-blue-500/30 pb-2">{t('blueTeam')}</h3>
+              <h3 className="text-blue-400 font-bold text-xl mb-4 border-b border-blue-500/30 pb-2 flex justify-between items-end">
+                <span>{t('blueTeam')}</span>
+                <span className="text-xs font-bold text-blue-500/70 tracking-wider">MMR: {teamBMMR}</span>
+              </h3>
               <ul className="flex flex-col gap-2">
                 {sortPlayersByPos(draft.teamB, draft.teamBPositions).map(id => {
                   const pos = draft.teamBPositions?.[id];

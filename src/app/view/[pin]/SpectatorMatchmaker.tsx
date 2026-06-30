@@ -72,13 +72,9 @@ export default function SpectatorMatchmaker({ session, playersWithStatus }: { se
           <div className="flex flex-col gap-2">
             {sittingOut.map(p => (
               <div key={p.id} className="bg-gray-900/50 rounded-lg p-3 flex justify-between items-center opacity-80">
-                <span className="font-medium text-gray-300">{p.name}</span>
+                  <span className="font-bold text-gray-200 text-sm truncate">{p.name}</span>
                 
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded mr-2">
-                    {p.games_played_today} games
-                  </span>
-
+                <div className="flex items-center gap-3">
                   {session.matchmaking_mode === 'strict' && p.positionSlotFill && p.positionSlotFill.length > 0 && (
                     <div className="flex flex-col gap-1 items-end">
                       {p.positionSlotFill.map(fill => (
