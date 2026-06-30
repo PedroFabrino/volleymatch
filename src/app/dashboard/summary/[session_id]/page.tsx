@@ -55,11 +55,22 @@ export default async function SessionSummaryPage({ params }: { params: { session
     mmrGains[row.player_id] = (mmrGains[row.player_id] || 0) + row.mmr_change
   })
 
+  const wins: Record<string, number> = {}
+  matches?.forEach(match => {
+    const winner = match.team_a_score > match.team_b_score ? 'a' : 'b'
+    const winningPlayers = winner === 'a' ? match.team_a_players : match.team_b_players
+    winningPlayers.forEach((id: string) => {
+      wins[id] = (wins[id] || 0) + 1
+    })
+  })
+
   const leaderboard = playersData
     .filter(p => p.games_played > 0)
     .map(p => ({
       ...p,
-      mmrChange: mmrGains[p.id] || 0
+      mmrChange: mmrGains[p.id] || 0,
+      wins: wins[p.id] || 0,
+      winRate: Math.round(((wins[p.id] || 0) / p.games_played) * 100)
     }))
     .sort((a, b) => b.mmrChange - a.mmrChange)
 
@@ -199,6 +210,7 @@ export default async function SessionSummaryPage({ params }: { params: { session
                   <th className="p-4 font-bold text-gray-600 dark:text-gray-300">#</th>
                   <th className="p-4 font-bold text-gray-600 dark:text-gray-300">{t('player')}</th>
                   <th className="p-4 font-bold text-gray-600 dark:text-gray-300">{t('gamesPlayed')}</th>
+                  <th className="p-4 font-bold text-gray-600 dark:text-gray-300">{t('winRate')}</th>
                   <th className="p-4 font-bold text-gray-600 dark:text-gray-300 text-right">{t('mmrChange')}</th>
                 </tr>
               </thead>
@@ -213,6 +225,7 @@ export default async function SessionSummaryPage({ params }: { params: { session
                       )}
                     </td>
                     <td className="p-4 text-gray-700 dark:text-gray-300">{player.games_played}</td>
+                    <td className="p-4 text-gray-700 dark:text-gray-300">{player.winRate}%</td>
                     <td className={`p-4 font-black text-right ${
                       player.mmrChange > 0 ? 'text-green-600 dark:text-green-400' : 
                       player.mmrChange < 0 ? 'text-red-600 dark:text-red-400' : 
@@ -224,7 +237,7 @@ export default async function SessionSummaryPage({ params }: { params: { session
                 ))}
                 {leaderboard.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="p-8 text-center text-gray-500 dark:text-gray-400">
+                    <td colSpan={5} className="p-8 text-center text-gray-500 dark:text-gray-400">
                       {t('noPlayers')}
                     </td>
                   </tr>

@@ -180,6 +180,7 @@
     "leaderboardDesc": "Every player's performance during this session.",
     "player": "Player",
     "gamesPlayed": "Games Played",
+    "winRate": "Win Rate",
     "mmrChange": "MMR Change",
     "ironman": "IRONMAN",
     "noPlayers": "No players played today."

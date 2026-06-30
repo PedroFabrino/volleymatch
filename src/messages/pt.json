@@ -180,6 +180,7 @@
     "leaderboardDesc": "Desempenho de cada jogador durante a sessão.",
     "player": "Jogador",
     "gamesPlayed": "Jogos",
+    "winRate": "Vitórias",
     "mmrChange": "Variação MMR",
     "ironman": "MÁQUINA",
     "noPlayers": "Nenhum jogador participou hoje."
