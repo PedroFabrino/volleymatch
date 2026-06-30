@@ -78,7 +78,7 @@ export default async function ViewSessionPage(props: { params: Promise<{ pin: st
     sortedPlayers,
     lastWinners,
     lastLosers,
-    session.is_strict_mode
+    session.matchmaking_mode === 'strict'
   )
 
   return (

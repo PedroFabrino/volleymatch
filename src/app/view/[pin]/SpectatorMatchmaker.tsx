@@ -30,7 +30,7 @@ export default function SpectatorMatchmaker({ session, playersWithStatus }: { se
             {playingNext.map(p => (
               <div key={p.id} className="bg-gray-900 rounded-lg p-3 flex justify-between items-center">
                 <span className="font-bold text-gray-100">{p.name}</span>
-                {session.is_strict_mode && (
+                {session.matchmaking_mode === 'strict' && (
                   <div className="flex flex-col gap-1 items-end ml-2">
                     {p.draftedPosition === 'Any' && (
                       <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider bg-gray-800 px-2 py-1 rounded">
@@ -79,7 +79,7 @@ export default function SpectatorMatchmaker({ session, playersWithStatus }: { se
                     {p.games_played_today} games
                   </span>
 
-                  {session.is_strict_mode && p.positionSlotFill && p.positionSlotFill.length > 0 && (
+                  {session.matchmaking_mode === 'strict' && p.positionSlotFill && p.positionSlotFill.length > 0 && (
                     <div className="flex flex-col gap-1 items-end">
                       {p.positionSlotFill.map(fill => (
                         <div key={fill.position} className="flex items-center gap-2">

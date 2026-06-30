@@ -192,11 +192,7 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    <span className="text-[10px] text-gray-500 font-medium tracking-wider uppercase bg-gray-800/50 px-2 py-1 rounded">
-                      {p.games_played_today} games
-                    </span>
-                    
-                    {session.is_strict_mode && (
+                    {session.matchmaking_mode === 'strict' && (
                       <div className="flex flex-col gap-1 items-end ml-2">
                         {p.draftStatus === 'in_next_match' && p.draftedPosition === 'Any' && (
                           <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">
