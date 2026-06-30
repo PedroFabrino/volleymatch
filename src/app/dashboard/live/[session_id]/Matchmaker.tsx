@@ -6,8 +6,11 @@ import { endSession } from '@/app/dashboard/session/actions'
 import { Trophy, Users, Check, RefreshCw, PowerOff } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
+import { useRouter } from 'next/navigation'
+
 export default function Matchmaker({ session, players, isFirstMatch }: { session: any, players: any[], isFirstMatch: boolean }) {
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
   const [draft, setDraft] = useState<any>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const t = useTranslations('Matchmaker')
@@ -83,11 +86,10 @@ export default function Matchmaker({ session, players, isFirstMatch }: { session
             </button>
             
             <button 
-              onClick={() => {
+              onClick={async () => {
                 if (confirm(t('confirmEndSession'))) {
-                  startTransition(() => {
-                    endSession(session.id)
-                  })
+                  await endSession(session.id)
+                  router.push(`/dashboard/summary/${session.id}`)
                 }
               }}
               disabled={isPending}
