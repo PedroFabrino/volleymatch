@@ -12,6 +12,10 @@ export default function ShareButton({ sessionId }: { sessionId: string }) {
     try {
       setIsSharing(true)
       const response = await fetch(`/api/og/summary?session_id=${sessionId}`)
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(errorText || 'Failed to fetch image')
+      }
       const blob = await response.blob()
       
       const file = new File([blob], 'game-day-recap.png', { type: 'image/png' })

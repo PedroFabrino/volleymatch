@@ -50,7 +50,7 @@ export async function GET(request: Request) {
                 marginBottom: '40px',
               }}
             >
-              <div style={{ fontSize: 60, fontWeight: 900, marginRight: 20 }}>🏐 VolleyMatch</div>
+              <div style={{ fontSize: 60, fontWeight: 900, marginRight: 20 }}>VolleyMatch</div>
             </div>
 
             <div
@@ -76,7 +76,7 @@ export async function GET(request: Request) {
                 {mvp && (
                   <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                     <div style={{ fontSize: 24, color: '#FBBF24', fontWeight: 700, marginBottom: '10px' }}>
-                      🏆 MVP
+                      MVP
                     </div>
                     <div style={{ fontSize: 48, fontWeight: 800 }}>{mvp.name}</div>
                     <div style={{ fontSize: 24, color: '#9CA3AF' }}>{mvp.games_played} Games</div>
@@ -87,7 +87,7 @@ export async function GET(request: Request) {
                 {biggestGainer && biggestGainer.mmrChange > 0 && (
                   <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                     <div style={{ fontSize: 24, color: '#34D399', fontWeight: 700, marginBottom: '10px' }}>
-                      📈 Biggest Gainer
+                      Biggest Gainer
                     </div>
                     <div style={{ fontSize: 48, fontWeight: 800 }}>{biggestGainer.name}</div>
                     <div style={{ fontSize: 24, color: '#34D399' }}>+{biggestGainer.mmrChange} MMR</div>
@@ -124,7 +124,7 @@ export async function GET(request: Request) {
               color: 'white',
             }}
           >
-            <div style={{ fontSize: 60, fontWeight: 900 }}>🏐 VolleyMatch</div>
+            <div style={{ fontSize: 60, fontWeight: 900 }}>VolleyMatch</div>
             <div style={{ fontSize: 40, marginTop: 20, color: '#9CA3AF' }}>Host Stats Summary</div>
           </div>
         ),
@@ -135,6 +135,6 @@ export async function GET(request: Request) {
     return new Response('Missing session_id or hoster_id', { status: 400 })
   } catch (e: any) {
     console.error(e)
-    return new Response(`Failed to generate image`, { status: 500 })
+    return new Response(`Failed to generate image: ${e.message}`, { status: 500 })
   }
 }
