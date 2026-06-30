@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react'
 import { Clock } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
-export default function SpectatorScoreboard({ session, match, players, queue }: { session: any, match: any, players: any[], queue: any[] }) {
+import { PlayerWithStatus } from '@/utils/matchmaking'
+
+export default function SpectatorScoreboard({ session, match, playersWithStatus }: { session: any, match: any, playersWithStatus: PlayerWithStatus[] }) {
   const t = useTranslations('Scoreboard')
   const posT = useTranslations('Positions')
 
@@ -29,8 +31,10 @@ export default function SpectatorScoreboard({ session, match, players, queue }: 
 
   const isMatchOver = optScoreA >= session.target_score || optScoreB >= session.target_score
 
-  const teamAPlayers = match.team_a_players.map((id: string) => players.find(p => p.id === id)).filter(Boolean)
-  const teamBPlayers = match.team_b_players.map((id: string) => players.find(p => p.id === id)).filter(Boolean)
+  const teamAPlayers = match.team_a_players.map((id: string) => playersWithStatus.find(p => p.id === id)).filter(Boolean)
+  const teamBPlayers = match.team_b_players.map((id: string) => playersWithStatus.find(p => p.id === id)).filter(Boolean)
+
+  const benchPlayers = playersWithStatus.filter(p => !match.team_a_players.includes(p.id) && !match.team_b_players.includes(p.id))
 
   const sortOrder = ['Setter', 'Middle Blocker', 'Outside Hitter', 'Opposite Hitter', 'Libero', 'Any'];
   const sortPlayersByPos = (teamPlayers: any[], positions?: Record<string, string>) => {
@@ -138,14 +142,32 @@ export default function SpectatorScoreboard({ session, match, players, queue }: 
       <div className="p-4 bg-gray-950 border-t border-gray-800 shrink-0">
         <h3 className="text-gray-400 font-bold text-sm uppercase tracking-wider mb-3">Up Next (Queue)</h3>
         <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-thin scrollbar-thumb-gray-800">
-          {queue.filter(p => !match.team_a_players.includes(p.id) && !match.team_b_players.includes(p.id)).map((p, i) => (
-            <div key={p.id} className={`flex-shrink-0 bg-gray-800 rounded-lg px-3 py-2 flex flex-col min-w-[100px] border ${i < 12 ? 'border-green-900/50' : 'border-transparent'}`}>
-              <span className="font-bold text-gray-200 text-sm">{p.name}</span>
-              <span className="text-xs text-gray-500">{p.games_played_today} games</span>
-            </div>
-          ))}
-          {queue.filter(p => !match.team_a_players.includes(p.id) && !match.team_b_players.includes(p.id)).length === 0 && (
-            <div className="text-gray-500 text-sm italic">Queue is empty</div>
+          {benchPlayers.map((p) => {
+            let statusIcon = '🕐';
+            let statusColor = 'border-gray-700 bg-gray-900 opacity-60';
+            
+            if (p.draftStatus === 'in_next_match') {
+              statusIcon = '✅';
+              statusColor = 'border-green-600 bg-green-900/30';
+            } else if (p.draftStatus === 'position_conflict') {
+              statusIcon = '⚠️';
+              statusColor = 'border-amber-600/50 bg-amber-900/20 opacity-70';
+            }
+
+            return (
+              <div key={p.id} className={`flex-shrink-0 rounded-lg px-3 py-2 flex flex-col min-w-[110px] border ${statusColor}`}>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <span className="text-sm">{statusIcon}</span>
+                  <span className="font-bold text-gray-200 text-sm truncate">{p.name}</span>
+                </div>
+                <span className="text-[10px] text-gray-500 font-medium tracking-wider uppercase ml-6">
+                  {p.games_played_today} games
+                </span>
+              </div>
+            )
+          })}
+          {benchPlayers.length === 0 && (
+            <div className="text-gray-500 text-sm italic">No players on the bench.</div>
           )}
         </div>
       </div>

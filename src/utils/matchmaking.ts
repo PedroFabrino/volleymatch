@@ -94,19 +94,26 @@ export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinning
     ];
   }
 
+  const isFirstMatch = lastMatchWinningTeamIds.length === 0 && lastMatchLosingTeamIds.length === 0;
+
   const sortByDeserving = (a: Player, b: Player) => {
     if (a.games_played_today !== b.games_played_today) {
       return a.games_played_today - b.games_played_today;
     }
-    const aPriority = lastMatchWinningTeamIds.includes(a.id) ? 2 : (lastMatchLosingTeamIds.includes(a.id) ? 1 : 0);
-    const bPriority = lastMatchWinningTeamIds.includes(b.id) ? 2 : (lastMatchLosingTeamIds.includes(b.id) ? 1 : 0);
-    if (aPriority !== bPriority) return bPriority - aPriority;
+    if (isFirstMatch) {
+      // Use ID for a stable pseudo-random sort in Game 1 to prevent UI flickering in the spectator queue
+      return a.id.localeCompare(b.id);
+    }
     return b.mmr - a.mmr;
   };
 
-  let remainingPlayers = [...allAvailablePlayers]
-    .sort(() => Math.random() - 0.5)
-    .sort(sortByDeserving);
+  const lastMatchAllIds = new Set([...lastMatchWinningTeamIds, ...lastMatchLosingTeamIds]);
+
+  const benchPlayers = allAvailablePlayers.filter(p => !lastMatchAllIds.has(p.id)).sort(sortByDeserving);
+  const winnerPlayers = allAvailablePlayers.filter(p => lastMatchWinningTeamIds.includes(p.id)).sort(sortByDeserving);
+  const loserPlayers = allAvailablePlayers.filter(p => lastMatchLosingTeamIds.includes(p.id)).sort(sortByDeserving);
+
+  let remainingPlayers = [...benchPlayers, ...winnerPlayers, ...loserPlayers];
 
   const teamA: Player[] = [];
   const teamB: Player[] = [];
@@ -188,4 +195,97 @@ export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinning
     teamAPositions,
     teamBPositions
   };
+}
+
+export type PlayerDraftStatus = 'in_next_match' | 'position_conflict' | 'sitting_out';
+
+export type PlayerWithStatus = Player & {
+  draftStatus: PlayerDraftStatus;
+  positionSlotFill?: Array<{
+    position: string;
+    filled: number;
+    total: number;
+  }>;
+};
+
+export function previewNextDraft(
+  allAvailablePlayers: Player[],
+  lastMatchWinningTeamIds: string[],
+  lastMatchLosingTeamIds: string[],
+  isStrictMode: boolean
+): PlayerWithStatus[] {
+  if (!isStrictMode) {
+    const drafted = draftTeams(allAvailablePlayers);
+    const draftedIds = new Set([...drafted.teamA, ...drafted.teamB]);
+    return allAvailablePlayers.map(p => ({
+      ...p,
+      draftStatus: draftedIds.has(p.id) ? 'in_next_match' : 'sitting_out'
+    }));
+  }
+
+  const drafted = draftStrictTeams(allAvailablePlayers, lastMatchWinningTeamIds, lastMatchLosingTeamIds);
+  const draftedIds = new Set([...drafted.teamA, ...drafted.teamB]);
+  
+  const getPos = (p: Player) => (p.active_positions && p.active_positions.length > 0) ? p.active_positions : p.positions;
+  const hasPos = (p: Player, pos: string | string[]) => {
+    const pPos = getPos(p);
+    if (Array.isArray(pos)) return pos.some(x => pPos.includes(x));
+    return pPos.includes(pos);
+  };
+  
+  const availableMBs = allAvailablePlayers.filter(p => hasPos(p, 'Middle Blocker'));
+  const availableLiberos = allAvailablePlayers.filter(p => hasPos(p, 'Libero') && !hasPos(p, 'Middle Blocker'));
+  const totalMBL = availableMBs.length + availableLiberos.length;
+
+  let blueprint = [
+    { pos: 'Setter', count: 2 },
+    { pos: 'Outside Hitter', count: 4 },
+    { pos: 'Opposite Hitter', count: 2 },
+    { pos: 'Middle Blocker', count: 4 },
+    { pos: 'Libero', count: 2 }
+  ];
+
+  if (totalMBL < 6) {
+    blueprint = [
+      { pos: 'Setter', count: 2 },
+      { pos: 'Middle Blocker', count: 2 },
+      { pos: 'Outside Hitter', count: 4 },
+      { pos: 'Opposite Hitter', count: 2 },
+      { pos: 'Libero', count: 2 }
+    ];
+  }
+
+  const positionFills: Record<string, number> = {};
+  for (const b of blueprint) positionFills[b.pos] = 0;
+  
+  Object.values(drafted.teamAPositions).forEach(pos => { if (positionFills[pos] !== undefined) positionFills[pos]++ });
+  Object.values(drafted.teamBPositions).forEach(pos => { if (positionFills[pos] !== undefined) positionFills[pos]++ });
+
+  const lastMatchAllIds = new Set([...lastMatchWinningTeamIds, ...lastMatchLosingTeamIds]);
+
+  return allAvailablePlayers.map(p => {
+    if (draftedIds.has(p.id)) {
+      return { ...p, draftStatus: 'in_next_match' };
+    }
+    
+    // Bench players who didn't make the cut are flagged as 'position_conflict'
+    const isBench = !lastMatchAllIds.has(p.id);
+    const draftStatus = isBench ? 'position_conflict' : 'sitting_out';
+    
+    const pPos = getPos(p);
+    const positionSlotFill = pPos.map(pos => {
+      const b = blueprint.find(x => x.pos === pos);
+      return {
+        position: pos,
+        filled: b ? positionFills[pos] : 0,
+        total: b ? b.count : 0
+      };
+    }).filter(x => x.total > 0);
+    
+    return {
+      ...p,
+      draftStatus,
+      positionSlotFill
+    };
+  });
 }

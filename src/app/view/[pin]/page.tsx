@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import SpectatorScoreboard from './SpectatorScoreboard'
 import SpectatorMatchmaker from './SpectatorMatchmaker'
 import RealtimeSubscriber from './RealtimeSubscriber'
+import { previewNextDraft } from '@/utils/matchmaking'
 
 export default async function ViewSessionPage(props: { params: Promise<{ pin: string }> }) {
   const params = await props.params
@@ -57,9 +58,28 @@ export default async function ViewSessionPage(props: { params: Promise<{ pin: st
     }
   })
 
-  // Sort players by games played (the Queue)
-  const queue = [...players].sort((a, b) => a.games_played_today - b.games_played_today)
+  // Sort players by games played as a base
+  const sortedPlayers = [...players].sort((a, b) => a.games_played_today - b.games_played_today)
 
+  // 4. Get Last Completed Match (for previewing the next draft accurately in strict mode)
+  const { data: lastCompletedMatch } = await supabase
+    .from('matches')
+    .select('team_a_players, team_b_players')
+    .eq('session_id', session.id)
+    .eq('is_completed', true)
+    .order('completed_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const lastWinners = lastCompletedMatch?.team_a_players || []
+  const lastLosers = lastCompletedMatch?.team_b_players || [] // Doesn't matter which is which for the preview as long as they are separated from the bench
+
+  const playersWithStatus = previewNextDraft(
+    sortedPlayers,
+    lastWinners,
+    lastLosers,
+    session.is_strict_mode
+  )
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col pb-8">
@@ -72,9 +92,9 @@ export default async function ViewSessionPage(props: { params: Promise<{ pin: st
 
       <div className="flex-1 mt-4 px-4 max-w-4xl mx-auto w-full">
         {activeMatch ? (
-          <SpectatorScoreboard session={session} match={activeMatch} players={players || []} queue={queue} />
+          <SpectatorScoreboard session={session} match={activeMatch} playersWithStatus={playersWithStatus} />
         ) : (
-          <SpectatorMatchmaker session={session} players={players || []} queue={queue} />
+          <SpectatorMatchmaker session={session} playersWithStatus={playersWithStatus} />
         )}
       </div>
     </div>

@@ -153,37 +153,31 @@ describe('Matchmaking Algorithm', () => {
     });
 
     it('should handle players with multiple positions and assign roles correctly', () => {
-      const originalRandom = Math.random;
-      Math.random = () => 0.5; // Prevent shuffling to maintain greedy assignment order for this specific scenario
-      try {
-        const players: Player[] = [
-          createPlayer('S1', 1500, ['Setter']),
-          createPlayer('S2', 1500, ['Setter']),
-          // Only 1 pure opposite, so Flex1 HAS to be assigned Opposite for the other team
-          createPlayer('Flex1', 1500, ['Opposite Hitter', 'Outside Hitter']),
-          createPlayer('OP1', 1500, ['Opposite Hitter']),
-          // 4 pure OH to ensure we get exactly what we need
-          ...Array.from({ length: 4 }, (_, i) => createPlayer(`OH${i}`, 1500, ['Outside Hitter'])),
-          // Only 3 pure MB, so Flex3 HAS to be assigned MB
-          createPlayer('Flex3', 1500, ['Middle Blocker', 'Libero']),
-          ...Array.from({ length: 3 }, (_, i) => createPlayer(`MB${i}`, 1500, ['Middle Blocker'])),
-          // Only 1 pure L, so Flex4 HAS to be assigned Libero
-          createPlayer('Flex4', 1500, ['Libero', 'Setter']),
-          createPlayer('L1', 1500, ['Libero'])
-        ];
+      const players: Player[] = [
+        createPlayer('S1', 1500, ['Setter']),
+        createPlayer('S2', 1500, ['Setter']),
+        // Only 1 pure opposite, so Flex1 HAS to be assigned Opposite for the other team
+        createPlayer('Flex1', 1500, ['Opposite Hitter', 'Outside Hitter']),
+        createPlayer('OP1', 1500, ['Opposite Hitter']),
+        // 4 pure OH to ensure we get exactly what we need
+        ...Array.from({ length: 4 }, (_, i) => createPlayer(`OH${i}`, 1500, ['Outside Hitter'])),
+        // Only 3 pure MB, so Flex3 HAS to be assigned MB
+        createPlayer('Flex3', 1500, ['Middle Blocker', 'Libero']),
+        ...Array.from({ length: 3 }, (_, i) => createPlayer(`MB${i}`, 1500, ['Middle Blocker'])),
+        // Only 1 pure L, so Flex4 HAS to be assigned Libero
+        createPlayer('Flex4', 1500, ['Libero', 'Setter']),
+        createPlayer('L1', 1500, ['Libero'])
+      ];
 
-        const { teamAPositions, teamBPositions } = draftStrictTeams(players, [], []);
-        
-        const allRoles = [...Object.values(teamAPositions), ...Object.values(teamBPositions)];
-        
-        expect(allRoles.filter(r => r === 'Setter').length).toBeGreaterThanOrEqual(2);
-        expect(allRoles.filter(r => r === 'Opposite Hitter').length).toBeGreaterThanOrEqual(2);
-        expect(allRoles.filter(r => r === 'Libero').length).toBeGreaterThanOrEqual(2);
-        expect(allRoles.filter(r => r === 'Middle Blocker').length).toBeGreaterThanOrEqual(4);
-        expect(allRoles.filter(r => r === 'Outside Hitter').length).toBeGreaterThanOrEqual(4);
-      } finally {
-        Math.random = originalRandom;
-      }
+      const { teamAPositions, teamBPositions } = draftStrictTeams(players, [], []);
+      
+      const allRoles = [...Object.values(teamAPositions), ...Object.values(teamBPositions)];
+      
+      expect(allRoles.filter(r => r === 'Setter').length).toBeGreaterThanOrEqual(2);
+      expect(allRoles.filter(r => r === 'Opposite Hitter').length).toBeGreaterThanOrEqual(2);
+      expect(allRoles.filter(r => r === 'Libero').length).toBeGreaterThanOrEqual(2);
+      expect(allRoles.filter(r => r === 'Middle Blocker').length).toBeGreaterThanOrEqual(4);
+      expect(allRoles.filter(r => r === 'Outside Hitter').length).toBeGreaterThanOrEqual(4);
     });
   });
 
