@@ -188,6 +188,17 @@
     "winRate": "Vitórias",
     "mmrChange": "Variação MMR",
     "ironman": "MÁQUINA",
-    "noPlayers": "Nenhum jogador participou hoje."
+    "noPlayers": "Nenhum jogador participou hoje.",
+    "down": "Perdendo de {losing} a {winning}...",
+    "ralliedToWin": "Viraram para {scoreA} a {scoreB}!",
+    "totalDominance": "Domínio Total",
+    "wonBy": "Venceram por {diff} pontos",
+    "dynamicDuo": "Dupla Dinâmica",
+    "comebackKids": "Os Reis da Virada",
+    "unstoppables": "Os Imparáveis",
+    "winsTogether": "{count} Vitórias Juntos",
+    "copiedLink": "Link Copiado!",
+    "share": "Compartilhar",
+    "highlightTitle": "Destaque VolleyMatch"
   }
 }

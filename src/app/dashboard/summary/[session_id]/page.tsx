@@ -81,6 +81,7 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
 
   // --- MVP Extras ---
   let bestPartner: { name: string, wins: number } | null = null;
+  let bestPartnerId: string | null = null;
   if (mvp) {
     const partnerWins: Record<string, number> = {};
     matches?.forEach(match => {
@@ -96,7 +97,6 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
     });
     
     let maxWins = 0;
-    let bestPartnerId: string | null = null;
     Object.entries(partnerWins).forEach(([pid, wins]) => {
       if (wins > maxWins) {
         maxWins = wins;
@@ -213,10 +213,24 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
                   <tr key={player.id} className="border-t dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition">
                     <td className="p-4 font-bold text-gray-500 dark:text-gray-400">{index + 1}</td>
                     <td className="p-4 font-bold text-gray-900 dark:text-gray-100">
-                      {player.name}
-                      {player.id === mostGamesPlayed?.id && (
-                        <span className="ml-2 inline-block px-2 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-xs rounded-md uppercase tracking-wider">{t('ironman')}</span>
-                      )}
+                      <div className="flex items-center flex-wrap gap-2">
+                        <span>{player.name}</span>
+                        {player.id === mvp?.id && (
+                          <span className="inline-block px-2 py-0.5 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 text-xs rounded-md uppercase tracking-wider font-bold">{t('mvp')}</span>
+                        )}
+                        {player.id === bestPartnerId && (
+                          <span className="inline-block px-2 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-xs rounded-md uppercase tracking-wider font-bold">{t('dynamicDuo')}</span>
+                        )}
+                        {biggestComebackMatch && maxComeback > 0 && (biggestComebackMatch.team_a_score > biggestComebackMatch.team_b_score ? biggestComebackMatch.team_a_players : biggestComebackMatch.team_b_players).includes(player.id) && (
+                          <span className="inline-block px-2 py-0.5 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-xs rounded-md uppercase tracking-wider font-bold">{t('comebackKids')}</span>
+                        )}
+                        {biggestDiffMatch && maxDiff > 0 && (biggestDiffMatch.team_a_score > biggestDiffMatch.team_b_score ? biggestDiffMatch.team_a_players : biggestDiffMatch.team_b_players).includes(player.id) && (
+                          <span className="inline-block px-2 py-0.5 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 text-xs rounded-md uppercase tracking-wider font-bold">{t('unstoppables')}</span>
+                        )}
+                        {player.id === mostGamesPlayed?.id && (
+                          <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-xs rounded-md uppercase tracking-wider font-bold">{t('ironman')}</span>
+                        )}
+                      </div>
                     </td>
                     <td className="p-4 text-gray-700 dark:text-gray-300">{player.games_played}</td>
                     <td className="p-4 text-gray-700 dark:text-gray-300">{player.winRate}%</td>

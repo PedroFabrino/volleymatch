@@ -188,6 +188,17 @@
     "winRate": "Win Rate",
     "mmrChange": "MMR Change",
     "ironman": "IRONMAN",
-    "noPlayers": "No players played today."
+    "noPlayers": "No players played today.",
+    "down": "Down {losing} - {winning}...",
+    "ralliedToWin": "Rallied to win {scoreA} - {scoreB}!",
+    "totalDominance": "Total Dominance",
+    "wonBy": "Won by {diff} points",
+    "dynamicDuo": "Dynamic Duo",
+    "comebackKids": "The Comeback Kids",
+    "unstoppables": "The Unstoppables",
+    "winsTogether": "{count} Wins Together",
+    "copiedLink": "Copied Link!",
+    "share": "Share",
+    "highlightTitle": "VolleyMatch Highlight"
   }
 }

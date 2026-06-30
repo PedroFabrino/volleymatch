@@ -29,7 +29,7 @@ export default function HighlightsGrid({
     if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
       try {
         await navigator.share({
-          title: 'VolleyMatch Highlight',
+          title: t('highlightTitle'),
           url: url
         })
       } catch (err) {
@@ -129,7 +129,7 @@ export default function HighlightsGrid({
               </button>
               <button onClick={handleShare} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-full font-bold transition shadow-lg">
                 {copied ? <Check className="w-4 h-4" /> : (typeof navigator !== 'undefined' && typeof navigator.share === 'function' ? <Share2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />)}
-                {copied ? 'Copied Link!' : 'Share'}
+                {copied ? t('copiedLink') : t('share')}
               </button>
             </div>
 
@@ -167,10 +167,10 @@ export default function HighlightsGrid({
                       </div>
                       {bestPartner && (
                         <div className="bg-amber-900/30 rounded-2xl p-4 border border-amber-500/30 backdrop-blur-md">
-                          <div className="text-xs text-amber-200 uppercase font-bold tracking-widest mb-1">Dynamic Duo</div>
+                          <div className="text-xs text-amber-200 uppercase font-bold tracking-widest mb-1">{t('dynamicDuo')}</div>
                           <div className="font-bold flex items-center justify-between text-lg">
                             <span>{bestPartner.name}</span>
-                            <span className="text-amber-200">{bestPartner.wins} Wins</span>
+                            <span className="text-amber-200">{t('winsTogether', { count: bestPartner.wins })}</span>
                           </div>
                         </div>
                       )}
@@ -181,13 +181,13 @@ export default function HighlightsGrid({
                   {selected === 'comeback' && biggestComebackMatch && (
                     <>
                       <div className="text-white/90 font-bold text-xl mb-1">
-                        Down {turningPoint.losingScore} - {turningPoint.winningScore}...
+                        {t('down', { losing: turningPoint.losingScore, winning: turningPoint.winningScore })}
                       </div>
                       <div className="text-5xl font-black mb-8 leading-tight">
-                        Rallied to win {Math.max(biggestComebackMatch.team_a_score, biggestComebackMatch.team_b_score)} - {Math.min(biggestComebackMatch.team_a_score, biggestComebackMatch.team_b_score)}!
+                        {t('ralliedToWin', { scoreA: Math.max(biggestComebackMatch.team_a_score, biggestComebackMatch.team_b_score), scoreB: Math.min(biggestComebackMatch.team_a_score, biggestComebackMatch.team_b_score) })}
                       </div>
                       <div className="bg-red-900/30 rounded-2xl p-4 border border-red-500/30 backdrop-blur-md">
-                        <div className="text-xs text-red-200 uppercase font-bold tracking-widest mb-1">The Comeback Kids</div>
+                        <div className="text-xs text-red-200 uppercase font-bold tracking-widest mb-1">{t('comebackKids')}</div>
                         <div className="font-bold text-lg leading-snug">
                           {getPlayerNames(biggestComebackMatch.team_a_score > biggestComebackMatch.team_b_score ? biggestComebackMatch.team_a_players : biggestComebackMatch.team_b_players)}
                         </div>
@@ -198,12 +198,12 @@ export default function HighlightsGrid({
                   {/* Blowout Specifics */}
                   {selected === 'blowout' && biggestDiffMatch && (
                     <>
-                      <div className="text-white/90 font-bold text-xl mb-1">Total Dominance</div>
+                      <div className="text-white/90 font-bold text-xl mb-1">{t('totalDominance')}</div>
                       <div className="text-5xl font-black mb-8 leading-tight">
-                        Won by {maxDiff} points
+                        {t('wonBy', { diff: maxDiff })}
                       </div>
                       <div className="bg-indigo-900/30 rounded-2xl p-4 border border-indigo-500/30 backdrop-blur-md">
-                        <div className="text-xs text-indigo-200 uppercase font-bold tracking-widest mb-1">The Unstoppables</div>
+                        <div className="text-xs text-indigo-200 uppercase font-bold tracking-widest mb-1">{t('unstoppables')}</div>
                         <div className="font-bold text-lg leading-snug">
                           {getPlayerNames(biggestDiffMatch.team_a_score > biggestDiffMatch.team_b_score ? biggestDiffMatch.team_a_players : biggestDiffMatch.team_b_players)}
                         </div>
