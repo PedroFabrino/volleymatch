@@ -168,4 +168,4 @@ CREATE POLICY "Allow public update to session_players" ON public.session_players
 -- ==========================================
 -- Grants
 -- ==========================================
-GRANT ALL ON public.mmr_history TO authenticated, service_role, anon;
+GRANT ALL ON public.mmr_history TO authenticated, service_role;
