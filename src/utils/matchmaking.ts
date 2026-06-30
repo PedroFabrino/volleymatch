@@ -263,19 +263,35 @@ export function previewNextDraft(
   Object.values(drafted.teamBPositions).forEach(pos => { if (positionFills[pos] !== undefined) positionFills[pos]++ });
 
   const lastMatchAllIds = new Set([...lastMatchWinningTeamIds, ...lastMatchLosingTeamIds]);
+  const benchPlayers = allAvailablePlayers.filter(p => !lastMatchAllIds.has(p.id));
+
+  const benchPositionFills: Record<string, number> = {};
+  for (const b of blueprint) benchPositionFills[b.pos] = 0;
+
+  benchPlayers.forEach(p => {
+    const pPos = getPos(p);
+    pPos.forEach(pos => {
+      if (benchPositionFills[pos] !== undefined) benchPositionFills[pos]++;
+    });
+  });
 
   return allAvailablePlayers.map(p => {
     const pPos = getPos(p);
+    const isDrafted = draftedIds.has(p.id);
+    
+    // If drafted, show the fill of the NEXT match (usually full). 
+    // If bench, show the fill of the bench capacity (the next-next match).
     const positionSlotFill = pPos.map(pos => {
       const b = blueprint.find(x => x.pos === pos);
+      const filledCount = isDrafted ? positionFills[pos] : benchPositionFills[pos];
       return {
         position: pos,
-        filled: b ? positionFills[pos] : 0,
+        filled: b ? Math.min(filledCount || 0, b.count) : 0,
         total: b ? b.count : 0
       };
     }).filter(x => x.total > 0);
 
-    if (draftedIds.has(p.id)) {
+    if (isDrafted) {
       const draftedPosition = drafted.teamAPositions[p.id] || drafted.teamBPositions[p.id] || 'Any';
       
       if (draftedPosition !== 'Any' && !positionSlotFill.some(x => x.position === draftedPosition)) {
@@ -283,7 +299,7 @@ export function previewNextDraft(
         if (b) {
           positionSlotFill.push({
             position: draftedPosition,
-            filled: positionFills[draftedPosition] || 0,
+            filled: Math.min(positionFills[draftedPosition] || 0, b.count),
             total: b.count
           });
         }
