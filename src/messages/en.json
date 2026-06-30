@@ -118,7 +118,9 @@
     "strict": "Strict Positional (7v7 Class)",
     "strictDesc": "Drafts exactly 1 Setter, 2 Offsides, 1 Opposite, 2 Middles, and 1 Libero per team (14 players total).",
     "startSession": "Start Session",
-    "needMorePlayers": "Need at least 2 players to start a session."
+    "needMorePlayers": "Need at least 2 players to start a session.",
+    "selectAll": "Select All",
+    "clearAll": "Clear All"
   },
   "Matchmaker": {
     "ready": "Ready for the Court",

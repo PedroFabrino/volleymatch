@@ -23,7 +23,7 @@ function enqueueAttendanceToggle(playerId: string, isPresent: boolean, activeSes
       } catch (err) {
         items.forEach(i => i.reject(err));
       }
-    }, 400); // 400ms debounce
+    }, 100); // 100ms debounce
   });
 }
 
@@ -52,8 +52,8 @@ export default function AttendanceToggle({ player, activeSessionId }: { player: 
     setTogglingPos(pos)
     startTransition(() => {
       addOptimisticPositions(pos)
-      toggleActivePosition(player.id, pos)
     })
+    toggleActivePosition(player.id, pos)
   }
 
   // Reset toggling position if transition finished
@@ -68,10 +68,11 @@ export default function AttendanceToggle({ player, activeSessionId }: { player: 
       {/* Attendance Row */}
       <button 
         onClick={() => {
-          startTransition(async () => {
-            addOptimisticIsPresent(!optimisticIsPresent)
-            await enqueueAttendanceToggle(player.id, !optimisticIsPresent, activeSessionId)
+          const newValue = !optimisticIsPresent;
+          startTransition(() => {
+            addOptimisticIsPresent(newValue)
           })
+          enqueueAttendanceToggle(player.id, newValue, activeSessionId)
         }}
         className="flex items-center justify-between w-full text-left"
       >

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { startSession, endSession } from './actions'
 import AttendanceToggle from './AttendanceToggle'
+import AttendanceControls from './AttendanceControls'
 import ActiveSessionBanner from '@/components/ActiveSessionBanner'
 import { ArrowLeft, Users, Trophy } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
@@ -98,9 +99,15 @@ export default async function SessionSetupPage() {
                   <AttendanceToggle key={player.id} player={player} activeSessionId={activeSession?.id} />
                 ))}
                 {players?.length === 0 && (
-                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">{t('emptyRoster')}</p>
+                  <div className="text-center text-gray-500 py-8 dark:text-gray-400">
+                    {t('emptyRoster')}
+                  </div>
                 )}
               </div>
+              
+              {players && players.length > 0 && (
+                <AttendanceControls activeSessionId={activeSession?.id} />
+              )}
             </div>
 
             {/* Session Rules / Active Info */}

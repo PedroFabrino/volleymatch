@@ -118,7 +118,9 @@
     "strict": "Jogar 5:1",
     "strictDesc": "Sorteia exatamente 1 Levantador, 2 Ponteiros, 1 Oposto, 2 Centrais e 1 Líbero por equipe (14 jogadores).",
     "startSession": "Iniciar Sessão",
-    "needMorePlayers": "São necessários pelo menos 2 jogadores para iniciar uma sessão."
+    "needMorePlayers": "São necessários pelo menos 2 jogadores para iniciar.",
+    "selectAll": "Marcar Todos",
+    "clearAll": "Limpar Todos"
   },
   "Matchmaker": {
     "ready": "Pronto para a Quadra",

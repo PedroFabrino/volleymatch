@@ -105,6 +105,46 @@ export async function toggleActivePosition(playerId: string, pos: string) {
   revalidatePath('/dashboard/session')
 }
 
+export async function setAllAttendance(isPresent: boolean, activeSessionId?: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  await supabase
+    .from('players')
+    .update({ is_present_today: isPresent })
+    .eq('hoster_id', user.id)
+
+  if (activeSessionId && isPresent) {
+    const { data: players } = await supabase.from('players').select('id').eq('hoster_id', user.id)
+    
+    if (players && players.length > 0) {
+      const { data: sessionPlayersData } = await supabase
+        .from('session_players')
+        .select('games_played')
+        .eq('session_id', activeSessionId)
+
+      let maxGamesPlayed = 0
+      if (sessionPlayersData && sessionPlayersData.length > 0) {
+        maxGamesPlayed = Math.max(...sessionPlayersData.map(sp => sp.games_played || 0))
+      }
+
+      const sessionPlayers = players.map(p => ({
+        session_id: activeSessionId,
+        player_id: p.id,
+        games_played: maxGamesPlayed
+      }))
+      
+      await supabase.from('session_players').upsert(
+        sessionPlayers,
+        { onConflict: 'session_id, player_id', ignoreDuplicates: true }
+      )
+    }
+  }
+
+  revalidatePath('/dashboard/session')
+}
+
 export async function startSession(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
