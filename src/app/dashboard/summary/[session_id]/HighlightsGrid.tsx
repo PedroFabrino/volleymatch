@@ -24,8 +24,7 @@ export default function HighlightsGrid({
   const [copied, setCopied] = useState(false)
 
   const handleShare = async () => {
-    // In the future this could link to a dedicated share page.
-    const url = `${window.location.origin}/dashboard/summary/${sessionId}`
+    const url = `${window.location.origin}/share/session/${sessionId}/${selected}`
     if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
       try {
         await navigator.share({
