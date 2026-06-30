@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { generateMatch, saveMatch } from './actions'
-import { Trophy, Users, Check, RefreshCw } from 'lucide-react'
+import { endSession } from '../session/actions'
+import { Trophy, Users, Check, RefreshCw, PowerOff } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 export default function Matchmaker({ session, players, isFirstMatch }: { session: any, players: any[], isFirstMatch: boolean }) {
@@ -61,9 +62,24 @@ export default function Matchmaker({ session, players, isFirstMatch }: { session
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center relative w-full overflow-y-auto">
-      <a href="/dashboard/session" className="absolute top-6 left-6 p-3 bg-gray-800 rounded-full hover:bg-gray-700 transition shadow-lg z-10">
+      <a href="/dashboard/session" className="absolute top-6 left-6 p-3 bg-gray-800 rounded-full hover:bg-gray-700 transition shadow-lg z-10" title="Back to Dashboard">
         <Users className="w-6 h-6 text-gray-300" />
       </a>
+
+      <button 
+        onClick={() => {
+          if (confirm('Are you sure you want to end this session?')) {
+            startTransition(() => {
+              endSession(session.id)
+            })
+          }
+        }}
+        disabled={isPending}
+        className="absolute top-6 right-6 p-3 bg-red-900/40 border border-red-500/30 rounded-full hover:bg-red-800/60 transition shadow-lg z-10 flex items-center justify-center disabled:opacity-50 group"
+        title="End Session"
+      >
+        <PowerOff className="w-6 h-6 text-red-400 group-hover:text-red-300" />
+      </button>
 
       {!draft ? (
         <div className="bg-gray-800 p-8 rounded-3xl max-w-lg w-full shadow-2xl border border-gray-700 mt-20">

@@ -21,7 +21,10 @@ This document tracks the progress of implementing the features defined in `ROADM
 - [x] Late-joiner queue sorting (FIFO) using `MAX(games_played)`
 - [x] Admin client bypass for RLS using `SUPABASE_SERVICE_ROLE_KEY`
 ## 4. MMR History Table
-**Status:** ⏳ Not Started
+**Status:** ✅ Complete
+- [x] Create `mmr_history` table and RLS in `schema.sql`
+- [x] Record `session_start_snapshot` for all players on `startSession`
+- [x] Record `match_result` history rows (old/new MMR) in `finishMatch`
 
 ## 5. Session Summary Card
 **Status:** ⏳ Not Started
