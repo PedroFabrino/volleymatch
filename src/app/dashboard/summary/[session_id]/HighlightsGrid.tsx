@@ -14,17 +14,21 @@ type Props = {
   biggestDiffMatch: any;
   maxDiff: number;
   playersData: any[];
+  isGlobal?: boolean;
+  hosterId?: string;
 }
 
 export default function HighlightsGrid({ 
-  sessionId, mvp, bestPartner, biggestComebackMatch, maxComeback, turningPoint, biggestDiffMatch, maxDiff, playersData 
+  sessionId, mvp, bestPartner, biggestComebackMatch, maxComeback, turningPoint, biggestDiffMatch, maxDiff, playersData, isGlobal, hosterId 
 }: Props) {
   const t = useTranslations('Summary')
   const [selected, setSelected] = useState<'mvp' | 'comeback' | 'blowout' | null>(null)
   const [copied, setCopied] = useState(false)
 
   const handleShare = async () => {
-    const url = `${window.location.origin}/share/session/${sessionId}/${selected}`
+    const url = isGlobal && hosterId 
+      ? `${window.location.origin}/share/hoster/${hosterId}/${selected}`
+      : `${window.location.origin}/share/session/${sessionId}/${selected}`
     if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
       try {
         await navigator.share({

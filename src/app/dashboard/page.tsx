@@ -141,6 +141,17 @@ export default async function DashboardPage() {
                   {t('manageRoster', { count: players?.length || 0 })}
                 </a>
               </div>
+
+              {/* Global Summary Card */}
+              <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-6 shadow hover:shadow-md transition-shadow">
+                <h2 className="text-xl font-semibold mb-2 dark:text-gray-100 flex items-center gap-2">
+                  <History className="w-5 h-5 text-indigo-500" /> {t('globalSummary')}
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">{t('globalSummaryDesc')}</p>
+                <a href="/dashboard/summary/all" className="block text-center w-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-4 py-3 rounded-xl font-medium hover:bg-indigo-200 dark:hover:bg-indigo-800/60 transition border border-indigo-200 dark:border-indigo-800">
+                  {t('viewGlobalSummary')}
+                </a>
+              </div>
             </div>
 
             {/* Middle Column: Player Rankings */}
