@@ -27,7 +27,11 @@ This document tracks the progress of implementing the features defined in `ROADM
 - [x] Record `match_result` history rows (old/new MMR) in `finishMatch`
 
 ## 5. Session Summary Card
-**Status:** ⏳ Not Started
+**Status:** ✅ Complete
+- [x] Create `/dashboard/summary/[session_id]` route
+- [x] Parse `mmr_history` for MVP and Leaderboard
+- [x] Parse `point_timeline` for Biggest Comeback and Blowout
+- [x] Redirect to summary on `endSession`
 
 ## 6. Player Account Reclaim
 **Status:** ⏳ Not Started

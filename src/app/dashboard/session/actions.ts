@@ -186,4 +186,5 @@ export async function endSession(sessionId: string) {
     .eq('hoster_id', user.id)
 
   revalidatePath('/dashboard', 'layout')
+  redirect(`/dashboard/summary/${sessionId}`)
 }

@@ -164,5 +164,24 @@
     "noPlayersAssigned": "Nenhum jogador escalado ainda.",
     "sittingOut": "🕐 NO BANCO",
     "everyonePlaying": "Todos estão jogando!"
+  },
+  "Summary": {
+    "title": "Resumo da Sessão",
+    "backHome": "Voltar ao Início",
+    "mvp": "MVP da Noite",
+    "noData": "Sem dados",
+    "biggestComeback": "Maior Virada",
+    "points": "Pontos Atrás",
+    "finalScore": "Placar Final",
+    "noComebacks": "Nenhuma Virada",
+    "biggestDifference": "Maior Lavada",
+    "score": "Placar",
+    "leaderboard": "Placar Geral",
+    "leaderboardDesc": "Desempenho de cada jogador durante a sessão.",
+    "player": "Jogador",
+    "gamesPlayed": "Jogos",
+    "mmrChange": "Variação MMR",
+    "ironman": "MÁQUINA",
+    "noPlayers": "Nenhum jogador participou hoje."
   }
 }
