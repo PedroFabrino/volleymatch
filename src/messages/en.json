@@ -139,7 +139,8 @@
     "reroll": "Re-roll Draft",
     "startMatch": "Start Match",
     "endSession": "End Session",
-    "confirmEndSession": "Are you sure you want to end this session?"
+    "confirmEndSession": "Are you sure you want to end this session?",
+    "preparingDraft": "Preparing draft..."
   },
   "Scoreboard": {
     "cancelGame": "Cancel Game",
@@ -175,37 +176,7 @@
     "nextUpQueue": "Up Next Queue",
     "waitingCount": "{count} waiting",
     "gamesPlayedLabel": "{count} played",
-    "noPlayersInQueue": "Queue empty"
-  },
-  "Summary": {
-    "title": "Session Summary",
-    "backHome": "Back to Dashboard",
-    "mvp": "MVP",
-    "noData": "Not enough data",
-    "biggestComeback": "Biggest Comeback",
-    "points": "Points Deficit",
-    "finalScore": "Final Score",
-    "noComebacks": "No Comebacks",
-    "biggestDifference": "Biggest Blowout",
-    "score": "Score",
-    "leaderboard": "Session Leaderboard",
-    "leaderboardDesc": "Every player's performance during this session.",
-    "player": "Player",
-    "gamesPlayed": "Games Played",
-    "winRate": "Win Rate",
-    "mmrChange": "MMR Change",
-    "ironman": "IRONMAN",
-    "noPlayers": "No players played today.",
-    "down": "Down {losing} - {winning}...",
-    "ralliedToWin": "Rallied to win {scoreA} - {scoreB}!",
-    "totalDominance": "Total Dominance",
-    "wonBy": "Won by {diff} points",
-    "dynamicDuo": "Dynamic Duo",
-    "comebackKids": "The Comeback Kids",
-    "unstoppables": "The Unstoppables",
-    "winsTogether": "{count} Wins Together",
-    "copiedLink": "Copied Link!",
-    "share": "Share",
-    "highlightTitle": "VolleyMatch Highlight"
+    "noPlayersInQueue": "Queue empty",
+    "saving": "Saving..."
   }
 }
