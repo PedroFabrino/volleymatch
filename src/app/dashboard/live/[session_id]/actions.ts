@@ -309,7 +309,7 @@ async function computeMatchDraft(supabase: any, sessionId: string, userId: strin
     .select('player_id, games_played')
     .eq('session_id', sessionId)
     
-  const sessionPlayersMap = new Map(sessionPlayers?.map(sp => [sp.player_id, sp.games_played]))
+  const sessionPlayersMap = new Map((sessionPlayers ?? []).map((sp: { player_id: string, games_played: number }) => [sp.player_id, sp.games_played]))
   
   for (const p of presentPlayers) {
     p.games_played_today = sessionPlayersMap.get(p.id) ?? 0
