@@ -178,5 +178,33 @@
     "gamesPlayedLabel": "{count} played",
     "noPlayersInQueue": "Queue empty",
     "saving": "Saving..."
+  },
+  "Summary": {
+    "title": "Session Summary",
+    "backHome": "Back to Dashboard",
+    "leaderboard": "Leaderboard",
+    "leaderboardDesc": "Final standings and MMR changes for this session.",
+    "player": "Player",
+    "gamesPlayed": "Games Played",
+    "winRate": "Win Rate",
+    "mmrChange": "MMR Change",
+    "noPlayers": "No players found.",
+    "mvp": "MVP",
+    "dynamicDuo": "Dynamic Duo",
+    "comebackKids": "Comeback Kids",
+    "unstoppables": "Unstoppables",
+    "ironman": "Ironman",
+    "noData": "No data available",
+    "noComebacks": "No comebacks recorded",
+    "biggestComeback": "Biggest Comeback",
+    "biggestDifference": "Biggest Difference",
+    "highlightTitle": "VolleyMatch Highlight",
+    "share": "Share",
+    "copiedLink": "Copied!",
+    "down": "Down {losing}-{winning}",
+    "ralliedToWin": "Rallied to win {scoreA}-{scoreB}",
+    "totalDominance": "Total Dominance",
+    "wonBy": "Won by {diff} pts",
+    "winsTogether": "{count} wins together"
   }
 }
