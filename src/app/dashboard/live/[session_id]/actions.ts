@@ -11,80 +11,7 @@ export async function generateMatch(sessionId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
-  // Get Session Details to know mode
-  const { data: session } = await supabase.from('sessions').select('*').eq('id', sessionId).single()
-  if (!session) return
-
-  // 1. Get all players present today
-  const { data: presentPlayers } = await supabase
-    .from('players')
-    .select('*')
-    .eq('hoster_id', user.id)
-    .eq('is_present_today', true)
-    
-  if (!presentPlayers || presentPlayers.length < 2) return
-
-  // Merge games_played from session_players
-  const { data: sessionPlayers } = await supabase
-    .from('session_players')
-    .select('player_id, games_played')
-    .eq('session_id', sessionId)
-    
-  const sessionPlayersMap = new Map(sessionPlayers?.map(sp => [sp.player_id, sp.games_played]))
-  
-  for (const p of presentPlayers) {
-    p.games_played_today = sessionPlayersMap.get(p.id) ?? 0
-  }
-
-  const mode = session.matchmaking_mode || 'casual'
-
-  if (mode === 'strict') {
-    // We need to know who won the last match
-    const { data: lastMatch } = await supabase
-      .from('matches')
-      .select('team_a_players, team_b_players, team_a_score, team_b_score')
-      .eq('session_id', sessionId)
-      .eq('is_completed', true)
-      .order('completed_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    let lastMatchWinningTeamIds: string[] = []
-    let lastMatchLosingTeamIds: string[] = []
-
-    if (lastMatch) {
-      if (lastMatch.team_a_score > lastMatch.team_b_score) {
-        lastMatchWinningTeamIds = lastMatch.team_a_players
-        lastMatchLosingTeamIds = lastMatch.team_b_players
-      } else if (lastMatch.team_b_score > lastMatch.team_a_score) {
-        lastMatchWinningTeamIds = lastMatch.team_b_players
-        lastMatchLosingTeamIds = lastMatch.team_a_players
-      } else {
-        // Draw, just dump them all as losers so they get lower priority than queue
-        lastMatchLosingTeamIds = [...lastMatch.team_a_players, ...lastMatch.team_b_players]
-      }
-    }
-
-    const draft = draftStrictTeams(presentPlayers, lastMatchWinningTeamIds, lastMatchLosingTeamIds)
-    return draft
-  }
-
-  // Casual Mode
-  // 2. Determine who plays next (Hybrid Winner Stays On Logic)
-  // For MVP: Simply sort by games_played_today (ascending) to guarantee rotation, then by MMR to balance.
-  // We will take up to 12 players to form the match.
-  const playersToDraft = [...presentPlayers].sort((a, b) => {
-    if (a.games_played_today !== b.games_played_today) {
-      return a.games_played_today - b.games_played_today
-    }
-    // If they have played the same amount, sort randomly for now to mix teams, or by MMR.
-    return Math.random() - 0.5
-  }).slice(0, 12)
-
-  const { teamA, teamB } = draftTeams(playersToDraft)
-
-  // Return the match draft instead of saving
-  return { teamA, teamB }
+  return await computeMatchDraft(supabase, sessionId, user.id)
 }
 
 export async function saveMatch(sessionId: string, teamA: string[], teamB: string[], teamAPositions?: any, teamBPositions?: any) {
@@ -108,6 +35,10 @@ export async function saveMatch(sessionId: string, teamA: string[], teamB: strin
     console.error("FAILED TO INSERT MATCH", error)
     throw new Error(error.message)
   }
+
+  // Pre-calc next draft immediately after starting a new match
+  const draft = await computeMatchDraft(supabase, sessionId, user.id)
+  await supabase.from('sessions').update({ pending_draft: draft ?? null }).eq('id', sessionId)
 
   revalidatePath(`/dashboard/live/${sessionId}`)
 }
@@ -243,6 +174,9 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
   }
 
   if (destination === 'draft') {
+    // Pre-calc next draft after finishing current match
+    const draft = await computeMatchDraft(supabase, sessionId, user.id)
+    await supabase.from('sessions').update({ pending_draft: draft ?? null }).eq('id', sessionId)
     revalidatePath(`/dashboard/live/${sessionId}`, 'page')
   } else {
     revalidatePath(`/dashboard/session`, 'page')
@@ -351,4 +285,79 @@ export async function swapPositions(matchId: string, sessionId: string, playerAI
   })
 
   revalidatePath(`/dashboard/live/${sessionId}`)
+}
+
+// Helper to pre-compute the next draft without persisting it.
+// Returns the exact object that would normally be returned by generateMatch.
+async function computeMatchDraft(supabase: any, sessionId: string, userId: string) {
+  // 1. Get Session Details to know mode
+  const { data: session } = await supabase.from('sessions').select('*').eq('id', sessionId).single()
+  if (!session) return null
+
+  // 2. Get all players present today
+  const { data: presentPlayers } = await supabase
+    .from('players')
+    .select('*')
+    .eq('hoster_id', userId)
+    .eq('is_present_today', true)
+    
+  if (!presentPlayers || presentPlayers.length < 2) return null
+
+  // Merge games_played from session_players
+  const { data: sessionPlayers } = await supabase
+    .from('session_players')
+    .select('player_id, games_played')
+    .eq('session_id', sessionId)
+    
+  const sessionPlayersMap = new Map(sessionPlayers?.map(sp => [sp.player_id, sp.games_played]))
+  
+  for (const p of presentPlayers) {
+    p.games_played_today = sessionPlayersMap.get(p.id) ?? 0
+  }
+
+  const mode = session.matchmaking_mode || 'casual'
+
+  if (mode === 'strict') {
+    // We need to know who won the last match
+    const { data: lastMatch } = await supabase
+      .from('matches')
+      .select('team_a_players, team_b_players, team_a_score, team_b_score')
+      .eq('session_id', sessionId)
+      .eq('is_completed', true)
+      .order('completed_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    let lastMatchWinningTeamIds: string[] = []
+    let lastMatchLosingTeamIds: string[] = []
+
+    if (lastMatch) {
+      if (lastMatch.team_a_score > lastMatch.team_b_score) {
+        lastMatchWinningTeamIds = lastMatch.team_a_players
+        lastMatchLosingTeamIds = lastMatch.team_b_players
+      } else if (lastMatch.team_b_score > lastMatch.team_a_score) {
+        lastMatchWinningTeamIds = lastMatch.team_b_players
+        lastMatchLosingTeamIds = lastMatch.team_a_players
+      } else {
+        // Draw, just dump them all as losers so they get lower priority than queue
+        lastMatchLosingTeamIds = [...lastMatch.team_a_players, ...lastMatch.team_b_players]
+      }
+    }
+
+    const draft = draftStrictTeams(presentPlayers, lastMatchWinningTeamIds, lastMatchLosingTeamIds)
+    return draft
+  }
+
+  // Casual Mode
+  const playersToDraft = [...presentPlayers].sort((a, b) => {
+    if (a.games_played_today !== b.games_played_today) {
+      return a.games_played_today - b.games_played_today
+    }
+    // If they have played the same amount, sort randomly for now to mix teams, or by MMR.
+    return Math.random() - 0.5
+  }).slice(0, 12)
+
+  const { teamA, teamB } = draftTeams(playersToDraft)
+
+  return { teamA, teamB }
 }

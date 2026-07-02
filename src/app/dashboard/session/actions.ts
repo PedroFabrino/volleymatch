@@ -35,6 +35,13 @@ export async function toggleAttendance(playerId: string, isPresent: boolean, act
     )
   }
 
+  // Attendance changed -> invalidate pre-calculated draft
+  await supabase
+    .from('sessions')
+    .update({ pending_draft: null })
+    .eq('hoster_id', user.id)
+    .eq('is_active', true)
+
   revalidatePath('/dashboard/session')
 }
 
@@ -81,6 +88,13 @@ export async function batchToggleAttendance(updates: { playerId: string, isPrese
     )
   }
 
+  // Attendance changed -> invalidate pre-calculated draft
+  await supabase
+    .from('sessions')
+    .update({ pending_draft: null })
+    .eq('hoster_id', user.id)
+    .eq('is_active', true)
+
   revalidatePath('/dashboard/session')
 }
 
@@ -103,6 +117,14 @@ export async function toggleActivePosition(playerId: string, pos: string) {
   }
 
   await supabase.from('players').update({ active_positions: currentPositions }).eq('id', playerId)
+
+  // Position override changed -> invalidate pre-calculated draft
+  await supabase
+    .from('sessions')
+    .update({ pending_draft: null })
+    .eq('hoster_id', user.id)
+    .eq('is_active', true)
+
   revalidatePath('/dashboard/session')
 }
 
@@ -142,6 +164,13 @@ export async function setAllAttendance(isPresent: boolean, activeSessionId?: str
       )
     }
   }
+
+  // Attendance changed -> invalidate pre-calculated draft
+  await supabase
+    .from('sessions')
+    .update({ pending_draft: null })
+    .eq('hoster_id', user.id)
+    .eq('is_active', true)
 
   revalidatePath('/dashboard/session')
 }

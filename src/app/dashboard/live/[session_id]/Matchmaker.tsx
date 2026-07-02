@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation'
 export default function Matchmaker({ session, players, isFirstMatch }: { session: any, players: any[], isFirstMatch: boolean }) {
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
-  const [draft, setDraft] = useState<any>(null)
+  const [draft, setDraft] = useState<any>(session.pending_draft ?? null)
   const [isGenerating, setIsGenerating] = useState(false)
   const t = useTranslations('Matchmaker')
   const tPos = useTranslations('Positions')
