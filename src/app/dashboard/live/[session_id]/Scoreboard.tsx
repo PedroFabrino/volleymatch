@@ -4,8 +4,14 @@ import { useTransition, useOptimistic, useRef, useEffect, useState } from 'react
 import { updateScore, finishMatch, cancelMatch, substitutePlayer, swapPositions } from './actions'
 import { Minus, Clock } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import type { PlayerWithStatus } from '@/utils/matchmaking'
 
-export default function Scoreboard({ session, match, players }: { session: any, match: any, players: any[] }) {
+export default function Scoreboard({ session, match, players, playersWithStatus }: { 
+  session: any, 
+  match: any, 
+  players: any[],
+  playersWithStatus: PlayerWithStatus[]
+}) {
   const [isPending, startTransition] = useTransition()
   const t = useTranslations('Scoreboard')
   const posT = useTranslations('Positions')
@@ -94,9 +100,7 @@ export default function Scoreboard({ session, match, players }: { session: any, 
 
   // Up Next Queue – waiting players sorted by fewest games played first
   const playingIds = new Set([...match.team_a_players, ...match.team_b_players]);
-  const queuedPlayers = players
-    .filter(p => p.is_present_today && !playingIds.has(p.id))
-    .sort((a, b) => (a.games_played_today ?? 0) - (b.games_played_today ?? 0));
+  const queuedPlayers = playersWithStatus.filter(p => !playingIds.has(p.id));
 
   const sortOrder = ['Setter', 'Middle Blocker', 'Outside Hitter', 'Opposite Hitter', 'Libero', 'Any'];
   const sortPlayersByPos = (teamPlayers: any[], positions?: Record<string, string>) => {
@@ -277,11 +281,18 @@ export default function Scoreboard({ session, match, players }: { session: any, 
           <p className="text-gray-500 text-xs">{t('noPlayersInQueue')}</p>
         ) : (
           <ul className="space-y-1 max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
-            {queuedPlayers.map((p: any, index: number) => (
+            {queuedPlayers.map((p, index) => (
               <li key={p.id} className="flex items-center justify-between text-sm bg-gray-800 rounded px-3 py-2">
                 <div className="flex items-center gap-2">
                   <span className="text-gray-500 text-xs w-4">{index + 1}</span>
-                  <span className="font-semibold text-gray-100">{p.name}</span>
+                  <span className={`font-semibold ${p.draftStatus === 'in_next_match' ? 'text-green-300' : 'text-gray-400'}`}>
+                    {p.name}
+                  </span>
+                  {p.draftStatus === 'in_next_match' && (
+                    <span className="text-[10px] bg-green-900/50 text-green-400 border border-green-700/40 px-1.5 py-0.5 rounded-full font-bold">
+                      {t('playingNext')}
+                    </span>
+                  )}
                 </div>
                 <span className="text-xs text-gray-400">{t('gamesPlayedLabel', { count: p.games_played_today ?? 0 })}</span>
               </li>

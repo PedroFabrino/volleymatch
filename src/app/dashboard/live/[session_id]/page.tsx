@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Scoreboard from './Scoreboard'
 import Matchmaker from './Matchmaker'
 import { QrCodeModal } from '@/components/QrCodeModal'
+import { previewNextDraft, sortPlayersByDraftPriority } from '@/utils/matchmaking'
 
 export default async function LiveSessionPage(props: { params: Promise<{ session_id: string }> }) {
   const params = await props.params
@@ -60,6 +61,20 @@ export default async function LiveSessionPage(props: { params: Promise<{ session
 
   const isFirstMatch = completedMatchesCount === 0
 
+  const lastWinners = activeMatch ? activeMatch.team_a_players : []
+  const lastLosers = activeMatch ? activeMatch.team_b_players : []
+
+  const sortedPlayers = [...playersWithGames]
+    .filter(p => p.is_present_today)
+    .sort((a, b) => sortPlayersByDraftPriority(a, b, isFirstMatch))
+
+  const playersWithStatus = previewNextDraft(
+    sortedPlayers,
+    lastWinners,
+    lastLosers,
+    session.matchmaking_mode === 'strict'
+  )
+
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
       <div className="bg-gray-800 p-2 text-center text-sm text-gray-400 font-mono flex items-center justify-center">
@@ -68,7 +83,7 @@ export default async function LiveSessionPage(props: { params: Promise<{ session
       </div>
       <div className="flex-1">
         {activeMatch ? (
-          <Scoreboard session={session} match={activeMatch} players={playersWithGames} />
+          <Scoreboard session={session} match={activeMatch} players={playersWithGames} playersWithStatus={playersWithStatus} />
         ) : (
           <Matchmaker session={session} players={playersWithGames} isFirstMatch={isFirstMatch} />
         )}
