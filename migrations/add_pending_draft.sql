@@ -1,1 +1,0 @@
-ALTER TABLE sessions ADD COLUMN pending_draft JSONB DEFAULT NULL;
