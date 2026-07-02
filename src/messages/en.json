@@ -171,7 +171,11 @@
     "playingNext": "✅ PLAYING NEXT",
     "noPlayersAssigned": "No players assigned yet.",
     "sittingOut": "🕐 SITTING OUT",
-    "everyonePlaying": "Everyone is playing!"
+    "everyonePlaying": "Everyone is playing!",
+    "nextUpQueue": "Up Next Queue",
+    "waitingCount": "{count} waiting",
+    "gamesPlayedLabel": "{count} played",
+    "noPlayersInQueue": "Queue empty"
   },
   "Summary": {
     "title": "Session Summary",

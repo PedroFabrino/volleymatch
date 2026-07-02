@@ -226,10 +226,10 @@ export async function endSession(sessionId: string) {
     .eq('id', sessionId)
     .eq('hoster_id', user.id)
 
-  // 3. Reset player daily stats (attendance)
+  // 3. Reset player daily stats (attendance) and clear temporary session overrides
   await supabase
     .from('players')
-    .update({ is_present_today: false })
+    .update({ is_present_today: false, active_positions: null })
     .eq('hoster_id', user.id)
 
   redirect(`/dashboard/summary/${sessionId}`)

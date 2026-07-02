@@ -92,6 +92,12 @@ export default function Scoreboard({ session, match, players }: { session: any, 
   const teamBPlayers = match.team_b_players.map((id: string) => players.find(p => p.id === id)).filter(Boolean)
   const benchedPlayers = players.filter(p => p.is_present_today && !match.team_a_players.includes(p.id) && !match.team_b_players.includes(p.id))
 
+  // Up Next Queue – waiting players sorted by fewest games played first
+  const playingIds = new Set([...match.team_a_players, ...match.team_b_players]);
+  const queuedPlayers = players
+    .filter(p => p.is_present_today && !playingIds.has(p.id))
+    .sort((a, b) => (a.games_played_today ?? 0) - (b.games_played_today ?? 0));
+
   const sortOrder = ['Setter', 'Middle Blocker', 'Outside Hitter', 'Opposite Hitter', 'Libero', 'Any'];
   const sortPlayersByPos = (teamPlayers: any[], positions?: Record<string, string>) => {
     return [...teamPlayers].sort((a, b) => {
@@ -259,6 +265,29 @@ export default function Scoreboard({ session, match, players }: { session: any, 
             )})}
           </ul>
         </div>
+      </div>
+
+      {/* QUEUE SECTION (Next Up, visible in portrait) */}
+      <div className="landscape:hidden bg-gray-900 px-4 py-3 border-t border-gray-800">
+        <h3 className="text-blue-400 font-bold text-sm uppercase tracking-wide mb-2 flex justify-between">
+          <span>{t('nextUpQueue')}</span>
+          <span className="text-xs text-gray-500 font-normal">{t('waitingCount', { count: queuedPlayers.length })}</span>
+        </h3>
+        {queuedPlayers.length === 0 ? (
+          <p className="text-gray-500 text-xs">{t('noPlayersInQueue')}</p>
+        ) : (
+          <ul className="space-y-1 max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
+            {queuedPlayers.map((p: any, index: number) => (
+              <li key={p.id} className="flex items-center justify-between text-sm bg-gray-800 rounded px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-500 text-xs w-4">{index + 1}</span>
+                  <span className="font-semibold text-gray-100">{p.name}</span>
+                </div>
+                <span className="text-xs text-gray-400">{t('gamesPlayedLabel', { count: p.games_played_today ?? 0 })}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Admin Footer Controls */}

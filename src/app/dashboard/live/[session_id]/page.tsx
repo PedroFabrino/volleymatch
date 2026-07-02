@@ -38,6 +38,20 @@ export default async function LiveSessionPage(props: { params: Promise<{ session
     .select('*')
     .eq('hoster_id', user.id)
 
+  // Get session_players to include games_played_today for queue ordering
+  const { data: sessionPlayersData } = await supabase
+    .from('session_players')
+    .select('player_id, games_played')
+    .eq('session_id', sessionId)
+
+  const playersWithGames = (players || []).map(p => {
+    const sp = sessionPlayersData?.find(sp => sp.player_id === p.id)
+    return {
+      ...p,
+      games_played_today: sp ? sp.games_played : 0
+    }
+  })
+
   const { count: completedMatchesCount } = await supabase
     .from('matches')
     .select('*', { count: 'exact', head: true })
@@ -54,9 +68,9 @@ export default async function LiveSessionPage(props: { params: Promise<{ session
       </div>
       <div className="flex-1">
         {activeMatch ? (
-          <Scoreboard session={session} match={activeMatch} players={players || []} />
+          <Scoreboard session={session} match={activeMatch} players={playersWithGames} />
         ) : (
-          <Matchmaker session={session} players={players || []} isFirstMatch={isFirstMatch} />
+          <Matchmaker session={session} players={playersWithGames} isFirstMatch={isFirstMatch} />
         )}
       </div>
     </div>
