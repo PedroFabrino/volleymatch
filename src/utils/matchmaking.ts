@@ -84,6 +84,8 @@ export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinning
   const availableMBs = allAvailablePlayers.filter(p => hasPos(p, 'Middle Blocker'));
   const availableLiberos = allAvailablePlayers.filter(p => hasPos(p, 'Libero') && !hasPos(p, 'Middle Blocker'));
   const totalMBL = availableMBs.length + availableLiberos.length;
+  // Pure liberos must never be drafted as Middle Blockers
+  const pureLiberos = new Set(availableLiberos.map(p => p.id));
 
   let targetSize = 7;
   let blueprint = [
@@ -129,7 +131,8 @@ export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinning
     
     if (targetSize === 6 && candidates.length < requirement.count) {
       if (requirement.pos === 'Middle Blocker') {
-        const extra = remainingPlayers.filter(p => !candidates.includes(p) && hasPos(p, 'Libero'));
+        // Only allow players who have BOTH MB and Libero — never pure Liberos
+        const extra = remainingPlayers.filter(p => !candidates.includes(p) && hasPos(p, 'Libero') && hasPos(p, 'Middle Blocker'));
         candidates.push(...extra);
       } else if (requirement.pos === 'Libero') {
         const extra = remainingPlayers.filter(p => !candidates.includes(p) && hasPos(p, 'Middle Blocker'));
@@ -139,6 +142,18 @@ export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinning
 
     const picked = candidates.slice(0, requirement.count);
     
+    // Never assign a pure Libero to Middle Blocker slot
+    if (requirement.pos === 'Middle Blocker') {
+      const safePicked = picked.filter(p => !pureLiberos.has(p.id));
+      const needed = requirement.count - safePicked.length;
+      if (needed > 0) {
+        const fallbacks = remainingPlayers.filter(p => !safePicked.includes(p) && !pureLiberos.has(p.id)).slice(0, needed);
+        safePicked.push(...fallbacks);
+      }
+      picked.length = 0;
+      picked.push(...safePicked);
+    }
+
     // IF WE ARE SHORT ON THIS POSITION, FORCE A FALLBACK PLAYER TO PLAY THIS ROLE
     if (picked.length < requirement.count) {
       const needed = requirement.count - picked.length;

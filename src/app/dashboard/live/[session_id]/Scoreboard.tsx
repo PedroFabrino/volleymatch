@@ -1,7 +1,7 @@
 'use client'
 
 import { useTransition, useOptimistic, useRef, useEffect, useState } from 'react'
-import { updateScore, finishMatch, cancelMatch, substitutePlayer } from './actions'
+import { updateScore, finishMatch, cancelMatch, substitutePlayer, swapPositions } from './actions'
 import { Minus, Clock } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
@@ -13,6 +13,7 @@ export default function Scoreboard({ session, match, players }: { session: any, 
   // Timer State
   const [elapsed, setElapsed] = useState('00:00')
   const [subbingPlayer, setSubbingPlayer] = useState<{ id: string, name: string, team: 'a' | 'b' } | null>(null)
+  const [swappingPlayer, setSwappingPlayer] = useState<{ id: string, name: string, team: 'a' | 'b', position: string } | null>(null)
 
   useEffect(() => {
     const startTime = new Date(match.created_at).getTime()
@@ -194,12 +195,20 @@ export default function Scoreboard({ session, match, players }: { session: any, 
                     )}
                   </div>
                 </div>
-                <button 
-                  onClick={() => setSubbingPlayer({ id: p.id, name: p.name, team: 'a' })}
-                  className="bg-gray-700 text-xs px-2 py-1 rounded text-gray-300 hover:bg-gray-600 transition"
-                >
-                  {t('sub')}
-                </button>
+                <div className="flex items-center gap-1">
+                  <button 
+                    onClick={() => setSubbingPlayer({ id: p.id, name: p.name, team: 'a' })}
+                    className="bg-gray-700 text-xs px-2 py-1 rounded text-gray-300 hover:bg-gray-600 transition"
+                  >
+                    {t('sub')}
+                  </button>
+                  <button
+                    onClick={() => setSwappingPlayer({ id: p.id, name: p.name, team: 'a', position: displayPos })}
+                    className="bg-gray-700 text-xs px-2 py-1 rounded text-gray-300 hover:bg-gray-600 transition ml-1"
+                  >
+                    {t('swap')}
+                  </button>
+                </div>
               </li>
             )})}
           </ul>
@@ -232,12 +241,20 @@ export default function Scoreboard({ session, match, players }: { session: any, 
                     )}
                   </div>
                 </div>
-                <button 
-                  onClick={() => setSubbingPlayer({ id: p.id, name: p.name, team: 'b' })}
-                  className="bg-gray-700 text-xs px-2 py-1 rounded text-gray-300 hover:bg-gray-600 transition"
-                >
-                  {t('sub')}
-                </button>
+                <div className="flex items-center gap-1">
+                  <button 
+                    onClick={() => setSubbingPlayer({ id: p.id, name: p.name, team: 'b' })}
+                    className="bg-gray-700 text-xs px-2 py-1 rounded text-gray-300 hover:bg-gray-600 transition"
+                  >
+                    {t('sub')}
+                  </button>
+                  <button
+                    onClick={() => setSwappingPlayer({ id: p.id, name: p.name, team: 'b', position: displayPos })}
+                    className="bg-gray-700 text-xs px-2 py-1 rounded text-gray-300 hover:bg-gray-600 transition ml-1"
+                  >
+                    {t('swap')}
+                  </button>
+                </div>
               </li>
             )})}
           </ul>
@@ -295,6 +312,51 @@ export default function Scoreboard({ session, match, players }: { session: any, 
             <div className="p-4 border-t border-gray-800">
               <button 
                 onClick={() => setSubbingPlayer(null)}
+                className="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition"
+              >
+                {t('cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Swap Position Modal */}
+      {swappingPlayer && (
+        <div className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[80vh]">
+            <div className="p-4 border-b border-gray-800">
+              <h3 className="text-xl font-bold text-white text-center">{t('swapPosition', { name: swappingPlayer.name })}</h3>
+              <p className="text-sm text-gray-400 text-center mt-1">{t('swapSelect')}</p>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
+              {[...sortedTeamA, ...sortedTeamB]
+                .filter(p => p.id !== swappingPlayer.id)
+                .map(p => {
+                  const isTeamA = match.team_a_players.includes(p.id)
+                  const pos = isTeamA ? match.team_a_positions?.[p.id] : match.team_b_positions?.[p.id]
+                  const displayPos = (pos && pos !== 'Any') ? pos : (p.positions?.[0] || 'Any')
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => {
+                        startTransition(() => {
+                          swapPositions(match.id, session.id, swappingPlayer.id, p.id)
+                          setSwappingPlayer(null)
+                        })
+                      }}
+                      disabled={isPending}
+                      className="flex justify-between items-center bg-gray-800 p-4 rounded-xl hover:bg-gray-700 transition disabled:opacity-50 w-full text-left"
+                    >
+                      <span className="font-bold text-white">{p.name}</span>
+                      <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">{displayPos}</span>
+                    </button>
+                  )
+                })}
+            </div>
+            <div className="p-4 border-t border-gray-800">
+              <button
+                onClick={() => setSwappingPlayer(null)}
                 className="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition"
               >
                 {t('cancel')}

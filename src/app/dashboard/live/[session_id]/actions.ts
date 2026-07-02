@@ -115,19 +115,19 @@ export async function saveMatch(sessionId: string, teamA: string[], teamB: strin
 export async function updateScore(matchId: string, sessionId: string, team: 'a' | 'b', increment: number) {
   const supabase = await createClient()
   
-  // Fetch current score
   const { data: match } = await supabase.from('matches').select('team_a_score, team_b_score').eq('id', matchId).single()
   if (!match) return
 
   const newScoreA = team === 'a' ? Math.max(0, match.team_a_score + increment) : match.team_a_score
   const newScoreB = team === 'b' ? Math.max(0, match.team_b_score + increment) : match.team_b_score
 
-  await supabase.from('matches').update({
+  // Fire both writes concurrently — do not await sequentially
+  const scoreUpdate = supabase.from('matches').update({
     team_a_score: newScoreA,
     team_b_score: newScoreB,
   }).eq('id', matchId)
-  
-  const { error } = await supabase.from('match_events').insert({
+
+  const eventInsert = supabase.from('match_events').insert({
     match_id: matchId,
     event_type: 'score',
     team,
@@ -135,6 +135,8 @@ export async function updateScore(matchId: string, sessionId: string, team: 'a' 
     score_a: newScoreA,
     score_b: newScoreB
   })
+
+  const [, { error }] = await Promise.all([scoreUpdate, eventInsert])
 
   if (error) {
     console.error("FAILED TO INSERT MATCH EVENT:", error)
@@ -301,6 +303,52 @@ export async function substitutePlayer(matchId: string, sessionId: string, team:
   if (error) {
     console.error("FAILED TO INSERT SUB EVENT:", error)
   }
+
+  revalidatePath(`/dashboard/live/${sessionId}`)
+}
+
+export async function swapPositions(matchId: string, sessionId: string, playerAId: string, playerBId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { data: match } = await supabase
+    .from('matches')
+    .select('team_a_players, team_b_players, team_a_positions, team_b_positions')
+    .eq('id', matchId)
+    .single()
+  if (!match) return
+
+  const newPositionsA = { ...(match.team_a_positions || {}) }
+  const newPositionsB = { ...(match.team_b_positions || {}) }
+
+  // Determine which team each player is on
+  const aOnTeamA = match.team_a_players.includes(playerAId)
+  const bOnTeamA = match.team_a_players.includes(playerBId)
+
+  const posA = aOnTeamA ? newPositionsA[playerAId] : newPositionsB[playerAId]
+  const posB = bOnTeamA ? newPositionsA[playerBId] : newPositionsB[playerBId]
+
+  // Swap positions
+  if (aOnTeamA) newPositionsA[playerAId] = posB
+  else newPositionsB[playerAId] = posB
+
+  if (bOnTeamA) newPositionsA[playerBId] = posA
+  else newPositionsB[playerBId] = posA
+
+  await supabase.from('matches').update({
+    team_a_positions: newPositionsA,
+    team_b_positions: newPositionsB,
+  }).eq('id', matchId)
+
+  await supabase.from('match_events').insert({
+    match_id: matchId,
+    event_type: 'position_swap',
+    team: aOnTeamA ? 'a' : 'b',
+    player_out_id: playerAId,
+    player_in_id: playerBId,
+    filled_position: posA ?? 'Any'
+  })
 
   revalidatePath(`/dashboard/live/${sessionId}`)
 }
