@@ -7,10 +7,12 @@ import { useTranslations } from 'next-intl'
 import type { PlayerWithStatus } from '@/lib/matchmaking'
 import { createClient } from '@/lib/supabase/client'
 
+import type { Session, Match, Player } from '@/types'
+
 export default function Scoreboard({ session, match, players, playersWithStatus }: { 
-  session: any, 
-  match: any, 
-  players: any[],
+  session: Session, 
+  match: Match, 
+  players: Player[],
   playersWithStatus: PlayerWithStatus[]
 }) {
   const [isPending, startTransition] = useTransition()
