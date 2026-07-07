@@ -229,24 +229,19 @@ export async function swapPositions(matchId: string, sessionId: string, playerAI
 // Helper to pre-compute the next draft without persisting it.
 // Returns the exact object that would normally be returned by generateMatch.
 async function computeMatchDraft(supabase: any, sessionId: string, userId: string) {
-  // 1. Get Session Details to know mode
-  const { data: session } = await supabase.from('sessions').select('*').eq('id', sessionId).single()
+  // Run these three independent queries in parallel
+  const [
+    { data: session },
+    { data: presentPlayers },
+    { data: sessionPlayers }
+  ] = await Promise.all([
+    supabase.from('sessions').select('*').eq('id', sessionId).single(),
+    supabase.from('players').select('*').eq('hoster_id', userId).eq('is_present_today', true),
+    supabase.from('session_players').select('player_id, games_played').eq('session_id', sessionId)
+  ])
+
   if (!session) return null
-
-  // 2. Get all players present today
-  const { data: presentPlayers } = await supabase
-    .from('players')
-    .select('*')
-    .eq('hoster_id', userId)
-    .eq('is_present_today', true)
-    
   if (!presentPlayers || presentPlayers.length < 2) return null
-
-  // Merge games_played from session_players
-  const { data: sessionPlayers } = await supabase
-    .from('session_players')
-    .select('player_id, games_played')
-    .eq('session_id', sessionId)
     
   const sessionPlayersMap = new Map((sessionPlayers ?? []).map((sp: { player_id: string, games_played: number }) => [sp.player_id, sp.games_played]))
   
