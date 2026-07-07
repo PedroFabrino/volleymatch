@@ -1,11 +1,11 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { after } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { draftTeams, draftStrictTeams } from '@/utils/matchmaking'
-import { calculateMmrChanges } from '@/utils/mmr'
+import { draftTeams, draftStrictTeams } from '@/lib/matchmaking'
+import { calculateMmrChanges } from '@/lib/mmr'
 
 export async function generateMatch(sessionId: string) {
   const supabase = await createClient()

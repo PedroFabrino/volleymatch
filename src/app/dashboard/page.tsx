@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/utils/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import ActiveSessionBanner from '@/components/ActiveSessionBanner'
 import { Trophy, Activity, Medal, History } from 'lucide-react'

@@ -1,9 +1,9 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Scoreboard from './Scoreboard'
-import Matchmaker from './Matchmaker'
+import { Scoreboard } from '@/features/live-session'
+import { Matchmaker } from '@/features/live-session'
 import { QrCodeModal } from '@/components/QrCodeModal'
-import { previewNextDraft, sortPlayersByDraftPriority } from '@/utils/matchmaking'
+import { previewNextDraft, sortPlayersByDraftPriority } from '@/lib/matchmaking'
 import RealtimeSubscriber from '@/app/view/[pin]/RealtimeSubscriber'
 
 export default async function LiveSessionPage(props: { params: Promise<{ session_id: string }> }) {

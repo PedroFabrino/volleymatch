@@ -1,6 +1,6 @@
-import { createAdminClient } from '@/utils/supabase/admin'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
-import { getGlobalSummaryData } from '@/utils/summaryStats'
+import { getGlobalSummaryData } from '@/lib/stats/summaryStats'
 import { Trophy, TrendingUp, Flame, Swords } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'

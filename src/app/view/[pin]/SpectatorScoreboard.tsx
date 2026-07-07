@@ -3,10 +3,10 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { Clock, ChevronDown, ChevronRight } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { createClient } from '@/utils/supabase/client'
+import { createClient } from '@/lib/supabase/client'
 import { submitPointAttribution } from './actions'
 
-import { PlayerWithStatus } from '@/utils/matchmaking'
+import { PlayerWithStatus } from '@/lib/matchmaking'
 
 export default function SpectatorScoreboard({ session, match, playersWithStatus }: { session: any, match: any, playersWithStatus: PlayerWithStatus[] }) {
   const t = useTranslations('Scoreboard')

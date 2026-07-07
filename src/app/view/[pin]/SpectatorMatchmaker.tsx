@@ -2,7 +2,7 @@
 
 import { Trophy, RefreshCw } from 'lucide-react'
 
-import { PlayerWithStatus } from '@/utils/matchmaking'
+import { PlayerWithStatus } from '@/lib/matchmaking'
 import { useTranslations } from 'next-intl'
 
 export default function SpectatorMatchmaker({ session, playersWithStatus }: { session: any, playersWithStatus: PlayerWithStatus[] }) {

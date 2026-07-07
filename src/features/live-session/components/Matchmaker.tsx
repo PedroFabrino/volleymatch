@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { generateMatch, saveMatch } from './actions'
-import { endSession } from '@/app/dashboard/session/actions'
+import { generateMatch, saveMatch } from '../actions'
+import { endSession } from '@/features/session'
 import { Trophy, Users, Check, RefreshCw, PowerOff } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 

@@ -1,10 +1,10 @@
-import { createClient } from '@/utils/supabase/server'
-import { createAdminClient } from '@/utils/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import SpectatorScoreboard from './SpectatorScoreboard'
 import SpectatorMatchmaker from './SpectatorMatchmaker'
 import RealtimeSubscriber from './RealtimeSubscriber'
-import { previewNextDraft, sortPlayersByDraftPriority } from '@/utils/matchmaking'
+import { previewNextDraft, sortPlayersByDraftPriority } from '@/lib/matchmaking'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { unstable_cache } from 'next/cache'
 

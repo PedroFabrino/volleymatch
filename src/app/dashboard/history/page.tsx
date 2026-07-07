@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/utils/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { History as HistoryIcon, ArrowLeft } from 'lucide-react'
-import TimelineViewer from './TimelineViewer'
+import { TimelineViewer } from '@/features/summary'
 import { getTranslations } from 'next-intl/server'
 
 export default async function HistoryPage() {

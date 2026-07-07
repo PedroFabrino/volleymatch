@@ -1,7 +1,7 @@
 'use client'
 
 import { useTransition, useOptimistic, useState } from 'react'
-import { batchToggleAttendance, toggleActivePosition } from './actions'
+import { batchToggleAttendance, toggleActivePosition } from '@/features/session'
 import { Check, X, Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 

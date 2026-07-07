@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { draftTeams, draftStrictTeams, Player } from './matchmaking';
+import { draftTeams, draftStrictTeams, Player } from './index';
 
 describe('Matchmaking Algorithm', () => {
 

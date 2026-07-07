@@ -1,6 +1,6 @@
 'use server'
 
-import { createAdminClient } from '@/utils/supabase/admin'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 
 export async function joinSessionAction(formData: FormData) {

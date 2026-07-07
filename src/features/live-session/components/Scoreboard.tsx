@@ -1,11 +1,11 @@
 'use client'
 
 import { useTransition, useOptimistic, useRef, useEffect, useState } from 'react'
-import { updateScore, finishMatch, cancelMatch, substitutePlayer, swapPositions, swapTeams } from './actions'
+import { updateScore, finishMatch, cancelMatch, substitutePlayer, swapPositions, swapTeams } from '../actions'
 import { Minus, Clock, ChevronDown, ChevronUp, ArrowLeftRight } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import type { PlayerWithStatus } from '@/utils/matchmaking'
-import { createClient } from '@/utils/supabase/client'
+import type { PlayerWithStatus } from '@/lib/matchmaking'
+import { createClient } from '@/lib/supabase/client'
 
 export default function Scoreboard({ session, match, players, playersWithStatus }: { 
   session: any, 

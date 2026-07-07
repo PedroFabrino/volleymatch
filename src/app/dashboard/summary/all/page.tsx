@@ -1,10 +1,10 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Trophy, ArrowLeft, TrendingUp, Flame, Swords, Calendar, History } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import HighlightsGrid from '../[session_id]/HighlightsGrid'
-import { getGlobalSummaryData } from '@/utils/summaryStats'
+import { getGlobalSummaryData } from '@/lib/stats/summaryStats'
 
 export default async function GlobalSummaryPage() {
   const supabase = await createClient()

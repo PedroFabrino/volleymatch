@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/utils/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import JoinSessionForm from './JoinSessionForm'
+import { JoinSessionForm } from '@/features/public-join'
 import { Trophy } from 'lucide-react'
 
 import { Suspense } from 'react'

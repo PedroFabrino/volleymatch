@@ -1,11 +1,11 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Trophy, ArrowLeft, TrendingUp, Flame, Swords, Calendar } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import HighlightsGrid from './HighlightsGrid'
 import ShareButton from './ShareButton'
-import { getSessionSummaryData } from '@/utils/summaryStats'
+import { getSessionSummaryData } from '@/lib/stats/summaryStats'
 
 export default async function SessionSummaryPage(props: { params: Promise<{ session_id: string }> }) {
   const params = await props.params
