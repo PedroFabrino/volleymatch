@@ -177,7 +177,12 @@
     "waitingCount": "{count} waiting",
     "gamesPlayedLabel": "{count} played",
     "noPlayersInQueue": "Queue empty",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "swap": "Swap",
+    "swapPosition": "Swap position for {name}",
+    "swapSelect": "Select a player to swap positions with"
   },
   "Summary": {
     "title": "Session Summary",

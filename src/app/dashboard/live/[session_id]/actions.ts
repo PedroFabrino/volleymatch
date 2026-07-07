@@ -72,8 +72,6 @@ export async function updateScore(matchId: string, sessionId: string, team: 'a' 
   if (error) {
     console.error("FAILED TO INSERT MATCH EVENT:", error)
   }
-
-  revalidatePath(`/dashboard/live/${sessionId}`)
 }
 
 export async function finishMatch(matchId: string, sessionId: string, destination: 'draft' | 'attendance' = 'attendance') {
@@ -176,8 +174,6 @@ export async function substitutePlayer(matchId: string, sessionId: string, team:
   if (error) {
     console.error("FAILED TO INSERT SUB EVENT:", error)
   }
-
-  revalidatePath(`/dashboard/live/${sessionId}`)
 }
 
 export async function swapPositions(matchId: string, sessionId: string, playerAId: string, playerBId: string) {
@@ -222,8 +218,6 @@ export async function swapPositions(matchId: string, sessionId: string, playerAI
     player_in_id: playerBId,
     filled_position: posA ?? 'Any'
   })
-
-  revalidatePath(`/dashboard/live/${sessionId}`)
 }
 
 // Helper to pre-compute the next draft without persisting it.

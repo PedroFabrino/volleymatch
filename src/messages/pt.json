@@ -171,7 +171,12 @@
     "playingNext": "✅ PRÓXIMOS",
     "noPlayersAssigned": "Nenhum jogador escalado ainda.",
     "sittingOut": "🕐 NO BANCO",
-    "everyonePlaying": "Todos estão jogando!"
+    "everyonePlaying": "Todos estão jogando!",
+    "collapse": "Recolher",
+    "expand": "Expandir",
+    "swap": "Trocar",
+    "swapPosition": "Trocar posição de {name}",
+    "swapSelect": "Selecione um jogador para trocar de posição"
   },
   "Summary": {
     "title": "Resumo da Sessão",
