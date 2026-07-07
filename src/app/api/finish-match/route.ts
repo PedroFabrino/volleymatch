@@ -88,69 +88,6 @@ export async function POST(request: NextRequest) {
     historyInserts.length > 0 ? supabase.from('mmr_history').insert(historyInserts) : Promise.resolve()
   ])
 
-  const { data: session } = await supabase.from('sessions').select('*').eq('id', sessionId).single()
-  if (session) {
-    const { data: presentPlayers } = await supabase
-      .from('players')
-      .select('*')
-      .eq('hoster_id', userId)
-      .eq('is_present_today', true)
-      
-    if (presentPlayers && presentPlayers.length >= 2) {
-      const { data: sessionPlayers } = await supabase
-        .from('session_players')
-        .select('player_id, games_played')
-        .eq('session_id', sessionId)
-        
-      const sessionPlayersMap = new Map((sessionPlayers ?? []).map((sp: { player_id: string, games_played: number }) => [sp.player_id, sp.games_played]))
-      
-      for (const p of presentPlayers) {
-        p.games_played_today = sessionPlayersMap.get(p.id) ?? 0
-      }
-
-      const mode = session.matchmaking_mode || 'casual'
-      let draft = null
-
-      if (mode === 'strict') {
-        const { data: lastMatch } = await supabase
-          .from('matches')
-          .select('team_a_players, team_b_players, team_a_score, team_b_score')
-          .eq('session_id', sessionId)
-          .eq('is_completed', true)
-          .order('completed_at', { ascending: false })
-          .limit(1)
-          .maybeSingle()
-
-        let lastMatchWinningTeamIds: string[] = []
-        let lastMatchLosingTeamIds: string[] = []
-
-        if (lastMatch) {
-          if (lastMatch.team_a_score > lastMatch.team_b_score) {
-            lastMatchWinningTeamIds = lastMatch.team_a_players
-            lastMatchLosingTeamIds = lastMatch.team_b_players
-          } else if (lastMatch.team_b_score > lastMatch.team_a_score) {
-            lastMatchWinningTeamIds = lastMatch.team_b_players
-            lastMatchLosingTeamIds = lastMatch.team_a_players
-          } else {
-            lastMatchLosingTeamIds = [...lastMatch.team_a_players, ...lastMatch.team_b_players]
-          }
-        }
-        draft = draftStrictTeams(presentPlayers, lastMatchWinningTeamIds, lastMatchLosingTeamIds)
-      } else {
-        const playersToDraft = [...presentPlayers].sort((a, b) => {
-          if (a.games_played_today !== b.games_played_today) {
-            return a.games_played_today - b.games_played_today
-          }
-          return Math.random() - 0.5
-        }).slice(0, 12)
-
-        const { teamA, teamB } = draftTeams(playersToDraft)
-        draft = { teamA, teamB }
-      }
-
-      await supabase.from('sessions').update({ pending_draft: draft ?? null }).eq('id', sessionId)
-    }
-  }
 
   return NextResponse.json({ ok: true })
 }

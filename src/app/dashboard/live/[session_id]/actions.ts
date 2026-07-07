@@ -97,6 +97,10 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
     completed_at: new Date().toISOString()
   }).eq('id', matchId)
 
+  // Compute next draft instantly (using current MMR, which is extremely fast)
+  const draft = await computeMatchDraft(supabase, sessionId, user.id)
+  await supabase.from('sessions').update({ pending_draft: draft ?? null }).eq('id', sessionId)
+
   // Fire background processing — do NOT await
   // Wrap in after() so Next.js doesn't wait for the fetch to resolve before sending the response
   after(() => {
