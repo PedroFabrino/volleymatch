@@ -458,37 +458,37 @@ After all phases, update these `tsconfig.json` aliases and all source files impo
 ## 5. Checklist
 
 ```
-Phase 1 — Scaffold & move utils
-[ ] Create src/features/, src/lib/, src/hooks/, src/types/, src/locales/, tests/
-[ ] Rename src/messages/ → src/locales/, update next.config.ts
-[ ] Move src/i18n/ → src/lib/i18n/, update config
-[ ] Move src/utils/matchmaking.ts → src/lib/matchmaking/index.ts
-[ ] Move src/utils/mmr.ts → src/lib/mmr/index.ts
-[ ] Move src/utils/summaryStats.ts → src/lib/stats/summaryStats.ts
-[ ] Move src/utils/supabase/ → src/lib/supabase/
-[ ] Move src/__tests__/ → tests/integration/
-[ ] Delete src/images/ (duplicate)
-[ ] Update tsconfig.json paths
-[ ] Update vitest.config.ts
-[ ] ✅ npm test && npm run build
+### Phase 1 — Scaffold & move utils
+- [x] Create src/features/, src/lib/, src/hooks/, src/types/, src/locales/, tests/
+- [x] Rename src/messages/ → src/locales/, update next.config.ts
+- [x] Move src/i18n/ → src/lib/i18n/, update config
+- [x] Move src/utils/matchmaking.ts → src/lib/matchmaking/index.ts
+- [x] Move src/utils/mmr.ts → src/lib/mmr/index.ts
+- [x] Move src/utils/summaryStats.ts → src/lib/stats/summaryStats.ts
+- [x] Move src/utils/supabase/ → src/lib/supabase/
+- [x] Move src/__tests__/ → tests/integration/
+- [x] Delete src/images/ (duplicate)
+- [x] Update tsconfig.json paths
+- [x] Update vitest.config.ts
+- [x] ✅ npm test && npm run build
 
-Phase 2 — Feature modules
-[ ] Move Matchmaker.tsx, Scoreboard.tsx, actions.ts → features/live-session/
-[ ] Move AttendanceControls, AttendanceToggle, actions.ts → features/roster/
-[ ] Move TimelineViewer.tsx → features/summary/
-[ ] Move JoinSessionForm.tsx → features/public-join/
-[ ] Move session/actions.ts → features/session/
-[ ] Update all page imports
-[ ] Add barrel index.ts per feature
-[ ] ✅ npm run build && npm test
+### Phase 2 — Feature modules
+- [x] Move Matchmaker.tsx, Scoreboard.tsx, actions.ts → features/live-session/
+- [x] Move AttendanceControls, AttendanceToggle, actions.ts → features/roster/
+- [x] Move TimelineViewer.tsx → features/summary/
+- [x] Move JoinSessionForm.tsx → features/public-join/
+- [x] Move session/actions.ts → features/session/
+- [x] Update all page imports
+- [x] Add barrel index.ts per feature
+- [x] ✅ npm run build && npm test
 
-Phase 3 — Reorganise components/
-[ ] Create components/ui/ and components/layout/
-[ ] Move layout-level components (ActiveSessionBanner, ThemeProvider, ThemeToggle)
-[ ] Move QrCodeModal → components/ui/QrCodeModal/
-[ ] Decide: LanguageSwitcher → components/layout/ or features/i18n/
-[ ] Update imports in layout.tsx and consumers
-[ ] ✅ npm run build && npm run lint
+### Phase 3 — Reorganise components/
+- [x] Create components/ui/ and components/layout/
+- [x] Move layout-level components (ActiveSessionBanner, ThemeProvider, ThemeToggle)
+- [x] Move QrCodeModal → components/ui/QrCodeModal/
+- [x] Decide: LanguageSwitcher → components/layout/ or features/i18n/
+- [x] Update imports in layout.tsx and consumers
+- [x] ✅ npm run build && npm run lint
 
 ### Phase 4 — `types/`
 - [x] Generate Supabase types → `src/types/database.ts`
