@@ -138,45 +138,49 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
-  const historyInserts = []
-  for (const update of mmrUpdates) {
-    await supabase.from('players').update({ 
-      mmr: update.newMmr
-    }).eq('id', update.playerId)
+  const playerUpdates = mmrUpdates.map((update: any) =>
+    supabase.from('players').update({ mmr: update.newMmr }).eq('id', update.playerId)
+  )
 
-    const { error: upsertError } = await supabase.from('session_players').upsert({
+  const sessionPlayerUpserts = mmrUpdates.map((update: any) =>
+    supabase.from('session_players').upsert({
       session_id: sessionId,
       player_id: update.playerId,
       games_played: playerRecords[update.playerId].games_played_today + update.queueIncrement
     }, { onConflict: 'session_id, player_id' })
-    
-    if (upsertError) {
-      console.error("FAILED TO UPSERT SESSION PLAYER:", upsertError)
-    }
+  )
 
-    historyInserts.push({
-      player_id: update.playerId,
-      hoster_id: user.id,
-      match_id: matchId,
-      session_id: sessionId,
-      old_mmr: update.oldMmr,
-      new_mmr: update.newMmr,
-      mmr_change: update.mmrChange,
-      reason: 'match_result'
-    })
-  }
+  const historyInserts = mmrUpdates.map((update: any) => ({
+    player_id: update.playerId,
+    hoster_id: user.id,
+    match_id: matchId,
+    session_id: sessionId,
+    old_mmr: update.oldMmr,
+    new_mmr: update.newMmr,
+    mmr_change: update.mmrChange,
+    reason: 'match_result'
+  }))
 
-  if (historyInserts.length > 0) {
-    const { error: historyError } = await supabase.from('mmr_history').insert(historyInserts)
-    if (historyError) {
-      console.error("FAILED TO INSERT MMR HISTORY:", historyError)
-    }
-  }
+  await Promise.all([
+    ...playerUpdates,
+    ...sessionPlayerUpserts,
+    historyInserts.length > 0 ? supabase.from('mmr_history').insert(historyInserts) : Promise.resolve()
+  ])
 
   if (destination === 'draft') {
-    // Pre-calc next draft after finishing current match
-    const draft = await computeMatchDraft(supabase, sessionId, user.id)
-    await supabase.from('sessions').update({ pending_draft: draft ?? null }).eq('id', sessionId)
+    // Check if pending_draft was already computed (it should be, from saveMatch)
+    const { data: sessionData } = await supabase
+      .from('sessions')
+      .select('pending_draft')
+      .eq('id', sessionId)
+      .single()
+
+    if (!sessionData?.pending_draft) {
+      // Fallback: compute fresh if somehow missing
+      const draft = await computeMatchDraft(supabase, sessionId, user.id)
+      await supabase.from('sessions').update({ pending_draft: draft ?? null }).eq('id', sessionId)
+    }
+
     revalidatePath(`/dashboard/live/${sessionId}`, 'page')
   } else {
     revalidatePath(`/dashboard/session`, 'page')

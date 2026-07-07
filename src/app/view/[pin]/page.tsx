@@ -5,6 +5,29 @@ import SpectatorMatchmaker from './SpectatorMatchmaker'
 import RealtimeSubscriber from './RealtimeSubscriber'
 import { previewNextDraft, sortPlayersByDraftPriority } from '@/utils/matchmaking'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
+import { unstable_cache } from 'next/cache'
+
+const getSessionPlayers = async (sessionId: string, hosterId: string) => {
+  return unstable_cache(
+    async () => {
+      const supabase = await createClient()
+      const { data: rawPlayers } = await supabase
+        .from('players')
+        .select('*')
+        .eq('hoster_id', hosterId)
+        .eq('is_present_today', true)
+
+      const { data: sessionPlayers } = await supabase
+        .from('session_players')
+        .select('player_id, games_played')
+        .eq('session_id', sessionId)
+
+      return { rawPlayers, sessionPlayers }
+    },
+    ['spectator-players', sessionId],
+    { revalidate: 5, tags: [`session-${sessionId}`] }
+  )()
+}
 
 export default async function ViewSessionPage(props: { params: Promise<{ pin: string }> }) {
   const params = await props.params
@@ -40,16 +63,7 @@ export default async function ViewSessionPage(props: { params: Promise<{ pin: st
     .single()
 
   // 3. Get all players for this host
-  const { data: rawPlayers } = await supabase
-    .from('players')
-    .select('*')
-    .eq('hoster_id', session.hoster_id)
-    .eq('is_present_today', true)
-
-  const { data: sessionPlayers } = await supabase
-    .from('session_players')
-    .select('player_id, games_played')
-    .eq('session_id', session.id)
+  const { rawPlayers, sessionPlayers } = await getSessionPlayers(session.id, session.hoster_id)
 
   const players = (rawPlayers || []).map(p => {
     const sp = sessionPlayers?.find(sp => sp.player_id === p.id)
