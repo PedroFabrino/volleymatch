@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import { after } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { draftTeams, draftStrictTeams } from '@/utils/matchmaking'
@@ -97,15 +98,17 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
   }).eq('id', matchId)
 
   // Fire background processing — do NOT await
-  // Use absolute URL so it works on Vercel
-  fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/finish-match`, {
-    method: 'POST',
-    headers: { 
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.BACKGROUND_SECRET}`
-    },
-    body: JSON.stringify({ matchId, sessionId, userId: user.id })
-  }).catch(err => console.error('Background finish-match failed:', err))
+  // Wrap in after() so Next.js doesn't wait for the fetch to resolve before sending the response
+  after(() => {
+    fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/finish-match`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.BACKGROUND_SECRET}`
+      },
+      body: JSON.stringify({ matchId, sessionId, userId: user.id })
+    }).catch(err => console.error('Background finish-match failed:', err))
+  });
 
   if (destination === 'draft') {
     revalidatePath(`/dashboard/live/${sessionId}`, 'page')
