@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Scoreboard } from '@/features/live-session'
 import { Matchmaker } from '@/features/live-session'
-import { QrCodeModal } from '@/components/QrCodeModal'
+import { QrCodeModal } from '@/components/ui/QrCodeModal'
 import { previewNextDraft, sortPlayersByDraftPriority } from '@/lib/matchmaking'
 import RealtimeSubscriber from '@/app/view/[pin]/RealtimeSubscriber'
 

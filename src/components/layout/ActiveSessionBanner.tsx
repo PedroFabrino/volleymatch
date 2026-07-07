@@ -1,10 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Trophy } from 'lucide-react'
-import { ThemeToggle } from '@/components/ThemeToggle'
-import { LanguageSwitcher } from '@/components/LanguageSwitcher'
+import { ThemeToggle } from '@/components/layout/ThemeToggle'
+import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher'
 import { getTranslations } from 'next-intl/server'
-import { QrCodeModal } from '@/components/QrCodeModal'
+import { QrCodeModal } from '@/components/ui/QrCodeModal'
 
 export default async function ActiveSessionBanner() {
   const supabase = await createClient()

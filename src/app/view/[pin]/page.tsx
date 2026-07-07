@@ -5,7 +5,7 @@ import SpectatorScoreboard from './SpectatorScoreboard'
 import SpectatorMatchmaker from './SpectatorMatchmaker'
 import RealtimeSubscriber from './RealtimeSubscriber'
 import { previewNextDraft, sortPlayersByDraftPriority } from '@/lib/matchmaking'
-import { LanguageSwitcher } from '@/components/LanguageSwitcher'
+import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher'
 import { unstable_cache } from 'next/cache'
 
 const getSessionPlayers = async (sessionId: string, hosterId: string) => {

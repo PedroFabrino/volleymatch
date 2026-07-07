@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { startSession, endSession } from '@/features/session'
 import { AttendanceToggle } from '@/features/roster'
 import { AttendanceControls } from '@/features/roster'
-import ActiveSessionBanner from '@/components/ActiveSessionBanner'
+import ActiveSessionBanner from '@/components/layout/ActiveSessionBanner'
 import { ArrowLeft, Users, Trophy } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 

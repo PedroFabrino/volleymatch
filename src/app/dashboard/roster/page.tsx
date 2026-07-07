@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { addPlayer, deletePlayer, updatePlayer } from '@/features/roster'
 import { User, Shield, Activity, Trash2, ArrowLeft, Edit2 } from 'lucide-react'
-import ActiveSessionBanner from '@/components/ActiveSessionBanner'
+import ActiveSessionBanner from '@/components/layout/ActiveSessionBanner'
 import { getTranslations } from 'next-intl/server'
 
 export default async function RosterPage(props: { searchParams: Promise<{ error?: string, edit?: string }> }) {

@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import ActiveSessionBanner from '@/components/ActiveSessionBanner'
+import ActiveSessionBanner from '@/components/layout/ActiveSessionBanner'
 import { Trophy, Activity, Medal, History } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 
