@@ -9,6 +9,14 @@ export default function RealtimeSubscriber({ sessionId }: { sessionId: string })
   const supabase = createClient()
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout
+    const debouncedRefresh = () => {
+      clearTimeout(timeoutId)
+      timeoutId = setTimeout(() => {
+        router.refresh()
+      }, 500)
+    }
+
     // We subscribe to all changes on matches and session_players where session_id matches
     const matchesChannel = supabase.channel('public:matches')
       .on(
@@ -16,7 +24,7 @@ export default function RealtimeSubscriber({ sessionId }: { sessionId: string })
         { event: '*', schema: 'public', table: 'matches', filter: `session_id=eq.${sessionId}` },
         () => {
           // Whenever the match changes (score update, match ended), we refresh the page
-          router.refresh()
+          debouncedRefresh()
         }
       )
       .subscribe()

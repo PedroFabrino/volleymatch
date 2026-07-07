@@ -5,6 +5,7 @@ import { after } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { draftTeams, draftStrictTeams } from '@/utils/matchmaking'
+import { calculateMmrChanges } from '@/utils/mmr'
 
 export async function generateMatch(sessionId: string) {
   const supabase = await createClient()
@@ -99,17 +100,9 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
   const draft = await computeMatchDraft(supabase, sessionId, user.id)
   await supabase.from('sessions').update({ pending_draft: draft ?? null }).eq('id', sessionId)
 
-  // Fire background processing — do NOT await
-  // Wrap in after() so Next.js doesn't wait for the fetch to resolve before sending the response
+  // Fire background processing without making an HTTP request to avoid dev server deadlocks
   after(() => {
-    fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/finish-match`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.BACKGROUND_SECRET}`
-      },
-      body: JSON.stringify({ matchId, sessionId, userId: user.id })
-    }).catch(err => console.error('Background finish-match failed:', err))
+    processBackgroundMatch(matchId, sessionId, user.id).catch(err => console.error('Background finish-match failed:', err))
   });
 
   if (destination === 'draft') {
@@ -288,4 +281,87 @@ async function computeMatchDraft(supabase: any, sessionId: string, userId: strin
   const { teamA, teamB } = draftTeams(playersToDraft)
 
   return { teamA, teamB }
+}
+
+// --- Background Job Logic ---
+// Run in Node event loop instead of an HTTP route to avoid Next.js DEV server serialization blocking
+async function processBackgroundMatch(matchId: string, sessionId: string, userId: string) {
+  const supabase = await createClient()
+
+  const { data: match } = await supabase.from('matches').select('*').eq('id', matchId).single()
+  if (!match) return
+
+  const { data: events } = await supabase.from('match_events').select('*').eq('match_id', matchId).order('created_at', { ascending: true })
+  
+  const timeline = (events || []).map(e => ({
+    team: e.team,
+    increment: e.increment,
+    scoreA: e.score_a,
+    scoreB: e.score_b,
+    timestamp: e.created_at,
+    type: e.event_type,
+    playerOutId: e.player_out_id,
+    playerInId: e.player_in_id,
+    filledPosition: e.filled_position
+  }))
+
+  const playerRecords: Record<string, any> = {}
+  const allParticipatingPlayers = new Set([...match.team_a_players, ...match.team_b_players]);
+  
+  for (const e of timeline) {
+    if (e.type === 'substitution') {
+      if (e.playerOutId) allParticipatingPlayers.add(e.playerOutId);
+      if (e.playerInId) allParticipatingPlayers.add(e.playerInId);
+    }
+  }
+
+  // Optimize player fetching
+  const { data: pData } = await supabase.from('players').select('mmr, id, positions').in('id', Array.from(allParticipatingPlayers))
+  const { data: spData } = await supabase.from('session_players').select('player_id, games_played').eq('session_id', sessionId).in('player_id', Array.from(allParticipatingPlayers))
+  
+  const spMap = new Map((spData || []).map(sp => [sp.player_id, sp.games_played]))
+
+  if (pData) {
+    for (const p of pData) {
+      playerRecords[p.id] = { id: p.id, mmr: p.mmr, games_played_today: spMap.get(p.id) ?? 0, positions: p.positions }
+    }
+  }
+
+  const mmrUpdates = calculateMmrChanges({
+    team_a_players: match.team_a_players,
+    team_b_players: match.team_b_players,
+    team_a_positions: match.team_a_positions,
+    team_b_positions: match.team_b_positions,
+    team_a_score: match.team_a_score,
+    team_b_score: match.team_b_score,
+    point_timeline: timeline as any
+  }, playerRecords)
+
+  // Use a single upsert instead of 12 for session_players
+  const sessionPlayersDataToUpsert = mmrUpdates.map((update: any) => ({
+    session_id: sessionId,
+    player_id: update.playerId,
+    games_played: playerRecords[update.playerId].games_played_today + update.queueIncrement
+  }))
+
+  const historyInserts = mmrUpdates.map((update: any) => ({
+    player_id: update.playerId,
+    hoster_id: userId,
+    match_id: matchId,
+    session_id: sessionId,
+    old_mmr: update.oldMmr,
+    new_mmr: update.newMmr,
+    mmr_change: update.mmrChange,
+    reason: 'match_result'
+  }))
+
+  const playerUpdates = mmrUpdates.map((update: any) =>
+    supabase.from('players').update({ mmr: update.newMmr }).eq('id', update.playerId)
+  )
+
+  await Promise.all([
+    ...playerUpdates,
+    sessionPlayersDataToUpsert.length > 0 ? supabase.from('session_players').upsert(sessionPlayersDataToUpsert, { onConflict: 'session_id, player_id' }) : Promise.resolve(),
+    historyInserts.length > 0 ? supabase.from('mmr_history').insert(historyInserts) : Promise.resolve()
+  ])
 }
