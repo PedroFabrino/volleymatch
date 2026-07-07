@@ -1,4 +1,4 @@
-import { createAdminClient } from '@/utils/supabase/admin';
+import { createAdminClient } from '../utils/supabase/admin';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 import { beforeAll, afterAll } from 'vitest';
 

@@ -3,6 +3,9 @@ import { createServer, Server } from 'http';
 import next from 'next';
 import supertest from 'supertest';
 import { createClient } from '@supabase/supabase-js';
+import { loadEnvConfig } from '@next/env';
+loadEnvConfig(process.cwd());
+
 import {
   createTestUser,
   deleteTestUser,

@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/admin'
 import { redirect } from 'next/navigation'
 import SpectatorScoreboard from './SpectatorScoreboard'
 import SpectatorMatchmaker from './SpectatorMatchmaker'
@@ -10,7 +11,7 @@ import { unstable_cache } from 'next/cache'
 const getSessionPlayers = async (sessionId: string, hosterId: string) => {
   return unstable_cache(
     async () => {
-      const supabase = await createClient()
+      const supabase = createAdminClient()
       const { data: rawPlayers } = await supabase
         .from('players')
         .select('*')

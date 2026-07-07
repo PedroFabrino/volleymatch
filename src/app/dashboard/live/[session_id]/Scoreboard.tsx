@@ -1,10 +1,11 @@
 'use client'
 
 import { useTransition, useOptimistic, useRef, useEffect, useState } from 'react'
-import { updateScore, finishMatch, cancelMatch, substitutePlayer, swapPositions } from './actions'
-import { Minus, Clock, ChevronDown, ChevronUp } from 'lucide-react'
+import { updateScore, finishMatch, cancelMatch, substitutePlayer, swapPositions, swapTeams } from './actions'
+import { Minus, Clock, ChevronDown, ChevronUp, ArrowLeftRight } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import type { PlayerWithStatus } from '@/utils/matchmaking'
+import { createClient } from '@/utils/supabase/client'
 
 export default function Scoreboard({ session, match, players, playersWithStatus }: { 
   session: any, 
@@ -20,6 +21,12 @@ export default function Scoreboard({ session, match, players, playersWithStatus 
   const [elapsed, setElapsed] = useState('00:00')
   const [subbingPlayer, setSubbingPlayer] = useState<{ id: string, name: string, team: 'a' | 'b' } | null>(null)
   const [swappingPlayer, setSwappingPlayer] = useState<{ id: string, name: string, team: 'a' | 'b', position: string } | null>(null)
+
+  // Hoster Voting Toast State
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const activeVotesRef = useRef<Map<string, number>>(new Map())
+  const lastScoreSnapshotRef = useRef<{ a: number, b: number } | null>(null)
+  const voteDebounceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Accordion states for portrait rosters and queue
   const [showTeamARoster, setShowTeamARoster] = useState(true)
@@ -38,6 +45,70 @@ export default function Scoreboard({ session, match, players, playersWithStatus 
 
     return () => clearInterval(interval)
   }, [match.created_at])
+
+  // Realtime subscription for hoster toast
+  useEffect(() => {
+    const supabase = createClient()
+    const channel = supabase.channel('public:point_attributions_hoster')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'point_attributions',
+          filter: `session_id=eq.${session.id}`,
+        },
+        (payload) => {
+          const newVote = payload.new
+          
+          // Reset votes if the score snapshot changed
+          if (
+            !lastScoreSnapshotRef.current || 
+            lastScoreSnapshotRef.current.a !== newVote.score_a || 
+            lastScoreSnapshotRef.current.b !== newVote.score_b
+          ) {
+            activeVotesRef.current = new Map()
+            lastScoreSnapshotRef.current = { a: newVote.score_a, b: newVote.score_b }
+          }
+
+          const currentVotes = activeVotesRef.current
+          const count = currentVotes.get(newVote.attributed_to) || 0
+          currentVotes.set(newVote.attributed_to, count + 1)
+
+          // Debounce resolving the winner
+          if (voteDebounceTimeoutRef.current) clearTimeout(voteDebounceTimeoutRef.current)
+          
+          // Wait 10 seconds after the FIRST vote, but it's simpler to just debounce 10s from the LAST vote,
+          // or we can just debounce 10s, which is fine since the window is 10s.
+          voteDebounceTimeoutRef.current = setTimeout(() => {
+            // Find majority winner
+            let maxVotes = 0
+            let winnerId: string | null = null
+            
+            activeVotesRef.current.forEach((votes, playerId) => {
+              if (votes > maxVotes) {
+                maxVotes = votes
+                winnerId = playerId
+              }
+            })
+
+            if (winnerId) {
+              const winnerPlayer = players.find(p => p.id === winnerId)
+              if (winnerPlayer) {
+                setToastMessage(`🗳️ Spectators: ${winnerPlayer.name} scored`)
+                setTimeout(() => setToastMessage(null), 4000)
+              }
+            }
+          }, 10000)
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+      if (voteDebounceTimeoutRef.current) clearTimeout(voteDebounceTimeoutRef.current)
+    }
+  }, [session.id, players])
 
   // Optimistic UI states for instant feedback
   const [optScoreA, addOptScoreA] = useOptimistic(
@@ -359,6 +430,18 @@ export default function Scoreboard({ session, match, players, playersWithStatus 
           >
             {t('cancelGame')}
           </button>
+
+          <button 
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              startTransition(() => { swapTeams(match.id, session.id) }) 
+            }}
+            disabled={isPending}
+            className="bg-gray-800/80 hover:bg-gray-700 text-gray-300 border border-gray-600/50 px-4 py-2 rounded-full font-bold text-sm shadow-lg backdrop-blur-sm transition-colors flex items-center gap-2 disabled:opacity-50"
+            title="Swap Sides"
+          >
+            <ArrowLeftRight className="w-4 h-4" /> Swap Sides
+          </button>
           
           {!isMatchOver && (
             <button 
@@ -501,6 +584,13 @@ export default function Scoreboard({ session, match, players, playersWithStatus 
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Hoster Toast Notification */}
+      {toastMessage && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 bg-gray-800 text-white font-bold px-4 py-2 rounded-full shadow-lg border border-gray-700 animate-in fade-in slide-in-from-top-4 duration-300 z-50">
+          {toastMessage}
         </div>
       )}
 

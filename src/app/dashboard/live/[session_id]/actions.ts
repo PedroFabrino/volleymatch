@@ -213,6 +213,44 @@ export async function swapPositions(matchId: string, sessionId: string, playerAI
   })
 }
 
+export async function swapTeams(matchId: string, sessionId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { data: match } = await supabase
+    .from('matches')
+    .select('team_a_players, team_b_players, team_a_positions, team_b_positions, team_a_score, team_b_score')
+    .eq('id', matchId)
+    .single()
+    
+  if (!match) return
+
+  // 1. Swap the match state
+  await supabase.from('matches').update({
+    team_a_players: match.team_b_players,
+    team_b_players: match.team_a_players,
+    team_a_positions: match.team_b_positions,
+    team_b_positions: match.team_a_positions,
+    team_a_score: match.team_b_score,
+    team_b_score: match.team_a_score
+  }).eq('id', matchId)
+  
+  // 2. Swap all timeline events for this match
+  const { data: events } = await supabase.from('match_events').select('*').eq('match_id', matchId)
+  if (events && events.length > 0) {
+    const swappedEvents = events.map(e => ({
+      ...e,
+      team: e.team === 'a' ? 'b' : (e.team === 'b' ? 'a' : e.team),
+      score_a: e.score_b !== null ? e.score_b : e.score_a,
+      score_b: e.score_a !== null ? e.score_a : e.score_b,
+    }))
+    await supabase.from('match_events').upsert(swappedEvents)
+  }
+
+  revalidatePath(`/dashboard/live/${sessionId}`, 'page')
+}
+
 // Helper to pre-compute the next draft without persisting it.
 // Returns the exact object that would normally be returned by generateMatch.
 async function computeMatchDraft(supabase: any, sessionId: string, userId: string) {

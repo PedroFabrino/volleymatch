@@ -1,8 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { Clock, ChevronDown, ChevronRight } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { createClient } from '@/utils/supabase/client'
+import { submitPointAttribution } from './actions'
 
 import { PlayerWithStatus } from '@/utils/matchmaking'
 
@@ -17,6 +19,18 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
   // Timer State
   const [elapsed, setElapsed] = useState('00:00')
 
+  // Voting State
+  type VotingState = 'idle' | 'voting' | 'voted'
+  const [votingState, setVotingState] = useState<VotingState>('idle')
+  const [votingTeam, setVotingTeam] = useState<'a' | 'b' | null>(null)
+  const [votingScoreSnapshot, setVotingScoreSnapshot] = useState<{ a: number; b: number } | null>(null)
+  const votingScoreSnapshotRef = useRef<{ a: number; b: number } | null>(null)
+  const [voteCounts, setVoteCounts] = useState<Map<string, number>>(new Map())
+  const [myVote, setMyVote] = useState<string | null>(null)
+  const [countdown, setCountdown] = useState(10)
+  const prevScoreRef = useRef({ a: match.team_a_score, b: match.team_b_score })
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
+
   useEffect(() => {
     const startTime = new Date(match.created_at).getTime()
     
@@ -29,6 +43,121 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
 
     return () => clearInterval(interval)
   }, [match.created_at])
+
+  // Realtime subscription for votes
+  useEffect(() => {
+    const supabase = createClient()
+    const channel = supabase.channel('public:point_attributions_spectator')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'point_attributions',
+          filter: `session_id=eq.${session.id}`,
+        },
+        (payload) => {
+          const newVote = payload.new
+          const snap = votingScoreSnapshotRef.current
+          if (snap && snap.a === newVote.score_a && snap.b === newVote.score_b) {
+            setVoteCounts(prev => {
+              const next = new Map(prev)
+              const count = next.get(newVote.attributed_to) || 0
+              next.set(newVote.attributed_to, count + 1)
+              return next
+            })
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [session.id])
+
+  // Voting panel logic
+  const getVoterToken = useCallback(() => {
+    let token = localStorage.getItem('volleymatch_voter_token')
+    if (!token) {
+      token = crypto.randomUUID()
+      localStorage.setItem('volleymatch_voter_token', token)
+    }
+    return token
+  }, [])
+
+  const openVotingPanel = useCallback((team: 'a' | 'b', scoreA: number, scoreB: number) => {
+    setVotingTeam(team)
+    const snap = { a: scoreA, b: scoreB }
+    setVotingScoreSnapshot(snap)
+    votingScoreSnapshotRef.current = snap
+    setVotingState('voting')
+    setCountdown(10)
+    setVoteCounts(new Map())
+    setToastMessage(null)
+    
+    getVoterToken() // ensure token exists
+    const storedKey = `volleymatch_vote_${match.id}_${scoreA}_${scoreB}`
+    const alreadyVotedFor = localStorage.getItem(storedKey)
+    if (alreadyVotedFor) {
+      setMyVote(alreadyVotedFor)
+      setVotingState('voted')
+    } else {
+      setMyVote(null)
+    }
+  }, [match.id, getVoterToken])
+
+  useEffect(() => {
+    const prev = prevScoreRef.current
+    const newA = match.team_a_score
+    const newB = match.team_b_score
+
+    const totalNew = newA + newB
+    const totalPrev = prev.a + prev.b
+
+    if (totalNew > totalPrev) {
+      if (newA > prev.a) {
+        openVotingPanel('a', newA, newB)
+      } else if (newB > prev.b) {
+        openVotingPanel('b', newA, newB)
+      }
+    }
+
+    prevScoreRef.current = { a: newA, b: newB }
+  }, [match.team_a_score, match.team_b_score, match.id, openVotingPanel])
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout
+    if ((votingState === 'voting' || votingState === 'voted') && countdown > 0) {
+      timer = setTimeout(() => setCountdown(c => c - 1), 1000)
+    } else if (countdown === 0 && votingState !== 'idle') {
+      timer = setTimeout(() => setVotingState('idle'), 0)
+    }
+    return () => clearTimeout(timer)
+  }, [votingState, countdown])
+
+  const castVote = async (playerId: string, playerName: string) => {
+    if (votingState !== 'voting' || !votingScoreSnapshot) return
+
+    setMyVote(playerId)
+    setVotingState('voted')
+    setToastMessage(`Voted for ${playerName} ✓`)
+    setTimeout(() => setToastMessage(null), 2000)
+
+    const token = getVoterToken()
+    const storedKey = `volleymatch_vote_${match.id}_${votingScoreSnapshot.a}_${votingScoreSnapshot.b}`
+    localStorage.setItem(storedKey, playerId)
+
+    await submitPointAttribution(
+      match.id,
+      session.id,
+      playerId,
+      votingTeam!,
+      votingScoreSnapshot.a,
+      votingScoreSnapshot.b,
+      token
+    )
+  }
 
   const optScoreA = match.team_a_score
   const optScoreB = match.team_b_score
@@ -247,6 +376,51 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
             </div>
             <p className="text-gray-400 text-center animate-pulse">{t('waitingHost')}</p>
           </div>
+        </div>
+      )}
+
+      {/* Voting Panel */}
+      {votingState !== 'idle' && votingTeam && (
+        <div className="absolute bottom-0 left-0 w-full bg-gray-950 border-t border-gray-800 p-4 z-40 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)] animate-in slide-in-from-bottom-full duration-300">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-black text-lg text-white">
+              🏐 Who scored for <span className={votingTeam === 'a' ? 'text-red-500' : 'text-blue-500'}>{votingTeam === 'a' ? 'RED' : 'BLUE'}</span>?
+            </h3>
+            <div className="text-sm font-mono text-gray-400 bg-gray-900 px-2 py-1 rounded">
+              {countdown}s ⏱
+            </div>
+          </div>
+          
+          <div className="flex flex-col gap-2">
+            {(votingTeam === 'a' ? teamAPlayers : teamBPlayers).map((p: any) => {
+              if (!p) return null
+              const votes = voteCounts.get(p.id) || 0
+              const isMyVote = myVote === p.id
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => castVote(p.id, p.name)}
+                  disabled={votingState === 'voted'}
+                  className={`flex justify-between items-center p-3 rounded-xl transition ${
+                    isMyVote 
+                      ? (votingTeam === 'a' ? 'bg-red-900/40 border border-red-500' : 'bg-blue-900/40 border border-blue-500')
+                      : 'bg-gray-800 hover:bg-gray-700 border border-transparent'
+                  } ${votingState === 'voted' && !isMyVote ? 'opacity-50 grayscale' : ''}`}
+                >
+                  <span className="font-bold text-white">{p.name} {isMyVote && '✓'}</span>
+                  <span className="text-sm font-bold text-gray-400 bg-gray-900 px-2 py-1 rounded">
+                    {votes} {votes === 1 ? 'vote' : 'votes'}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+          
+          {toastMessage && (
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[120%] bg-green-600 text-white font-bold px-4 py-2 rounded-full shadow-lg animate-in fade-in zoom-in duration-200">
+              {toastMessage}
+            </div>
+          )}
         </div>
       )}
 
