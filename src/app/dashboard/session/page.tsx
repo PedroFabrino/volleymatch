@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { startSession, endSession } from '@/features/session'
 import { AttendanceToggle } from '@/features/roster'
 import { AttendanceControls } from '@/features/roster'
-import ActiveSessionBanner from '@/components/layout/ActiveSessionBanner'
 import { ArrowLeft, Users, Trophy } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 
@@ -70,8 +69,6 @@ export default async function SessionSetupPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col transition-colors">
-      <ActiveSessionBanner />
-
       <div className="flex-1 p-4 md:p-8">
         <div className="mx-auto max-w-4xl">
           <div className="mb-6 flex items-center gap-4">

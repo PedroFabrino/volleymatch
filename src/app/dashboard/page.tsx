@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import ActiveSessionBanner from '@/components/layout/ActiveSessionBanner'
 import { Trophy, Activity, Medal, History } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 
@@ -15,68 +14,15 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  const { data: activeSession } = await supabase
-    .from('sessions')
-    .select('id')
-    .eq('hoster_id', user.id)
-    .eq('is_active', true)
-    .single()
+  const [activeSession, players, completedMatches, pastSessions] = await Promise.all([
+    import('@/lib/services').then(s => s.getActiveSession(supabase, user.id)),
+    import('@/lib/services').then(s => s.getPlayers(supabase, user.id)),
+    import('@/lib/services').then(s => s.getCompletedMatches(supabase, user.id)),
+    import('@/lib/services').then(s => s.getPastSessions(supabase, user.id))
+  ])
 
-  const { data: players } = await supabase
-    .from('players')
-    .select('id, name, mmr')
-    .eq('hoster_id', user.id)
-
-  const { data: completedMatches } = await supabase
-    .from('matches')
-    .select('*')
-    .eq('hoster_id', user.id)
-    .eq('is_completed', true)
-    .order('created_at', { ascending: false })
-
-  const { data: pastSessions } = await supabase
-    .from('sessions')
-    .select('id, created_at, is_active')
-    .eq('hoster_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(5)
-
-  // Compute Player Stats
-  const playerStats: Record<string, { matches: number; wins: number; name: string, mmr: number }> = {}
-  
-  if (players) {
-    players.forEach(p => {
-      playerStats[p.id] = { matches: 0, wins: 0, name: p.name, mmr: p.mmr }
-    })
-  }
-
-  if (completedMatches) {
-    completedMatches.forEach(match => {
-      const teamAWon = match.team_a_score > match.team_b_score
-      const teamBWon = match.team_b_score > match.team_a_score
-
-      match.team_a_players.forEach((pid: string) => {
-        if (playerStats[pid]) {
-          playerStats[pid].matches += 1
-          if (teamAWon) playerStats[pid].wins += 1
-        }
-      })
-      match.team_b_players.forEach((pid: string) => {
-        if (playerStats[pid]) {
-          playerStats[pid].matches += 1
-          if (teamBWon) playerStats[pid].wins += 1
-        }
-      })
-    })
-  }
-
-  // Sort players by Wins, then by MMR
-  const rankedPlayers = Object.values(playerStats)
-    .filter(p => p.matches > 0)
-    .sort((a, b) => b.wins - a.wins || b.mmr - a.mmr)
-    .slice(0, 5) // Top 5
-
-  const latestMatches = completedMatches ? completedMatches.slice(0, 5) : []
+  const { computeDashboardStats } = await import('@/lib/stats/summaryStats')
+  const { playerStats, rankedPlayers, latestMatches } = computeDashboardStats(players, completedMatches)
 
   async function signOut() {
     'use server'
@@ -90,8 +36,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col transition-colors">
-      <ActiveSessionBanner />
-      
       <div className="flex-1 p-4 md:p-8">
         <div className="mx-auto max-w-6xl flex flex-col gap-8">
           

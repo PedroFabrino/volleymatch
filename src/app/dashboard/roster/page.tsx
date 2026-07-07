@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { addPlayer, deletePlayer, updatePlayer } from '@/features/roster'
 import { User, Shield, Activity, Trash2, ArrowLeft, Edit2 } from 'lucide-react'
-import ActiveSessionBanner from '@/components/layout/ActiveSessionBanner'
 import { getTranslations } from 'next-intl/server'
 
 export default async function RosterPage(props: { searchParams: Promise<{ error?: string, edit?: string }> }) {
@@ -33,8 +32,6 @@ export default async function RosterPage(props: { searchParams: Promise<{ error?
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col transition-colors">
-      <ActiveSessionBanner />
-
       <div className="flex-1 p-4 md:p-8">
         <div className="mx-auto max-w-5xl">
           <div className="mb-6 flex items-center gap-4">

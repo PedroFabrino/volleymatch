@@ -490,19 +490,19 @@ Phase 3 — Reorganise components/
 [ ] Update imports in layout.tsx and consumers
 [ ] ✅ npm run build && npm run lint
 
-Phase 4 — types/
-[ ] Generate Supabase types → src/types/database.ts
-[ ] Extract inline interfaces → src/types/{session,player,match}.ts
-[ ] Replace inline types with @/types imports
-[ ] ✅ npm run build
+### Phase 4 — `types/`
+- [x] Generate Supabase types → `src/types/database.ts`
+- [x] Extract inline interfaces → `src/types/{session,player,match}.ts`
+- [x] Replace inline types with `@/types` imports
+- [x] ✅ `npm run build`
 
-Phase 5 — Services layer (optional)
-[ ] Create src/lib/services/session.service.ts
-[ ] Create src/lib/services/player.service.ts
-[ ] Create src/lib/services/match.service.ts
-[ ] Add dashboard/layout.tsx (auth guard + shell)
-[ ] Refactor dashboard/page.tsx to use services
-[ ] ✅ npm run build && npm test
+### Phase 5 — Services layer (optional)
+- [x] Create `src/lib/services/session.service.ts`
+- [x] Create `src/lib/services/player.service.ts`
+- [x] Create `src/lib/services/match.service.ts`
+- [x] Add `dashboard/layout.tsx` (auth guard + shell)
+- [x] Refactor `dashboard/page.tsx` to use services
+- [x] ✅ `npm run build && npm test`
 ```
 
 ---
