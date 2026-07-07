@@ -63,6 +63,15 @@ export default function Matchmaker({ session, players, isFirstMatch }: { session
   const teamAMMR = draft ? getTeamAverageMMR(draft.teamA) : 0;
   const teamBMMR = draft ? getTeamAverageMMR(draft.teamB) : 0;
 
+  if (!isFirstMatch && !session.pending_draft) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 gap-4 h-full pt-32">
+        <div className="animate-spin text-4xl">⚙️</div>
+        <p className="text-gray-400 text-sm">Calculating next match...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center relative w-full overflow-y-auto">
       <a href="/dashboard/session" className="absolute top-6 left-6 p-3 bg-gray-800 rounded-full hover:bg-gray-700 transition shadow-lg z-10" title="Back to Dashboard">

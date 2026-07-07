@@ -4,6 +4,7 @@ import Scoreboard from './Scoreboard'
 import Matchmaker from './Matchmaker'
 import { QrCodeModal } from '@/components/QrCodeModal'
 import { previewNextDraft, sortPlayersByDraftPriority } from '@/utils/matchmaking'
+import RealtimeSubscriber from '@/app/view/[pin]/RealtimeSubscriber'
 
 export default async function LiveSessionPage(props: { params: Promise<{ session_id: string }> }) {
   const params = await props.params
@@ -77,6 +78,7 @@ export default async function LiveSessionPage(props: { params: Promise<{ session
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+      <RealtimeSubscriber sessionId={session.id} />
       <div className="bg-gray-800 p-2 text-center text-sm text-gray-400 font-mono flex items-center justify-center">
         <span>Room PIN: <span className="text-blue-400 font-bold text-lg">{session.pin || '0000'}</span></span>
         <QrCodeModal pin={session.pin || '0000'} />

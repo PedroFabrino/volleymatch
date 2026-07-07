@@ -4,7 +4,6 @@ import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { draftTeams, draftStrictTeams } from '@/utils/matchmaking'
-import { calculateMmrChanges } from '@/utils/mmr'
 
 export async function generateMatch(sessionId: string) {
   const supabase = await createClient()
@@ -88,100 +87,29 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
     return
   }
 
-  // Fetch timeline from match_events
-  const { data: events } = await supabase.from('match_events').select('*').eq('match_id', matchId).order('created_at', { ascending: true })
-  
-  // Convert DB events back to PointEvent format for mmr.ts
-  const timeline = (events || []).map(e => ({
-    team: e.team,
-    increment: e.increment,
-    scoreA: e.score_a,
-    scoreB: e.score_b,
-    timestamp: e.created_at,
-    type: e.event_type,
-    playerOutId: e.player_out_id,
-    playerInId: e.player_in_id,
-    filledPosition: e.filled_position
-  }))
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
 
+  // Fast path: mark match done immediately
   await supabase.from('matches').update({ 
     is_completed: true,
     completed_at: new Date().toISOString()
   }).eq('id', matchId)
 
-  const playerRecords: Record<string, any> = {}
-  const allParticipatingPlayers = new Set([...match.team_a_players, ...match.team_b_players]);
-  
-  for (const e of timeline) {
-    if (e.type === 'substitution') {
-      if (e.playerOutId) allParticipatingPlayers.add(e.playerOutId);
-      if (e.playerInId) allParticipatingPlayers.add(e.playerInId);
-    }
-  }
-
-  for (const pid of allParticipatingPlayers) {
-    const { data: p } = await supabase.from('players').select('mmr, id, positions').eq('id', pid).single()
-    const { data: sp } = await supabase.from('session_players').select('games_played').eq('player_id', pid).eq('session_id', sessionId).maybeSingle()
-    if (p) playerRecords[p.id] = { id: p.id, mmr: p.mmr, games_played_today: sp?.games_played ?? 0, positions: p.positions }
-  }
-
-  const mmrUpdates = calculateMmrChanges({
-    team_a_players: match.team_a_players,
-    team_b_players: match.team_b_players,
-    team_a_positions: match.team_a_positions,
-    team_b_positions: match.team_b_positions,
-    team_a_score: match.team_a_score,
-    team_b_score: match.team_b_score,
-    point_timeline: timeline as any
-  }, playerRecords)
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
-
-  const playerUpdates = mmrUpdates.map((update: any) =>
-    supabase.from('players').update({ mmr: update.newMmr }).eq('id', update.playerId)
-  )
-
-  const sessionPlayerUpserts = mmrUpdates.map((update: any) =>
-    supabase.from('session_players').upsert({
-      session_id: sessionId,
-      player_id: update.playerId,
-      games_played: playerRecords[update.playerId].games_played_today + update.queueIncrement
-    }, { onConflict: 'session_id, player_id' })
-  )
-
-  const historyInserts = mmrUpdates.map((update: any) => ({
-    player_id: update.playerId,
-    hoster_id: user.id,
-    match_id: matchId,
-    session_id: sessionId,
-    old_mmr: update.oldMmr,
-    new_mmr: update.newMmr,
-    mmr_change: update.mmrChange,
-    reason: 'match_result'
-  }))
-
-  await Promise.all([
-    ...playerUpdates,
-    ...sessionPlayerUpserts,
-    historyInserts.length > 0 ? supabase.from('mmr_history').insert(historyInserts) : Promise.resolve()
-  ])
+  // Fire background processing — do NOT await
+  // Use absolute URL so it works on Vercel
+  fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/finish-match`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.BACKGROUND_SECRET}`
+    },
+    body: JSON.stringify({ matchId, sessionId, userId: user.id })
+  }).catch(err => console.error('Background finish-match failed:', err))
 
   if (destination === 'draft') {
-    // Check if pending_draft was already computed (it should be, from saveMatch)
-    const { data: sessionData } = await supabase
-      .from('sessions')
-      .select('pending_draft')
-      .eq('id', sessionId)
-      .single()
-
-    if (!sessionData?.pending_draft) {
-      // Fallback: compute fresh if somehow missing
-      const draft = await computeMatchDraft(supabase, sessionId, user.id)
-      await supabase.from('sessions').update({ pending_draft: draft ?? null }).eq('id', sessionId)
-    }
-
     revalidatePath(`/dashboard/live/${sessionId}`, 'page')
+    // Client redirects instantly — background job fills in the draft
   } else {
     revalidatePath(`/dashboard/session`, 'page')
     redirect(`/dashboard/session`)
