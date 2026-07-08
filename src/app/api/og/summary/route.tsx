@@ -1,8 +1,13 @@
 import { ImageResponse } from 'next/og'
-import { createAdminClient } from '@/utils/supabase/admin'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { PlayerStat } from '@/types/player'
 
 export const runtime = 'edge'
 
+// Note (TD-030): Hardcoded English strings are accepted here as a "Won't Fix"
+// limitation because next-intl does not easily support Edge-runtime OG image
+// generation without manual locale loading. Since these are machine-consumed
+// images, English-only is an acceptable trade-off.
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -22,9 +27,13 @@ export async function GET(request: Request) {
         return new Response('Session summary not found', { status: 404 })
       }
 
-      const { mvp, leaderboard } = session.summary_data
+      const summaryData = session.summary_data as {
+        mvp: PlayerStat | null
+        leaderboard: PlayerStat[]
+      }
+      const { mvp, leaderboard } = summaryData
       const date = new Date(session.created_at).toLocaleDateString()
-      const biggestGainer = [...leaderboard].sort((a: any, b: any) => b.mmrChange - a.mmrChange)[0]
+      const biggestGainer = [...leaderboard].sort((a: PlayerStat, b: PlayerStat) => b.mmrChange - a.mmrChange)[0]
 
       return new ImageResponse(
         (
@@ -133,8 +142,8 @@ export async function GET(request: Request) {
     }
 
     return new Response('Missing session_id or hoster_id', { status: 400 })
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error(e)
-    return new Response(`Failed to generate image: ${e.message}`, { status: 500 })
+    return new Response(`Failed to generate image: ${e instanceof Error ? e.message : String(e)}`, { status: 500 })
   }
 }
