@@ -2,7 +2,7 @@ import type { TypedSupabaseClient } from '@/types/supabase'
 import type { SessionWithPin } from '@/lib/services/mappers'
 import type { Match } from '@/types/match'
 import type { PlayerWithStatus } from '@/lib/matchmaking'
-import { previewNextDraft, sortPlayersByDraftPriority } from '@/lib/matchmaking'
+import { previewNextDraft, orderPlayersForQueuePreview } from '@/lib/matchmaking'
 import {
   getSessionByPin,
   getActiveMatchForSession,
@@ -51,10 +51,7 @@ export async function getSpectatorViewData(
     ? activeMatch.team_b_players
     : lastCompletedMatch?.team_b_players ?? []
 
-  const isFirstMatch = lastWinners.length === 0 && lastLosers.length === 0
-  const sortedPlayers = [...players].sort((a, b) =>
-    sortPlayersByDraftPriority(a, b, isFirstMatch)
-  )
+  const sortedPlayers = orderPlayersForQueuePreview(players, lastWinners, lastLosers)
 
   const playersWithStatus = previewNextDraft(
     sortedPlayers,

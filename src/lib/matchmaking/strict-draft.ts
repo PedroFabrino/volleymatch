@@ -1,15 +1,42 @@
 import type { Player } from './types';
 import type { PlayerPosition } from '@/types/player';
+import { shuffleArray } from './shuffle';
 
-export function sortPlayersByDraftPriority(a: Player, b: Player, isFirstMatch: boolean) {
+/** Order a queue bucket: fewest games first, random among ties. */
+export function orderQueueGroup(players: Player[]): Player[] {
+  if (players.length === 0) return [];
+
+  const grouped = new Map<number, Player[]>();
+  for (const p of players) {
+    const games = p.games_played_today;
+    if (!grouped.has(games)) grouped.set(games, []);
+    grouped.get(games)!.push(p);
+  }
+
+  return [...grouped.keys()]
+    .sort((a, b) => a - b)
+    .flatMap(games => shuffleArray(grouped.get(games)!));
+}
+
+/** Bench → winners → losers, each bucket ordered by queue priority. */
+export function orderPlayersForQueuePreview(
+  allPlayers: Player[],
+  lastMatchWinningTeamIds: string[],
+  lastMatchLosingTeamIds: string[],
+): Player[] {
+  const lastMatchAllIds = new Set([...lastMatchWinningTeamIds, ...lastMatchLosingTeamIds]);
+  const bench = orderQueueGroup(allPlayers.filter(p => !lastMatchAllIds.has(p.id)));
+  const winners = orderQueueGroup(allPlayers.filter(p => lastMatchWinningTeamIds.includes(p.id)));
+  const losers = orderQueueGroup(allPlayers.filter(p => lastMatchLosingTeamIds.includes(p.id)));
+  return [...bench, ...winners, ...losers];
+}
+
+/** @deprecated Use orderQueueGroup — kept for tests that compare pairwise queue priority. */
+export function sortPlayersByDraftPriority(a: Player, b: Player, _isFirstMatch: boolean) {
   if (a.games_played_today !== b.games_played_today) {
     return a.games_played_today - b.games_played_today;
   }
-  if (isFirstMatch) {
-    // Use ID for a stable pseudo-random sort in Game 1 to prevent UI flickering in the spectator queue
-    return a.id.localeCompare(b.id);
-  }
-  return b.mmr - a.mmr;
+  return 0;
 }
 
 export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinningTeamIds: string[], lastMatchLosingTeamIds: string[]): { teamA: string[], teamB: string[], teamAPositions: Record<string, PlayerPosition>, teamBPositions: Record<string, PlayerPosition> } {
@@ -46,13 +73,11 @@ export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinning
     ];
   }
 
-  const isFirstMatch = lastMatchWinningTeamIds.length === 0 && lastMatchLosingTeamIds.length === 0;
-
   const lastMatchAllIds = new Set([...lastMatchWinningTeamIds, ...lastMatchLosingTeamIds]);
 
-  const benchPlayers = allAvailablePlayers.filter(p => !lastMatchAllIds.has(p.id)).sort((a, b) => sortPlayersByDraftPriority(a, b, isFirstMatch));
-  const winnerPlayers = allAvailablePlayers.filter(p => lastMatchWinningTeamIds.includes(p.id)).sort((a, b) => sortPlayersByDraftPriority(a, b, isFirstMatch));
-  const loserPlayers = allAvailablePlayers.filter(p => lastMatchLosingTeamIds.includes(p.id)).sort((a, b) => sortPlayersByDraftPriority(a, b, isFirstMatch));
+  const benchPlayers = orderQueueGroup(allAvailablePlayers.filter(p => !lastMatchAllIds.has(p.id)));
+  const winnerPlayers = orderQueueGroup(allAvailablePlayers.filter(p => lastMatchWinningTeamIds.includes(p.id)));
+  const loserPlayers = orderQueueGroup(allAvailablePlayers.filter(p => lastMatchLosingTeamIds.includes(p.id)));
 
   let remainingPlayers = [...benchPlayers, ...winnerPlayers, ...loserPlayers];
 

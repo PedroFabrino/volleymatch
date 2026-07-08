@@ -1,5 +1,5 @@
 import type { TypedSupabaseClient } from '@/types/supabase'
-import { previewNextDraft, sortPlayersByDraftPriority } from '@/lib/matchmaking'
+import { previewNextDraft, orderPlayersForQueuePreview } from '@/lib/matchmaking'
 import type { Player as MatchmakingPlayer, PlayerWithStatus } from '@/lib/matchmaking'
 import type { Player } from '@/types/player'
 import { parsePlayerPositions } from '@/types/player'
@@ -207,10 +207,11 @@ export async function getLiveSessionViewData(
   const lastWinners = activeMatch ? activeMatch.team_a_players : []
   const lastLosers = activeMatch ? activeMatch.team_b_players : []
 
-  const sortedPlayers = playersWithGames
-    .filter(p => p.is_present_today)
-    .map(toMatchmakingPlayer)
-    .sort((a, b) => sortPlayersByDraftPriority(a, b, isFirstMatch))
+  const sortedPlayers = orderPlayersForQueuePreview(
+    playersWithGames.filter(p => p.is_present_today).map(toMatchmakingPlayer),
+    lastWinners,
+    lastLosers,
+  )
 
   const playersWithStatus = previewNextDraft(
     sortedPlayers,
