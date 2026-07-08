@@ -12,6 +12,31 @@ export async function insertMatch(
   return { error }
 }
 
+export async function applyMatchScoreDelta(
+  supabase: TypedSupabaseClient,
+  matchId: string,
+  team: 'a' | 'b',
+  delta: number,
+  expectedA: number,
+  expectedB: number
+) {
+  const { data, error } = await supabase.rpc('apply_match_score_delta', {
+    p_match_id: matchId,
+    p_team: team,
+    p_delta: delta,
+    p_expected_a: expectedA,
+    p_expected_b: expectedB,
+  })
+
+  const row = data?.[0]
+  return {
+    applied: row?.applied ?? false,
+    teamAScore: row?.team_a_score ?? expectedA,
+    teamBScore: row?.team_b_score ?? expectedB,
+    error,
+  }
+}
+
 export async function updateMatchScores(
   supabase: TypedSupabaseClient,
   matchId: string,
