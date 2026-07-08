@@ -4,13 +4,16 @@ import { useState, useTransition } from 'react'
 import { generateMatch, saveMatch } from '../actions'
 import { Trophy, Users, Check, RefreshCw, PowerOff } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { Session } from '../../../../types/session'
+import { Player } from '../../../../types/player'
+import { MatchDraft } from '../../../../types/match'
 
 import { useRouter } from 'next/navigation'
 
-export default function Matchmaker({ session, players, isFirstMatch, onEndSession }: { session: any, players: any[], isFirstMatch: boolean, onEndSession: (sessionId: string) => Promise<void> }) {
+export default function Matchmaker({ session, players, isFirstMatch, onEndSession }: { session: Session, players: Player[], isFirstMatch: boolean, onEndSession: (sessionId: string) => Promise<void> }) {
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
-  const [draft, setDraft] = useState<any>(session.pending_draft ?? null)
+  const [draft, setDraft] = useState<MatchDraft | null>((session.pending_draft as MatchDraft) ?? null)
   const [isGenerating, setIsGenerating] = useState(false)
   const t = useTranslations('Matchmaker')
   const tPos = useTranslations('Positions')

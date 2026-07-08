@@ -180,7 +180,7 @@ export default function Scoreboard({ session, match, players, playersWithStatus 
   });
 
   const sortOrder = ['Setter', 'Middle Blocker', 'Outside Hitter', 'Opposite Hitter', 'Libero', 'Any'];
-  const sortPlayersByPos = (teamPlayers: any[], positions?: Record<string, string>) => {
+  const sortPlayersByPos = (teamPlayers: Player[], positions?: Record<string, string>) => {
     return [...teamPlayers].sort((a, b) => {
       const posA = (positions && positions[a.id] && positions[a.id] !== 'Any') ? positions[a.id] : (a.positions?.[0] || 'Any');
       const posB = (positions && positions[b.id] && positions[b.id] !== 'Any') ? positions[b.id] : (b.positions?.[0] || 'Any');

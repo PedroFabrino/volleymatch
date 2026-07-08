@@ -14,7 +14,7 @@ export async function generateMatch(sessionId: string) {
   return await computeMatchDraft(supabase, sessionId, user.id)
 }
 
-export async function saveMatch(sessionId: string, teamA: string[], teamB: string[], teamAPositions?: any, teamBPositions?: any) {
+export async function saveMatch(sessionId: string, teamA: string[], teamB: string[], teamAPositions?: Record<string, string>, teamBPositions?: Record<string, string>) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')

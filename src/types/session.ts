@@ -5,4 +5,6 @@ export interface Session {
   target_score: number;
   tie_breaker_rule: string;
   created_at: string;
+  matchmaking_mode?: string;
+  pending_draft?: unknown;
 }

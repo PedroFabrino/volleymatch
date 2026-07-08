@@ -1,12 +1,12 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import type { Match } from '@/types'
+import { Match, Player } from '@/types'
 
 type SwapPositionModalProps = {
   swappingPlayer: { id: string; name: string; team: 'a' | 'b'; position: string }
-  sortedTeamA: any[]
-  sortedTeamB: any[]
+  sortedTeamA: Player[]
+  sortedTeamB: Player[]
   match: Match
   isPending: boolean
   onConfirm: (targetPlayerId: string) => void

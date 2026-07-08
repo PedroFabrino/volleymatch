@@ -5,6 +5,7 @@ export interface Player {
   hoster_id: string;
   is_present_today: boolean;
   positions: string[];
+  active_positions?: string[] | null;
 }
 
 export type PlayerStat = {

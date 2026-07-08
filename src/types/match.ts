@@ -17,8 +17,14 @@ export interface MatchEvent {
   id: string;
   match_id: string;
   event_type: string;
+  team?: 'a' | 'b';
+  increment?: number;
   score_a?: number;
   score_b?: number;
+  player_out_id?: string;
+  player_in_id?: string;
+  filled_position?: string;
+  created_at: string;
 }
 
 export type MatchDraft = {

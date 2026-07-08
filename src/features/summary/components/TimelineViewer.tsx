@@ -4,7 +4,9 @@ import { useState, useRef, useEffect } from 'react'
 import { ChevronDown, ChevronUp, Repeat, Plus } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
-export default function TimelineViewer({ timeline, matchStartTime, playerNames }: { timeline: any[], matchStartTime: string, playerNames: Record<string, string> }) {
+import { MatchEvent } from '../../../../types/match'
+
+export default function TimelineViewer({ timeline, matchStartTime, playerNames }: { timeline: MatchEvent[], matchStartTime: string, playerNames: Record<string, string> }) {
   const [isOpen, setIsOpen] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const t = useTranslations('Timeline')

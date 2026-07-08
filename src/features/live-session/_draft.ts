@@ -3,7 +3,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { draftTeams, draftStrictTeams } from '@/lib/matchmaking'
-import { calculateMmrChanges } from '@/lib/mmr'
+import { calculateMmrChanges, MmrUpdateResult, PlayerData, PointEvent } from '@/lib/mmr'
 import { SupabaseClient } from '@supabase/supabase-js'
 
 // Helper to pre-compute the next draft without persisting it.
@@ -98,7 +98,7 @@ export async function processBackgroundMatch(matchId: string, sessionId: string,
     filledPosition: e.filled_position
   }))
 
-  const playerRecords: Record<string, any> = {}
+  const playerRecords: Record<string, PlayerData & { games_played_today: number }> = {}
   const allParticipatingPlayers = new Set([...match.team_a_players, ...match.team_b_players]);
   
   for (const e of timeline) {
@@ -127,17 +127,17 @@ export async function processBackgroundMatch(matchId: string, sessionId: string,
     team_b_positions: match.team_b_positions,
     team_a_score: match.team_a_score,
     team_b_score: match.team_b_score,
-    point_timeline: timeline as any
+    point_timeline: timeline as PointEvent[]
   }, playerRecords)
 
   // Use a single upsert instead of 12 for session_players
-  const sessionPlayersDataToUpsert = mmrUpdates.map((update: any) => ({
+  const sessionPlayersDataToUpsert = mmrUpdates.map((update: MmrUpdateResult) => ({
     session_id: sessionId,
     player_id: update.playerId,
     games_played: playerRecords[update.playerId].games_played_today + update.queueIncrement
   }))
 
-  const historyInserts = mmrUpdates.map((update: any) => ({
+  const historyInserts = mmrUpdates.map((update: MmrUpdateResult) => ({
     player_id: update.playerId,
     hoster_id: userId,
     match_id: matchId,
@@ -148,7 +148,7 @@ export async function processBackgroundMatch(matchId: string, sessionId: string,
     reason: 'match_result'
   }))
 
-  const playerUpdates = mmrUpdates.map((update: any) =>
+  const playerUpdates = mmrUpdates.map((update: MmrUpdateResult) =>
     supabase.from('players').update({ mmr: update.newMmr }).eq('id', update.playerId)
   )
 

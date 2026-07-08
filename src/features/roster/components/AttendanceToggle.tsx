@@ -6,7 +6,7 @@ import { Check, X, Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 // Global debounce queue for attendance toggles across all player components
-type AttendanceUpdate = { resolve: () => void, reject: (err: any) => void, payload: { playerId: string, isPresent: boolean, activeSessionId?: string } }
+type AttendanceUpdate = { resolve: () => void, reject: (err: unknown) => void, payload: { playerId: string, isPresent: boolean, activeSessionId?: string } }
 let attendanceQueue: AttendanceUpdate[] = [];
 let debounceTimer: NodeJS.Timeout | null = null;
 
@@ -27,7 +27,9 @@ function enqueueAttendanceToggle(playerId: string, isPresent: boolean, activeSes
   });
 }
 
-export default function AttendanceToggle({ player, activeSessionId }: { player: any, activeSessionId?: string }) {
+import { Player } from '../../../../types/player'
+
+export default function AttendanceToggle({ player, activeSessionId }: { player: Player, activeSessionId?: string }) {
   const [isPending, startTransition] = useTransition()
   const [togglingPos, setTogglingPos] = useState<string | null>(null)
   const t = useTranslations('Positions')
