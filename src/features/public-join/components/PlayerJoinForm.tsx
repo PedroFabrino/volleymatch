@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { joinSessionAction } from '@/features/public-join'
+import { getActionErrorMessage } from '@/utils/getActionErrorMessage'
 import { Session } from '@/types/session'
 import { Player, PlayerPosition, SELECTABLE_POSITIONS } from '@/types/player'
 
@@ -20,6 +21,7 @@ export default function PlayerJoinForm({
   const t = useTranslations('PublicJoin')
   const tPos = useTranslations('Positions')
   const tRoster = useTranslations('Roster')
+  const tErrors = useTranslations('Errors')
 
   const [name, setName] = useState('')
   const [positions, setPositions] = useState<PlayerPosition[]>([])
@@ -80,7 +82,7 @@ export default function PlayerJoinForm({
         router.push(`/view/${session.pin}`)
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t('joinFailed'))
+      setError(getActionErrorMessage(err, tErrors, t('joinFailed')))
       setIsSubmitting(false)
     }
   }
