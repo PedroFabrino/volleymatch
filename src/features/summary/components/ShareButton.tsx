@@ -22,8 +22,8 @@ export default function ShareButton({ sessionId }: { sessionId: string }) {
       
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: 'VolleyMatch Recap',
-          text: 'Check out our Game Day Recap!',
+          title: t('shareTitle'),
+          text: t('shareText'),
           files: [file]
         })
       } else {
@@ -51,7 +51,7 @@ export default function ShareButton({ sessionId }: { sessionId: string }) {
       className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition shadow-lg shadow-indigo-900/20 disabled:opacity-70"
     >
       {isSharing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Share2 className="w-5 h-5" />}
-      {t('share') || 'Share Recap'}
+      {t('shareRecap')}
     </button>
   )
 }

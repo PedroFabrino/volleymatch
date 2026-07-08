@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { SpectatorScoreboard, SpectatorMatchmaker, RealtimeSubscriber } from '@/features/spectator'
 import { previewNextDraft, sortPlayersByDraftPriority } from '@/lib/matchmaking'
 import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher'
@@ -24,6 +25,7 @@ const getSessionPlayers = async (sessionId: string, hosterId: string) => {
 export default async function ViewSessionPage(props: { params: Promise<{ pin: string }> }) {
   const params = await props.params
   const pin = params.pin
+  const t = await getTranslations('Spectator')
 
   const supabase = await createClient()
 
@@ -83,8 +85,8 @@ export default async function ViewSessionPage(props: { params: Promise<{ pin: st
       <div className="bg-gray-900 border-b border-gray-800 p-4 text-center relative flex justify-between items-center">
         <div className="w-16"></div>
         <div>
-          <h1 className="text-xl font-bold">VolleyMatch Live</h1>
-          <p className="text-sm text-gray-400">PIN: {pin}</p>
+          <h1 className="text-xl font-bold">{t('liveTitle')}</h1>
+          <p className="text-sm text-gray-400">{t('pinLabel', { pin })}</p>
         </div>
         <div className="w-16 flex justify-end">
           <LanguageSwitcher />

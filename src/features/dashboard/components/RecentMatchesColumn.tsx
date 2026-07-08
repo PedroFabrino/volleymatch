@@ -17,8 +17,9 @@ type RecentMatchesColumnProps = {
 
 export default async function RecentMatchesColumn({ latestMatches, playerStats }: RecentMatchesColumnProps) {
   const t = await getTranslations('Dashboard')
+  const tCommon = await getTranslations('Common')
 
-  const getPlayerName = (id: string) => playerStats[id]?.name || 'Unknown'
+  const getPlayerName = (id: string) => playerStats[id]?.name || tCommon('unknownPlayer')
 
   return (
     <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-6 shadow flex flex-col">
@@ -45,13 +46,13 @@ export default async function RecentMatchesColumn({ latestMatches, playerStats }
                 </div>
                 <div className="flex gap-4 text-xs">
                   <div className="flex-1">
-                    <div className="font-bold text-red-500/80 mb-1">Red Team</div>
+                    <div className="font-bold text-red-500/80 mb-1">{t('redTeam')}</div>
                     <div className="text-gray-600 dark:text-gray-400 leading-tight">
                       {match.team_a_players.map((id: string) => getPlayerName(id)).join(', ')}
                     </div>
                   </div>
                   <div className="flex-1 text-right">
-                    <div className="font-bold text-blue-500/80 mb-1">Blue Team</div>
+                    <div className="font-bold text-blue-500/80 mb-1">{t('blueTeam')}</div>
                     <div className="text-gray-600 dark:text-gray-400 leading-tight">
                       {match.team_b_players.map((id: string) => getPlayerName(id)).join(', ')}
                     </div>
