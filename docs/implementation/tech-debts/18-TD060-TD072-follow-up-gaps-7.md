@@ -10,7 +10,8 @@
 > **Status of original register (TD-001 → TD-017):** All resolved ✅  
 > **Status of follow-up audits (TD-018 → TD-041):** All resolved ✅  
 > **Status of audit #5 (TD-042 → TD-050):** All resolved ✅  
-> **Status of audit #6 (TD-043 → TD-059):** All resolved ✅
+> **Status of audit #6 (TD-043 → TD-059):** All resolved ✅  
+> **Status of audit #7 (TD-060 → TD-072):** TD-060–066, TD-068–071 resolved ✅ · TD-067 deferred · TD-072 Won't Fix
 
 ---
 
@@ -33,7 +34,25 @@
 
 ---
 
-## TD-060 · Hardcoded English on Landing Page · P2
+## Audit #7 Closure (TD-060 → TD-072)
+
+| ID | Was (audit #7) | Now |
+|---|---|---|
+| TD-060 | Landing page hardcoded English | ✅ `Home` namespace + `getTranslations` on `app/page.tsx` |
+| TD-061 | Login `"Back"` + brand name hardcoded | ✅ `Login.back` + `Metadata.title` |
+| TD-062 | Matchmaker ignores `preparingDraft` | ✅ `{t('preparingDraft')}` |
+| TD-063 | `ActiveSessionBanner` direct Supabase query | ✅ `getActiveSession()` (+ `pin` in select) |
+| TD-064 | Missing auth on 3 mutating actions | ✅ `assertAuthenticated(user)` on all three |
+| TD-065 | ActionError codes not translated on client | ✅ `getActionErrorMessage()` + `PlayerJoinForm` |
+| TD-066 | `HighlightDetailModal` 212 lines | ✅ **156 lines**; 4 variant panels extracted |
+| TD-067 | `lib/mmr/index.ts` 210 lines | ⏸ Deferred — split when next touched for MMR work |
+| TD-068 | Hardcoded `"VolleyMatch"` on 5 pages | ✅ All use `Metadata.title` |
+| TD-069 | `LanguageSwitcher` + `ThemeToggle` labels | ✅ `Common.changeLanguage/english/portuguese` + `theme` |
+| TD-070 | Position record casts in `team-actions.ts` | ✅ `parsePositionRecord()` in mappers |
+| TD-071 | Generated `database.ts` exceeds limit | ✅ Documented exception in `AGENTS.md` §4.1 |
+| TD-072 | OG route exception (TD-030 carry-forward) | Won't Fix — no code change |
+
+---
 
 | | |
 |---|---|
@@ -342,18 +361,18 @@ inline comment in the route file. Re-evaluate only if `next-intl` adds Edge-comp
 
 | ID | Priority | Category | File(s) | Status |
 |---|---|---|---|---|
-| TD-060 | P2 | i18n | `app/page.tsx` — landing page strings | **New** |
-| TD-061 | P3 | i18n | `app/login/page.tsx` — "Back", brand name | **New** |
-| TD-062 | P3 | i18n | `Matchmaker.tsx` — ignores `preparingDraft` key | **New** |
-| TD-063 | P2 | Architecture | `ActiveSessionBanner.tsx` — direct Supabase query | **New** |
-| TD-064 | P2 | Security | Missing auth on 3 mutating actions | **New** |
-| TD-065 | P3 | i18n | ActionError codes not translated on client | **New** |
-| TD-066 | P3 | File size | `HighlightDetailModal.tsx` — 212 lines | **New** |
-| TD-067 | P3 | File size | `lib/mmr/index.ts` — 210 lines | **New** |
-| TD-068 | P3 | i18n | Hardcoded `"VolleyMatch"` on 5 pages/components | **New** |
-| TD-069 | P3 | i18n | `LanguageSwitcher.tsx` + `ThemeToggle` aria-labels | **New** |
-| TD-070 | P3 | TypeScript | `team-actions.ts` position record casts | **New** |
-| TD-071 | P3 | Structure | `types/database.ts` — 519 lines (generated) | **New** |
+| TD-060 | P2 | i18n | `app/page.tsx` — landing page strings | ✅ Resolved |
+| TD-061 | P3 | i18n | `app/login/page.tsx` — "Back", brand name | ✅ Resolved |
+| TD-062 | P3 | i18n | `Matchmaker.tsx` — ignores `preparingDraft` key | ✅ Resolved |
+| TD-063 | P2 | Architecture | `ActiveSessionBanner.tsx` — direct Supabase query | ✅ Resolved |
+| TD-064 | P2 | Security | Missing auth on 3 mutating actions | ✅ Resolved |
+| TD-065 | P3 | i18n | ActionError codes not translated on client | ✅ Resolved |
+| TD-066 | P3 | File size | `HighlightDetailModal.tsx` — 212 lines | ✅ Resolved |
+| TD-067 | P3 | File size | `lib/mmr/index.ts` — 210 lines | ⏸ Deferred |
+| TD-068 | P3 | i18n | Hardcoded `"VolleyMatch"` on 5 pages/components | ✅ Resolved |
+| TD-069 | P3 | i18n | `LanguageSwitcher.tsx` + `ThemeToggle` aria-labels | ✅ Resolved |
+| TD-070 | P3 | TypeScript | `team-actions.ts` position record casts | ✅ Resolved |
+| TD-071 | P3 | Structure | `types/database.ts` — 519 lines (generated) | ✅ Resolved |
 | TD-072 | P3 | Architecture | OG route exception (TD-030 carry-forward) | Won't Fix |
 
 ---
@@ -364,11 +383,11 @@ inline comment in the route file. Re-evaluate only if `next-intl` adds Edge-comp
 |---|---|
 | TD items total (001–072) | 72 |
 | Fully resolved (001–059) | **59** |
+| Resolved in audit #7 (060–066, 068–071) | **10** |
+| Deferred (067 — split when next touched) | **1** |
 | Won't Fix (072, inherits TD-030) | **1** |
-| New open items (060–071) | **12** |
-| Files over any hard limit | **0** (excluding generated `database.ts`) |
-| `any` type instances | **0** |
-| `supabase.from()` outside `lib/services/` + documented OG exception | **1** (`ActiveSessionBanner`) |
+| New open items | **0** |
+| `supabase.from()` outside `lib/services/` + documented OG exception | **0** |
 | Cross-feature imports | **0** |
 | Files importing >10 modules | **0** |
 

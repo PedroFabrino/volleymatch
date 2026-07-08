@@ -2,7 +2,7 @@
 
 **Last audited:** 2026-07-08  
 **Audited against:** `AGENTS.md` architecture guide  
-**Current phase:** Phase 3 — polish & residual gaps (TD-060 → TD-071 open)
+**Current phase:** Phase 3 complete — TD-067 deferred (split `lib/mmr/` when next touched)
 
 > Items are scored **P1 (blocking/risky)**, **P2 (significant)**, or **P3 (minor/cosmetic)**.  
 > Detailed implementation notes live in [`docs/implementation/tech-debts/`](implementation/tech-debts/).
@@ -14,12 +14,13 @@
 | Metric | Value |
 |---|---|
 | Total TD items tracked | **72** (TD-001 → TD-072) |
-| Fully resolved | **59** |
-| Open | **11** (TD-060 → TD-071) |
+| Fully resolved | **69** |
+| Deferred | **1** (TD-067) |
 | Won't Fix (documented exception) | **1** (TD-072, inherits TD-030) |
+| Open | **0** |
 | Files over any hard limit | **0** (excluding generated `database.ts`) |
 | `any` type instances | **0** |
-| `supabase.from()` outside `lib/services/` | **1** open (`ActiveSessionBanner`) + OG route exception |
+| `supabase.from()` outside `lib/services/` | **0** (+ OG route documented exception) |
 | Cross-feature imports | **0** |
 | Files importing >10 modules | **0** |
 
@@ -38,7 +39,7 @@ flowchart LR
   P3["Phase 3\nCurrent Gaps\nTD-060 → TD-072"]
   P1 -->|"All resolved ✅"| P2
   P2 -->|"All resolved ✅"| P3
-  P3 -->|"11 open, 1 won't fix"| Next["Next audit after\nTD-060–071 close"]
+  P3 -->|"10 resolved, 1 deferred, 1 won't fix"| Next["Next audit when\nnew violations found"]
 ```
 
 ### Phase 1 — Initial Register (2026-07-07)
@@ -298,34 +299,16 @@ Inline comment in route file documents the exception.
 
 | ID | Priority | Category | File(s) | Status |
 |---|---|---|---|---|
-| TD-060 | P2 | i18n | `app/page.tsx` | Open |
-| TD-061 | P3 | i18n | `app/login/page.tsx` | Open |
-| TD-062 | P3 | i18n | `Matchmaker.tsx` | Open |
-| TD-063 | P2 | Architecture | `ActiveSessionBanner.tsx` | Open |
-| TD-064 | P2 | Security | `updateScore`, `cancelMatch`, `substitutePlayer` | Open |
-| TD-065 | P3 | i18n | ActionError client translation | Open |
-| TD-066 | P3 | File size | `HighlightDetailModal.tsx` | Open |
-| TD-067 | P3 | File size | `lib/mmr/index.ts` | Open |
-| TD-068 | P3 | i18n | Public page branding | Open |
-| TD-069 | P3 | i18n | `LanguageSwitcher`, `ThemeToggle` | Open |
-| TD-070 | P3 | TypeScript | `team-actions.ts` position casts | Open |
-| TD-071 | P3 | Structure | `types/database.ts` (generated) | Open |
+| TD-067 | P3 | File size | `lib/mmr/index.ts` | Deferred — split when next touched |
 | TD-072 | P3 | Architecture | OG route | Won't Fix |
+
+All other items (TD-001 → TD-066, TD-068 → TD-071) are resolved ✅
 
 ---
 
-## Suggested Resolution Order (Phase 3)
+## Suggested Next Step
 
-1. **TD-064** — Add missing auth guards (security, quick fix)
-2. **TD-063** — Route `ActiveSessionBanner` through `getActiveSession()`
-3. **TD-062** — Wire existing `preparingDraft` key (one-line fix)
-4. **TD-060 / TD-061 / TD-068** — Localize landing, login, and share-page branding
-5. **TD-069** — Localize language switcher and theme toggle aria-labels
-6. **TD-065** — Client-side ActionError translation helper
-7. **TD-070** — Position record parser at mapper layer
-8. **TD-066** — Decompose `HighlightDetailModal` when next touched
-9. **TD-067** — Split `lib/mmr/` when next touched
-10. **TD-071** — Document generated-type file-size exception in `AGENTS.md`
+Split `lib/mmr/index.ts` along concern boundaries when the next MMR feature touches that module (see audit #7 TD-067).
 
 ---
 

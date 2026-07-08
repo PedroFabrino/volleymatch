@@ -155,6 +155,10 @@ These are hard limits. Violating them will cause PR rejection.
 | `lib/**/*.ts` | 250 lines | 350 lines |
 | Any other file | 200 lines | 300 lines |
 
+> **Generated exceptions:** `src/types/database.ts` (Supabase CLI output) is exempt from file-size
+> limits. Do **not** hand-split it — the next `supabase gen types` run would overwrite any manual
+> split.
+
 > **When a file is approaching its limit, split it proactively. Do not ask the user — just split it and document the split in your response.**
 
 ### 4.2 Component Decomposition
