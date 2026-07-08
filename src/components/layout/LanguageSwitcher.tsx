@@ -3,10 +3,12 @@
 import { useRouter } from 'next/navigation'
 import { Globe } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 export function LanguageSwitcher() {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
+  const t = useTranslations('Common')
 
   const handleLanguageChange = (locale: string) => {
     document.cookie = `NEXT_LOCALE=${locale}; path=/; max-age=31536000`
@@ -19,7 +21,7 @@ export function LanguageSwitcher() {
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className="p-2 rounded-full bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700 transition"
-        aria-label="Change language"
+        aria-label={t('changeLanguage')}
       >
         <Globe className="w-5 h-5" />
       </button>
@@ -30,13 +32,13 @@ export function LanguageSwitcher() {
             onClick={() => handleLanguageChange('en')}
             className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
           >
-            English
+            {t('english')}
           </button>
           <button 
             onClick={() => handleLanguageChange('pt')}
             className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
           >
-            Português
+            {t('portuguese')}
           </button>
         </div>
       )}

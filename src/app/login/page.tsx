@@ -6,12 +6,13 @@ import { ArrowLeft, Trophy } from 'lucide-react'
 export default async function LoginPage(props: { searchParams: Promise<{ error: string }> }) {
   const searchParams = await props.searchParams
   const t = await getTranslations('Login')
+  const tMeta = await getTranslations('Metadata')
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-gray-950 p-4 relative">
       <Link href="/" className="absolute top-6 left-6 text-gray-400 hover:text-white flex items-center gap-2 transition-colors">
         <ArrowLeft className="w-5 h-5" />
-        <span className="font-medium">Back</span>
+        <span className="font-medium">{t('back')}</span>
       </Link>
 
       <form className="flex w-full max-w-sm flex-col gap-6 rounded-3xl bg-gray-900 border border-gray-800 p-8 shadow-2xl">
@@ -19,7 +20,7 @@ export default async function LoginPage(props: { searchParams: Promise<{ error: 
           <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-900/50">
             <Trophy className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-white mb-2">VolleyMatch</h1>
+          <h1 className="text-3xl font-black tracking-tight text-white mb-2">{tMeta('title')}</h1>
           <p className="text-sm text-gray-400">{t('hosterLogin')}</p>
         </div>
         

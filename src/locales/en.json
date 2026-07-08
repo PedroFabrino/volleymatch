@@ -7,7 +7,14 @@
     "dashboard": "Dashboard",
     "logout": "Logout",
     "theme": "Toggle Theme",
+    "changeLanguage": "Change language",
+    "english": "English",
+    "portuguese": "Portuguese",
     "unknownPlayer": "Unknown"
+  },
+  "Home": {
+    "subtitle": "Join a live session to view the scoreboard and queue, or login to host your own.",
+    "loginAsHost": "Login as Host"
   },
   "Errors": {
     "unauthorized": "You must be logged in to perform this action.",
@@ -96,6 +103,7 @@
     "mmr": "MMR"
   },
   "Login": {
+    "back": "Back",
     "hosterLogin": "Hoster Login",
     "emailAddress": "Email Address",
     "password": "Password",

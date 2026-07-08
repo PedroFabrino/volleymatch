@@ -21,6 +21,7 @@ export default async function PublicShareHighlightPage(props: { params: Promise<
   if (!session) redirect('/')
 
   const t = await getTranslations('Summary')
+  const tMeta = await getTranslations('Metadata')
   const summaryData = await getSessionSummaryData(supabase, sessionId)
 
   const footerDate = new Date(session.created_at).toLocaleDateString(undefined, {
@@ -32,7 +33,7 @@ export default async function PublicShareHighlightPage(props: { params: Promise<
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-sm mb-6 flex justify-center">
-        <div className="text-white font-black text-2xl tracking-tighter">VolleyMatch</div>
+        <div className="text-white font-black text-2xl tracking-tighter">{tMeta('title')}</div>
       </div>
 
       <ShareHighlightCard

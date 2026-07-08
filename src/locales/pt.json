@@ -7,7 +7,14 @@
     "dashboard": "Painel",
     "logout": "Sair",
     "theme": "Alternar Tema",
+    "changeLanguage": "Alterar idioma",
+    "english": "English",
+    "portuguese": "Português",
     "unknownPlayer": "Desconhecido"
+  },
+  "Home": {
+    "subtitle": "Entre em uma sessão ao vivo para ver o placar e a fila, ou faça login para hospedar a sua.",
+    "loginAsHost": "Entrar como Hospedeiro"
   },
   "Errors": {
     "unauthorized": "Você precisa estar logado para realizar esta ação.",
@@ -96,6 +103,7 @@
     "mmr": "MMR"
   },
   "Login": {
+    "back": "Voltar",
     "hosterLogin": "Login de Anfitrião",
     "emailAddress": "Endereço de E-mail",
     "password": "Senha",

@@ -3,12 +3,15 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { JoinSessionForm } from '@/features/public-join'
 import { Trophy } from 'lucide-react'
-
+import { getTranslations } from 'next-intl/server'
 import { Suspense } from 'react'
 
 export default async function Home() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const t = await getTranslations('Home')
+  const tMeta = await getTranslations('Metadata')
+  const tLogin = await getTranslations('Login')
 
   if (user) {
     redirect('/dashboard')
@@ -22,9 +25,9 @@ export default async function Home() {
           <Trophy className="w-8 h-8 text-white" />
         </div>
         
-        <h1 className="text-3xl font-bold text-white mb-2">VolleyMatch</h1>
+        <h1 className="text-3xl font-bold text-white mb-2">{tMeta('title')}</h1>
         <p className="text-gray-400 text-center mb-8">
-          Join a live session to view the scoreboard and queue, or login to host your own.
+          {t('subtitle')}
         </p>
 
         <Suspense fallback={<div className="h-24"></div>}>
@@ -36,7 +39,7 @@ export default async function Home() {
             <div className="w-full border-t border-gray-800"></div>
           </div>
           <div className="relative bg-gray-900 px-4 text-sm text-gray-500">
-            or
+            {tLogin('or')}
           </div>
         </div>
 
@@ -44,7 +47,7 @@ export default async function Home() {
           href="/login"
           className="text-blue-400 hover:text-blue-300 font-semibold transition-colors"
         >
-          Login as Host
+          {t('loginAsHost')}
         </Link>
 
       </div>

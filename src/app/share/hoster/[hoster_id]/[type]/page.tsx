@@ -21,6 +21,7 @@ export default async function PublicShareGlobalHighlightPage(props: { params: Pr
   if (count === 0) redirect('/')
 
   const t = await getTranslations('Summary')
+  const tMeta = await getTranslations('Metadata')
 
   const summaryData = await getGlobalSummaryData(supabase, hosterId)
 
@@ -29,7 +30,7 @@ export default async function PublicShareGlobalHighlightPage(props: { params: Pr
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-sm mb-6 flex justify-center">
-        <div className="text-white font-black text-2xl tracking-tighter">VolleyMatch</div>
+        <div className="text-white font-black text-2xl tracking-tighter">{tMeta('title')}</div>
       </div>
 
       <ShareHighlightCard
