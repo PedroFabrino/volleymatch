@@ -2,7 +2,8 @@
   "Common": {
     "dashboard": "Painel",
     "logout": "Sair",
-    "theme": "Alternar Tema"
+    "theme": "Alternar Tema",
+    "unknownPlayer": "Desconhecido"
   },
   "Dashboard": {
     "title": "Painel VolleyMatch",
@@ -28,7 +29,9 @@
     "pastSessions": "Sessões Anteriores",
     "active": "Ativa",
     "viewSummary": "Ver Resumo",
-    "viewAllMatches": "Ver Todas as Partidas"
+    "viewAllMatches": "Ver Todas as Partidas",
+    "redTeam": "Equipe Vermelha",
+    "blueTeam": "Equipe Azul"
   },
   "History": {
     "title": "Histórico Completo de Partidas",
@@ -215,6 +218,33 @@
     "topScorer": "Artilheiro",
     "offensiveMachine": "Máquina Ofensiva",
     "pointsScored": "Pontos Marcados",
-    "points": "{count, plural, =1 {ponto} other {pontos}}"
+    "points": "{count, plural, =1 {ponto} other {pontos}}",
+    "shareTitle": "Resumo VolleyMatch",
+    "shareText": "Confira nosso Resumo do Dia de Jogo!",
+    "shareRecap": "Compartilhar Resumo",
+    "createLeague": "Crie Sua Própria Liga",
+    "allTime": "Histórico Total"
+  },
+  "PublicJoin": {
+    "appTitle": "VolleyMatch",
+    "joinSession": "Entrar na Sessão",
+    "roomPin": "PIN da Sala",
+    "invalidPin": "PIN inválido ou sessão encerrada.",
+    "whoAreYou": "Quem é você?",
+    "yourName": "Seu Nome",
+    "namePlaceholder": "Digite seu nome...",
+    "welcomeBack": "Bem-vindo de volta, {name}!",
+    "profileFound": "Encontramos seu perfil. Clique em Entrar abaixo.",
+    "positionsLabel": "Quais posições você joga?",
+    "skillTier": "Nível de Habilidade",
+    "joining": "Entrando...",
+    "joinGame": "ENTRAR NO JOGO",
+    "alreadyInSession": "Você já está nesta sessão! Você pode ver a fila.",
+    "selectPosition": "Selecione pelo menos uma posição.",
+    "joinFailed": "Falha ao entrar na sessão"
+  },
+  "Spectator": {
+    "liveTitle": "VolleyMatch Ao Vivo",
+    "pinLabel": "PIN: {pin}"
   }
 }

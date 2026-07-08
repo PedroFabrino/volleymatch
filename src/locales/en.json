@@ -2,7 +2,8 @@
   "Common": {
     "dashboard": "Dashboard",
     "logout": "Logout",
-    "theme": "Toggle Theme"
+    "theme": "Toggle Theme",
+    "unknownPlayer": "Unknown"
   },
   "Dashboard": {
     "title": "VolleyMatch Dashboard",
@@ -28,7 +29,9 @@
     "pastSessions": "Past Sessions",
     "active": "Active",
     "viewSummary": "View Summary",
-    "viewAllMatches": "View All Matches"
+    "viewAllMatches": "View All Matches",
+    "redTeam": "Red Team",
+    "blueTeam": "Blue Team"
   },
   "History": {
     "title": "Complete Match History",
@@ -218,6 +221,33 @@
     "topScorer": "Top Scorer",
     "offensiveMachine": "Offensive Machine",
     "pointsScored": "Points Scored",
-    "points": "{count, plural, =1 {point} other {points}}"
+    "points": "{count, plural, =1 {point} other {points}}",
+    "shareTitle": "VolleyMatch Recap",
+    "shareText": "Check out our Game Day Recap!",
+    "shareRecap": "Share Recap",
+    "createLeague": "Create Your Own League",
+    "allTime": "All-Time"
+  },
+  "PublicJoin": {
+    "appTitle": "VolleyMatch",
+    "joinSession": "Join Session",
+    "roomPin": "Room PIN",
+    "invalidPin": "Invalid Room PIN or session has ended.",
+    "whoAreYou": "Who are you?",
+    "yourName": "Your Name",
+    "namePlaceholder": "Type your name...",
+    "welcomeBack": "Welcome back, {name}!",
+    "profileFound": "We found your profile. Just click Join below.",
+    "positionsLabel": "What positions do you play?",
+    "skillTier": "Self-Assessed Skill Tier",
+    "joining": "Joining...",
+    "joinGame": "JOIN GAME",
+    "alreadyInSession": "You are already in this session! You can go view the queue.",
+    "selectPosition": "Please select at least one position.",
+    "joinFailed": "Failed to join session"
+  },
+  "Spectator": {
+    "liveTitle": "VolleyMatch Live",
+    "pinLabel": "PIN: {pin}"
   }
 }
