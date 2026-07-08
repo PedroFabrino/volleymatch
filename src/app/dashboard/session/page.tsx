@@ -6,7 +6,7 @@ import { SessionHouseRulesForm, ActiveSessionCard, SessionQueuePanel } from '@/f
 import { ArrowLeft, Users } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import { getActiveSession, getActiveMatchForSession, getSessionPlayersMap } from '@/lib/services'
-import { buildQueuedPlayerList } from '@/lib/stats/queue-helpers'
+import { buildQueuedPlayerList } from '@/lib/stats'
 import { Player } from '@/types/player'
 
 export default async function SessionSetupPage() {
