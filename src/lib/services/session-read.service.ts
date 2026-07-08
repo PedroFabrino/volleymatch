@@ -9,10 +9,10 @@ import { mapSessionRow, mapSessionWithPinRow, mapMatchRow } from './mappers'
 export async function getActiveSession(supabase: TypedSupabaseClient, userId: string) {
   const { data } = await supabase
     .from('sessions')
-    .select('id')
+    .select('id, pin')
     .eq('hoster_id', userId)
     .eq('is_active', true)
-    .single()
+    .maybeSingle()
   return data
 }
 
