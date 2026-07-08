@@ -1,6 +1,6 @@
 -- Host access grants + delegation RLS + compare-and-set scoring
 
-CREATE TABLE public.hoster_access_grants (
+CREATE TABLE IF NOT EXISTS public.hoster_access_grants (
   id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_hoster_id   UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   grantee_user_id   UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -18,10 +18,10 @@ CREATE TABLE public.hoster_access_grants (
   )
 );
 
-CREATE INDEX hoster_access_grants_owner_idx ON public.hoster_access_grants (owner_hoster_id);
-CREATE INDEX hoster_access_grants_grantee_idx ON public.hoster_access_grants (grantee_user_id);
-CREATE INDEX hoster_access_grants_email_idx ON public.hoster_access_grants (lower(invite_email));
-CREATE INDEX hoster_access_grants_active_idx ON public.hoster_access_grants (owner_hoster_id, grantee_user_id)
+CREATE INDEX IF NOT EXISTS hoster_access_grants_owner_idx ON public.hoster_access_grants (owner_hoster_id);
+CREATE INDEX IF NOT EXISTS hoster_access_grants_grantee_idx ON public.hoster_access_grants (grantee_user_id);
+CREATE INDEX IF NOT EXISTS hoster_access_grants_email_idx ON public.hoster_access_grants (lower(invite_email));
+CREATE INDEX IF NOT EXISTS hoster_access_grants_active_idx ON public.hoster_access_grants (owner_hoster_id, grantee_user_id)
   WHERE revoked_at IS NULL;
 
 ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS version INTEGER NOT NULL DEFAULT 0;
@@ -141,15 +141,18 @@ $$;
 GRANT EXECUTE ON FUNCTION public.apply_match_score_delta TO authenticated;
 
 -- Grants table policies
+DROP POLICY IF EXISTS "Owners manage their access grants" ON public.hoster_access_grants;
 CREATE POLICY "Owners manage their access grants"
   ON public.hoster_access_grants FOR ALL
   USING (auth.uid() = owner_hoster_id)
   WITH CHECK (auth.uid() = owner_hoster_id);
 
+DROP POLICY IF EXISTS "Grantees view their grants" ON public.hoster_access_grants;
 CREATE POLICY "Grantees view their grants"
   ON public.hoster_access_grants FOR SELECT
   USING (grantee_user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Grantees accept pending invite" ON public.hoster_access_grants;
 CREATE POLICY "Grantees accept pending invite"
   ON public.hoster_access_grants FOR UPDATE
   USING (
@@ -167,14 +170,17 @@ DROP POLICY IF EXISTS "Hosters can insert their own players" ON public.players;
 DROP POLICY IF EXISTS "Hosters can update their own players" ON public.players;
 DROP POLICY IF EXISTS "Hosters can delete their own players" ON public.players;
 
+DROP POLICY IF EXISTS "Hosters and delegates can view players" ON public.players;
 CREATE POLICY "Hosters and delegates can view players"
   ON public.players FOR SELECT
   USING (public.has_hoster_access(hoster_id));
 
+DROP POLICY IF EXISTS "Hosters and delegates can insert players" ON public.players;
 CREATE POLICY "Hosters and delegates can insert players"
   ON public.players FOR INSERT
   WITH CHECK (public.can_act_on_hoster(hoster_id, 'roster_add'));
 
+DROP POLICY IF EXISTS "Hosters and delegates can update players" ON public.players;
 CREATE POLICY "Hosters and delegates can update players"
   ON public.players FOR UPDATE
   USING (
@@ -182,6 +188,7 @@ CREATE POLICY "Hosters and delegates can update players"
     OR public.can_act_on_hoster(hoster_id, 'attendance')
   );
 
+DROP POLICY IF EXISTS "Hosters and delegates can delete players" ON public.players;
 CREATE POLICY "Hosters and delegates can delete players"
   ON public.players FOR DELETE
   USING (public.can_act_on_hoster(hoster_id, 'roster_manage'));
@@ -192,14 +199,17 @@ DROP POLICY IF EXISTS "Hosters can insert their own sessions" ON public.sessions
 DROP POLICY IF EXISTS "Hosters can update their own sessions" ON public.sessions;
 DROP POLICY IF EXISTS "Hosters can delete their own sessions" ON public.sessions;
 
+DROP POLICY IF EXISTS "Hosters and delegates can view sessions" ON public.sessions;
 CREATE POLICY "Hosters and delegates can view sessions"
   ON public.sessions FOR SELECT
   USING (public.has_hoster_access(hoster_id, id));
 
+DROP POLICY IF EXISTS "Hosters and delegates can insert sessions" ON public.sessions;
 CREATE POLICY "Hosters and delegates can insert sessions"
   ON public.sessions FOR INSERT
   WITH CHECK (public.can_act_on_hoster(hoster_id, 'session_start'));
 
+DROP POLICY IF EXISTS "Hosters and delegates can update sessions" ON public.sessions;
 CREATE POLICY "Hosters and delegates can update sessions"
   ON public.sessions FOR UPDATE
   USING (
@@ -208,6 +218,7 @@ CREATE POLICY "Hosters and delegates can update sessions"
     OR public.can_act_on_hoster(hoster_id, 'session_start', id)
   );
 
+DROP POLICY IF EXISTS "Only owners can delete sessions" ON public.sessions;
 CREATE POLICY "Only owners can delete sessions"
   ON public.sessions FOR DELETE
   USING (auth.uid() = hoster_id);
@@ -218,18 +229,22 @@ DROP POLICY IF EXISTS "Hosters can insert their own matches" ON public.matches;
 DROP POLICY IF EXISTS "Hosters can update their own matches" ON public.matches;
 DROP POLICY IF EXISTS "Hosters can delete their own matches" ON public.matches;
 
+DROP POLICY IF EXISTS "Hosters and delegates can view matches" ON public.matches;
 CREATE POLICY "Hosters and delegates can view matches"
   ON public.matches FOR SELECT
   USING (public.has_hoster_access(hoster_id, session_id));
 
+DROP POLICY IF EXISTS "Hosters and delegates can insert matches" ON public.matches;
 CREATE POLICY "Hosters and delegates can insert matches"
   ON public.matches FOR INSERT
   WITH CHECK (public.can_act_on_hoster(hoster_id, 'session_live', session_id));
 
+DROP POLICY IF EXISTS "Hosters and delegates can update matches" ON public.matches;
 CREATE POLICY "Hosters and delegates can update matches"
   ON public.matches FOR UPDATE
   USING (public.can_act_on_hoster(hoster_id, 'session_live', session_id));
 
+DROP POLICY IF EXISTS "Hosters and delegates can delete matches" ON public.matches;
 CREATE POLICY "Hosters and delegates can delete matches"
   ON public.matches FOR DELETE
   USING (public.can_act_on_hoster(hoster_id, 'session_live', session_id));
@@ -243,6 +258,7 @@ DROP POLICY IF EXISTS "Hosters can view session players" ON public.session_playe
 DROP POLICY IF EXISTS "Hosters can insert session players" ON public.session_players;
 DROP POLICY IF EXISTS "Hosters can update session players" ON public.session_players;
 
+DROP POLICY IF EXISTS "Hosters and delegates can view session players" ON public.session_players;
 CREATE POLICY "Hosters and delegates can view session players"
   ON public.session_players FOR SELECT
   USING (
@@ -253,6 +269,7 @@ CREATE POLICY "Hosters and delegates can view session players"
     )
   );
 
+DROP POLICY IF EXISTS "Hosters and delegates can insert session players" ON public.session_players;
 CREATE POLICY "Hosters and delegates can insert session players"
   ON public.session_players FOR INSERT
   WITH CHECK (
@@ -267,6 +284,7 @@ CREATE POLICY "Hosters and delegates can insert session players"
     )
   );
 
+DROP POLICY IF EXISTS "Hosters and delegates can update session players" ON public.session_players;
 CREATE POLICY "Hosters and delegates can update session players"
   ON public.session_players FOR UPDATE
   USING (
@@ -280,6 +298,7 @@ CREATE POLICY "Hosters and delegates can update session players"
     )
   );
 
+DROP POLICY IF EXISTS "Hosters and delegates can delete session players" ON public.session_players;
 CREATE POLICY "Hosters and delegates can delete session players"
   ON public.session_players FOR DELETE
   USING (
@@ -295,6 +314,7 @@ DROP POLICY IF EXISTS "Hosters can view their match events" ON public.match_even
 DROP POLICY IF EXISTS "Hosters can insert their match events" ON public.match_events;
 DROP POLICY IF EXISTS "Hosters can delete their match events" ON public.match_events;
 
+DROP POLICY IF EXISTS "Hosters and delegates can view match events" ON public.match_events;
 CREATE POLICY "Hosters and delegates can view match events"
   ON public.match_events FOR SELECT
   USING (
@@ -305,6 +325,7 @@ CREATE POLICY "Hosters and delegates can view match events"
     )
   );
 
+DROP POLICY IF EXISTS "Hosters and delegates can insert match events" ON public.match_events;
 CREATE POLICY "Hosters and delegates can insert match events"
   ON public.match_events FOR INSERT
   WITH CHECK (
@@ -315,6 +336,7 @@ CREATE POLICY "Hosters and delegates can insert match events"
     )
   );
 
+DROP POLICY IF EXISTS "Hosters and delegates can delete match events" ON public.match_events;
 CREATE POLICY "Hosters and delegates can delete match events"
   ON public.match_events FOR DELETE
   USING (
@@ -329,6 +351,7 @@ CREATE POLICY "Hosters and delegates can delete match events"
 DROP POLICY IF EXISTS "Hosters can view their players mmr history" ON public.mmr_history;
 DROP POLICY IF EXISTS "Hosters can insert mmr history" ON public.mmr_history;
 
+DROP POLICY IF EXISTS "Hosters and delegates can view mmr history" ON public.mmr_history;
 CREATE POLICY "Hosters and delegates can view mmr history"
   ON public.mmr_history FOR SELECT
   USING (
@@ -341,6 +364,7 @@ CREATE POLICY "Hosters and delegates can view mmr history"
     )
   );
 
+DROP POLICY IF EXISTS "Hosters and delegates can insert mmr history" ON public.mmr_history;
 CREATE POLICY "Hosters and delegates can insert mmr history"
   ON public.mmr_history FOR INSERT
   WITH CHECK (
@@ -352,6 +376,7 @@ CREATE POLICY "Hosters and delegates can insert mmr history"
 -- Point attributions: delegates with session access can read
 DROP POLICY IF EXISTS "Hosters can read their attributions" ON public.point_attributions;
 
+DROP POLICY IF EXISTS "Hosters and delegates can read their attributions" ON public.point_attributions;
 CREATE POLICY "Hosters and delegates can read their attributions"
   ON public.point_attributions FOR SELECT
   USING (

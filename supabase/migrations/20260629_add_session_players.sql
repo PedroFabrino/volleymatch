@@ -1,4 +1,4 @@
-CREATE TABLE public.session_players (
+CREATE TABLE IF NOT EXISTS public.session_players (
     session_id UUID NOT NULL REFERENCES public.sessions(id) ON DELETE CASCADE,
     player_id UUID NOT NULL REFERENCES public.players(id) ON DELETE CASCADE,
     is_present BOOLEAN NOT NULL DEFAULT true,
@@ -9,6 +9,7 @@ CREATE TABLE public.session_players (
 
 ALTER TABLE public.session_players ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Hosters can view their session players" ON public.session_players;
 CREATE POLICY "Hosters can view their session players" 
 ON public.session_players FOR SELECT USING (
     EXISTS (
@@ -17,6 +18,7 @@ ON public.session_players FOR SELECT USING (
     )
 );
 
+DROP POLICY IF EXISTS "Hosters can insert their session players" ON public.session_players;
 CREATE POLICY "Hosters can insert their session players" 
 ON public.session_players FOR INSERT WITH CHECK (
     EXISTS (
@@ -25,6 +27,7 @@ ON public.session_players FOR INSERT WITH CHECK (
     )
 );
 
+DROP POLICY IF EXISTS "Hosters can update their session players" ON public.session_players;
 CREATE POLICY "Hosters can update their session players" 
 ON public.session_players FOR UPDATE USING (
     EXISTS (
@@ -33,6 +36,7 @@ ON public.session_players FOR UPDATE USING (
     )
 );
 
+DROP POLICY IF EXISTS "Hosters can delete their session players" ON public.session_players;
 CREATE POLICY "Hosters can delete their session players" 
 ON public.session_players FOR DELETE USING (
     EXISTS (
