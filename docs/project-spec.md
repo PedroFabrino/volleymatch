@@ -1,5 +1,7 @@
 # VolleyMatch - Project Specifications
 
+> For current codebase layout and coding standards, see [`AGENTS.md`](../AGENTS.md) and [`docs/README.md`](./README.md).
+
 ## 1. Project Overview
 VolleyMatch is a live, court-side web application designed to manage volleyball sessions. It handles dynamic late arrivals, balances teams based on player skill (MMR) and court positions, and enforces fair playtime rotations using a hybrid "Winner Stays On" mechanic. It features a live scoreboard that automates the transition between games.
 
