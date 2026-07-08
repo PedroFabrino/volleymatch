@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { joinSessionAction } from '../actions'
+import { joinSessionAction } from '@/features/public-join'
 import { Session } from '@/types/session'
 import { Player, PlayerPosition, SELECTABLE_POSITIONS } from '@/types/player'
 

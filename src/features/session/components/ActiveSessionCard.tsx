@@ -1,7 +1,7 @@
 import { Trophy } from 'lucide-react'
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
-import { endSession } from '../actions'
+import { endSession } from '@/features/session'
 
 type ActiveSessionCardProps = {
   session: { id: string }

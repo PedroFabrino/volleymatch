@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
-import { addPlayer, updatePlayer } from '../actions'
+import { addPlayer, updatePlayer } from '@/features/roster'
 import { Player, PlayerPosition } from '@/types/player'
 
 type PlayerFormProps = {

@@ -1,5 +1,5 @@
 import { getTranslations } from 'next-intl/server'
-import { startSession } from '../actions'
+import { startSession } from '@/features/session'
 
 type SessionHouseRulesFormProps = {
   presentCount: number

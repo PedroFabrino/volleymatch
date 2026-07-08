@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
-import { deletePlayer } from '../actions'
+import { deletePlayer } from '@/features/roster'
 import { User, Shield, Activity, Trash2, Edit2 } from 'lucide-react'
 import { Player, PlayerPosition } from '@/types/player'
 
