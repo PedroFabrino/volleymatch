@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
-import { deletePlayer } from '@/features/roster'
+import { deletePlayer } from '../actions'
 import { User, Shield, Activity, Trash2, Edit2 } from 'lucide-react'
 import { Player, PlayerPosition } from '@/types/player'
 
@@ -41,10 +41,7 @@ export default async function PlayerList({ players }: PlayerListProps) {
                   <Link href={`/dashboard/roster?edit=${player.id}`} className="text-gray-400 hover:text-blue-500 p-1 transition" title={t('editPlayer')}>
                     <Edit2 className="w-4 h-4" />
                   </Link>
-                  <form action={async () => {
-                    'use server'
-                    await deletePlayer(player.id)
-                  }}>
+                  <form action={deletePlayer.bind(null, player.id)}>
                     <button type="submit" className="text-gray-400 hover:text-red-500 p-1 transition" title={t('removePlayer')}>
                       <Trash2 className="w-4 h-4" />
                     </button>

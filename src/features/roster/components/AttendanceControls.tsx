@@ -1,7 +1,7 @@
 'use client'
 
 import { useTransition } from 'react'
-import { setAllAttendance } from '@/features/roster'
+import { setAllAttendance } from '../attendance-actions'
 import { CheckSquare, Square, Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
