@@ -24,8 +24,8 @@ export async function substitutePlayer(matchId: string, sessionId: string, team:
   const match = await getMatchTeamsAndPositions(supabase, matchId)
   if (!match) return
 
-  let newTeamA = match.team_a_players
-  let newTeamB = match.team_b_players
+  let newTeamA: string[] = [...match.team_a_players]
+  let newTeamB: string[] = [...match.team_b_players]
   let newPositionsA = parsePositionRecord(match.team_a_positions)
   let newPositionsB = parsePositionRecord(match.team_b_positions)
 
