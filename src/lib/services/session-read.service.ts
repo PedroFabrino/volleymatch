@@ -1,4 +1,9 @@
 import type { TypedSupabaseClient } from '@/types/supabase'
+import { previewNextDraft, sortPlayersByDraftPriority } from '@/lib/matchmaking'
+import type { Player as MatchmakingPlayer, PlayerWithStatus } from '@/lib/matchmaking'
+import type { Player } from '@/types/player'
+import { parsePlayerPositions } from '@/types/player'
+import type { Match } from '@/types/match'
 import { mapSessionRow, mapSessionWithPinRow, mapMatchRow } from './mappers'
 
 export async function getActiveSession(supabase: TypedSupabaseClient, userId: string) {
@@ -147,5 +152,78 @@ export async function getLiveSessionData(
     players,
     sessionPlayersData,
     completedMatchesCount,
+  }
+}
+
+export type LiveSessionPlayer = Player & { games_played_today: number }
+
+function toMatchmakingPlayer(player: LiveSessionPlayer): MatchmakingPlayer {
+  return {
+    id: player.id,
+    name: player.name,
+    mmr: player.mmr,
+    positions: player.positions,
+    active_positions: player.active_positions ?? null,
+    games_played_today: player.games_played_today,
+  }
+}
+
+export type LiveSessionViewData = {
+  session: NonNullable<Awaited<ReturnType<typeof getLiveSessionData>>['session']>
+  activeMatch: Match | null
+  playersWithGames: LiveSessionPlayer[]
+  playersWithStatus: PlayerWithStatus[]
+  isFirstMatch: boolean
+}
+
+export async function getLiveSessionViewData(
+  supabase: TypedSupabaseClient,
+  sessionId: string,
+  userId: string
+): Promise<LiveSessionViewData | null> {
+  const { session, activeMatch, players, sessionPlayersData, completedMatchesCount } =
+    await getLiveSessionData(supabase, sessionId, userId)
+
+  if (!session) return null
+
+  const playersWithGames: LiveSessionPlayer[] = (players || []).map(row => {
+    const sp = sessionPlayersData?.find(sp => sp.player_id === row.id)
+    return {
+      id: row.id,
+      name: row.name,
+      mmr: row.mmr,
+      hoster_id: row.hoster_id,
+      is_present_today: row.is_present_today,
+      positions: parsePlayerPositions(row.positions),
+      active_positions: row.active_positions != null
+        ? parsePlayerPositions(row.active_positions)
+        : null,
+      initial_tier: row.initial_tier ?? undefined,
+      games_played_today: sp ? sp.games_played : 0,
+    }
+  })
+
+  const isFirstMatch = (completedMatchesCount ?? 0) === 0
+  const lastWinners = activeMatch ? activeMatch.team_a_players : []
+  const lastLosers = activeMatch ? activeMatch.team_b_players : []
+
+  const sortedPlayers = playersWithGames
+    .filter(p => p.is_present_today)
+    .map(toMatchmakingPlayer)
+    .sort((a, b) => sortPlayersByDraftPriority(a, b, isFirstMatch))
+
+  const playersWithStatus = previewNextDraft(
+    sortedPlayers,
+    lastWinners,
+    lastLosers,
+    session.matchmaking_mode === 'strict'
+  )
+
+  return {
+    session,
+    activeMatch,
+    playersWithGames,
+    playersWithStatus,
+    isFirstMatch,
   }
 }
