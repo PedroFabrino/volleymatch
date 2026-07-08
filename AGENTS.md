@@ -246,4 +246,5 @@ Before writing any code, verify the following:
 
 ## 10. Version Control
 
-- **Atomic Commits**: After each distinct logical change or step, you must create an atomic git commit with a descriptive message. Do not lump unrelated changes into a single massive commit.
+- **Atomic Commits (required)**: Every change MUST be committed atomically — one logical unit of work per commit. After each distinct step (e.g., a single TD item, a service extraction, an i18n namespace), create a separate commit with a descriptive message. Do not lump unrelated changes into a single massive commit, and do not leave completed work uncommitted.
+- **Commit before moving on**: When implementing multiple tasks in sequence, commit each task before starting the next. A PR or session with one giant diff spanning unrelated concerns is grounds for rejection.
