@@ -34,6 +34,8 @@ export default function SpectatorScoreboard({
     myVote,
     toastMessage,
     castVote,
+    dismissCurrentPrompt,
+    queueLength,
     optScoreA,
     optScoreB,
     isMatchOver,
@@ -87,10 +89,12 @@ export default function SpectatorScoreboard({
         votingState={votingState}
         votingTeam={votingTeam}
         countdown={countdown}
+        queueLength={queueLength}
         teamPlayers={votingTeam === 'a' ? teamAPlayers : teamBPlayers}
         voteCounts={voteCounts}
         myVote={myVote}
         castVote={castVote}
+        onDone={dismissCurrentPrompt}
         toastMessage={toastMessage}
       />
     </div>

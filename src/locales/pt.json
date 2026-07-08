@@ -201,7 +201,15 @@
     "swap": "Trocar",
     "swapPosition": "Trocar posição de {name}",
     "swapSelect": "Selecione um jogador para trocar de posição",
-    "swapSides": "Trocar Lados"
+    "swapSides": "Trocar Lados",
+    "whoScoredForPrefix": "🏐 Quem marcou para",
+    "whoScoredForSuffix": "?",
+    "teamRedShort": "VERMELHO",
+    "teamBlueShort": "AZUL",
+    "votingDone": "Concluir",
+    "votingCountdown": "{seconds}s ⏱",
+    "votingQueuePosition": "{current} de {total} na fila",
+    "voteCount": "{count, plural, one {# voto} other {# votos}}"
   },
   "Summary": {
     "title": "Resumo da Sessão",

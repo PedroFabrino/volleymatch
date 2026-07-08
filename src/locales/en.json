@@ -206,7 +206,15 @@
     "swap": "Swap",
     "swapPosition": "Swap position for {name}",
     "swapSelect": "Select a player to swap positions with",
-    "swapSides": "Swap Sides"
+    "swapSides": "Swap Sides",
+    "whoScoredForPrefix": "🏐 Who scored for",
+    "whoScoredForSuffix": "?",
+    "teamRedShort": "RED",
+    "teamBlueShort": "BLUE",
+    "votingDone": "Done",
+    "votingCountdown": "{seconds}s ⏱",
+    "votingQueuePosition": "{current} of {total} in queue",
+    "voteCount": "{count, plural, one {# vote} other {# votes}}"
   },
   "Summary": {
     "title": "Session Summary",
