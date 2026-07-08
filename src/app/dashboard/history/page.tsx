@@ -4,7 +4,6 @@ import { getPlayers, getCompletedMatchesWithEvents } from '@/lib/services'
 import { History as HistoryIcon, ArrowLeft } from 'lucide-react'
 import { TimelineViewer } from '@/features/summary'
 import { getTranslations } from 'next-intl/server'
-import { MatchEvent } from '@/types/match'
 
 export default async function HistoryPage() {
   const supabase = await createClient()
@@ -88,7 +87,7 @@ export default async function HistoryPage() {
                   </div>
 
                   <TimelineViewer 
-                    timeline={(match.match_events ?? []) as MatchEvent[]} 
+                    timeline={match.match_events} 
                     matchStartTime={match.created_at}
                     playerNames={playerNames} 
                   />

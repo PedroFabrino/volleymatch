@@ -1,7 +1,7 @@
 import { Match } from '../../types/match'
-import { Player } from '../../types/player'
+import { DashboardPlayer } from '../../types/player'
 
-export function computeDashboardStats(players: Player[], completedMatches: Match[]) {
+export function computeDashboardStats(players: DashboardPlayer[], completedMatches: Match[]) {
   const playerStats: Record<string, { matches: number; wins: number; name: string, mmr: number }> = {}
   
   if (players) {

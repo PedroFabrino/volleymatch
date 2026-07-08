@@ -1,7 +1,10 @@
 import type { Json } from '@/types/database'
-import type { Match } from '@/types/match'
+import type { Match, MatchEvent, MatchWithEvents } from '@/types/match'
 import type { Session } from '@/types/session'
 import { parsePlayerPosition } from '@/types/player'
+import type { Database } from '@/types/database'
+
+type MatchEventRow = Database['public']['Tables']['match_events']['Row']
 
 export function parsePositionMap(
   value: Json | null | undefined
@@ -45,6 +48,35 @@ export function mapMatchRow(
     team_b_positions: parsePositionMap(row.team_b_positions),
     is_completed: row.is_completed,
     created_at: row.created_at,
+  }
+}
+
+export function mapMatchEventRow(row: MatchEventRow): MatchEvent {
+  const filledPosition = row.filled_position
+    ? parsePlayerPosition(row.filled_position)
+    : null
+
+  return {
+    id: row.id,
+    match_id: row.match_id ?? '',
+    event_type: row.event_type,
+    team: row.team === 'a' || row.team === 'b' ? row.team : undefined,
+    increment: row.increment ?? undefined,
+    score_a: row.score_a ?? undefined,
+    score_b: row.score_b ?? undefined,
+    player_out_id: row.player_out_id ?? undefined,
+    player_in_id: row.player_in_id ?? undefined,
+    filled_position: filledPosition ?? undefined,
+    created_at: row.created_at ?? '',
+  }
+}
+
+export function mapMatchWithEventsRow(
+  row: Parameters<typeof mapMatchRow>[0] & { match_events: MatchEventRow[] | null }
+): MatchWithEvents {
+  return {
+    ...mapMatchRow(row),
+    match_events: (row.match_events ?? []).map(mapMatchEventRow),
   }
 }
 

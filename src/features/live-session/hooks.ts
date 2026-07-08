@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import type { PlayerWithStatus } from '@/lib/matchmaking'
 import type { Session, Match, Player } from '@/types'
 import { sortPlayersByPos } from '@/utils/sortPlayersByPos'
+import { resolveTeamPlayers } from '@/utils/resolveTeamPlayers'
 
 export function useScoreboard(
   session: Session, 
@@ -167,8 +168,8 @@ export function useScoreboard(
     isMatchOver = reachedTarget && diff >= 2;
   }
 
-  const teamAPlayers = match.team_a_players.map((id: string) => players.find(p => p.id === id)).filter(Boolean) as Player[]
-  const teamBPlayers = match.team_b_players.map((id: string) => players.find(p => p.id === id)).filter(Boolean) as Player[]
+  const teamAPlayers = resolveTeamPlayers(match.team_a_players, players)
+  const teamBPlayers = resolveTeamPlayers(match.team_b_players, players)
   const benchedPlayers = players.filter(p => p.is_present_today && !match.team_a_players.includes(p.id) && !match.team_b_players.includes(p.id))
 
   const playingIds = new Set([...match.team_a_players, ...match.team_b_players]);

@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { Player } from '@/types/player'
 import { DashboardHeader, QuickActionsColumn, PlayerRankingsColumn, RecentMatchesColumn, PastSessionsRow, signOut } from '@/features/dashboard'
 
 export default async function DashboardPage() {
@@ -19,7 +18,7 @@ export default async function DashboardPage() {
   ])
 
   const { computeDashboardStats } = await import('@/lib/stats')
-  const { playerStats, rankedPlayers, latestMatches } = computeDashboardStats(players as Player[], completedMatches)
+  const { playerStats, rankedPlayers, latestMatches } = computeDashboardStats(players, completedMatches)
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col transition-colors">
