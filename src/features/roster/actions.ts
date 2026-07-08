@@ -3,6 +3,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import {
+  findDuplicatePlayerName,
+  insertPlayer,
+  updatePlayerRecord,
+  deletePlayerRecord,
+} from '@/lib/services'
 
 export async function addPlayer(formData: FormData) {
   const supabase = await createClient()
@@ -11,30 +17,24 @@ export async function addPlayer(formData: FormData) {
   if (!user) throw new Error('Unauthorized')
 
   const name = (formData.get('name') as string).trim()
-  
-  // Check for duplicate name
-  const { data: existingPlayer } = await supabase
-    .from('players')
-    .select('id')
-    .eq('hoster_id', user.id)
-    .ilike('name', name)
-    .maybeSingle()
-    
+
+  const existingPlayer = await findDuplicatePlayerName(supabase, user.id, name)
+
   if (existingPlayer) {
     redirect('/dashboard/roster?error=Duplicate+player+name')
   }
 
   const initial_tier = formData.get('initial_tier') as string
   const mmr = initial_tier === 'Beginner' ? 800 : initial_tier === 'Intermediate' ? 1000 : 1200
-  
+
   const positions = formData.getAll('positions') as string[]
 
-  const { error } = await supabase.from('players').insert({
+  const { error } = await insertPlayer(supabase, {
     hoster_id: user.id,
     name,
     mmr,
-    initial_tier,
-    positions
+    initial_tier: initial_tier as 'Beginner' | 'Intermediate' | 'Advanced',
+    positions: positions as ('Setter' | 'Outside Hitter' | 'Middle Blocker' | 'Libero' | 'Opposite Hitter')[],
   })
 
   if (error) {
@@ -55,24 +55,17 @@ export async function updatePlayer(formData: FormData) {
   const positions = formData.getAll('positions') as string[]
   const initial_tier = formData.get('initial_tier') as string
 
-  // Check for duplicate name
-  const { data: existingPlayer } = await supabase
-    .from('players')
-    .select('id')
-    .eq('hoster_id', user.id)
-    .ilike('name', name)
-    .neq('id', id)
-    .maybeSingle()
-    
+  const existingPlayer = await findDuplicatePlayerName(supabase, user.id, name, id)
+
   if (existingPlayer) {
     redirect(`/dashboard/roster?edit=${id}&error=Duplicate+player+name`)
   }
 
-  const { error } = await supabase.from('players').update({
+  const { error } = await updatePlayerRecord(supabase, id, user.id, {
     name,
-    positions,
-    initial_tier
-  }).eq('id', id).eq('hoster_id', user.id)
+    positions: positions as ('Setter' | 'Outside Hitter' | 'Middle Blocker' | 'Libero' | 'Opposite Hitter')[],
+    initial_tier: initial_tier as 'Beginner' | 'Intermediate' | 'Advanced',
+  })
 
   if (error) {
     console.error('Error updating player:', error)
@@ -88,6 +81,6 @@ export async function deletePlayer(playerId: string) {
 
   if (!user) throw new Error('Unauthorized')
 
-  await supabase.from('players').delete().eq('id', playerId).eq('hoster_id', user.id)
+  await deletePlayerRecord(supabase, playerId, user.id)
   revalidatePath('/dashboard/roster')
 }

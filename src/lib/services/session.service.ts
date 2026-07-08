@@ -1,6 +1,11 @@
-import { SupabaseClient } from '@supabase/supabase-js'
+import type { TypedSupabaseClient } from '@/types/supabase'
+import type { Json, Database } from '@/types/database'
+import { mapSessionRow, mapSessionWithPinRow, mapMatchRow } from './mappers'
 
-export async function getActiveSession(supabase: SupabaseClient, userId: string) {
+type SessionInsert = Database['public']['Tables']['sessions']['Insert']
+type MmrHistoryInsert = Database['public']['Tables']['mmr_history']['Insert']
+
+export async function getActiveSession(supabase: TypedSupabaseClient, userId: string) {
   const { data } = await supabase
     .from('sessions')
     .select('id')
@@ -10,17 +15,17 @@ export async function getActiveSession(supabase: SupabaseClient, userId: string)
   return data
 }
 
-export async function getSessionById(supabase: SupabaseClient, sessionId: string, hosterId: string) {
+export async function getSessionById(supabase: TypedSupabaseClient, sessionId: string, hosterId: string) {
   const { data } = await supabase
     .from('sessions')
     .select('*')
     .eq('id', sessionId)
     .eq('hoster_id', hosterId)
     .single()
-  return data
+  return data ? { ...mapSessionRow(data), summary_data: data.summary_data } : null
 }
 
-export async function getSessionByIdAdmin(supabase: SupabaseClient, sessionId: string) {
+export async function getSessionByIdAdmin(supabase: TypedSupabaseClient, sessionId: string) {
   const { data, error } = await supabase
     .from('sessions')
     .select('id, hoster_id, created_at')
@@ -29,17 +34,17 @@ export async function getSessionByIdAdmin(supabase: SupabaseClient, sessionId: s
   return { data, error }
 }
 
-export async function getSessionByPin(supabase: SupabaseClient, pin: string) {
+export async function getSessionByPin(supabase: TypedSupabaseClient, pin: string) {
   const { data, error } = await supabase
     .from('sessions')
     .select('*')
     .eq('pin', pin)
     .eq('is_active', true)
     .single()
-  return { data, error }
+  return { data: data ? mapSessionWithPinRow(data) : null, error }
 }
 
-export async function getPastSessions(supabase: SupabaseClient, userId: string, limit = 5) {
+export async function getPastSessions(supabase: TypedSupabaseClient, userId: string, limit = 5) {
   const { data } = await supabase
     .from('sessions')
     .select('id, created_at, is_active')
@@ -50,18 +55,99 @@ export async function getPastSessions(supabase: SupabaseClient, userId: string, 
 }
 
 export async function storeSummaryData(
-  supabase: SupabaseClient,
+  supabase: TypedSupabaseClient,
   sessionId: string,
   summaryData: unknown
 ): Promise<void> {
   await supabase
     .from('sessions')
-    .update({ summary_data: summaryData })
+    .update({ summary_data: summaryData as Json })
     .eq('id', sessionId)
 }
 
+export async function updatePendingDraft(
+  supabase: TypedSupabaseClient,
+  sessionId: string,
+  draft: unknown
+) {
+  await supabase
+    .from('sessions')
+    .update({ pending_draft: draft as Json })
+    .eq('id', sessionId)
+}
+
+export async function clearPendingDraftForActiveSession(
+  supabase: TypedSupabaseClient,
+  hosterId: string
+) {
+  await supabase
+    .from('sessions')
+    .update({ pending_draft: null })
+    .eq('hoster_id', hosterId)
+    .eq('is_active', true)
+}
+
+export async function deactivateAllSessions(
+  supabase: TypedSupabaseClient,
+  hosterId: string
+) {
+  await supabase
+    .from('sessions')
+    .update({ is_active: false })
+    .eq('hoster_id', hosterId)
+}
+
+export async function createSession(
+  supabase: TypedSupabaseClient,
+  sessionData: SessionInsert
+) {
+  const { data, error } = await supabase
+    .from('sessions')
+    .insert(sessionData)
+    .select()
+    .single()
+  return { data, error }
+}
+
+export async function endSessionRecord(
+  supabase: TypedSupabaseClient,
+  sessionId: string,
+  hosterId: string,
+  summaryData: unknown
+) {
+  await supabase
+    .from('sessions')
+    .update({
+      is_active: false,
+      summary_data: summaryData as Json,
+    })
+    .eq('id', sessionId)
+    .eq('hoster_id', hosterId)
+}
+
+export async function initializeSessionPlayers(
+  supabase: TypedSupabaseClient,
+  sessionId: string,
+  playerIds: string[]
+) {
+  await supabase.from('session_players').insert(
+    playerIds.map(playerId => ({
+      session_id: sessionId,
+      player_id: playerId,
+      games_played: 0,
+    }))
+  )
+}
+
+export async function insertMmrHistorySnapshot(
+  supabase: TypedSupabaseClient,
+  records: MmrHistoryInsert[]
+) {
+  await supabase.from('mmr_history').insert(records)
+}
+
 export async function getActiveMatchForSession(
-  supabase: SupabaseClient,
+  supabase: TypedSupabaseClient,
   sessionId: string
 ) {
   const { data } = await supabase
@@ -72,11 +158,11 @@ export async function getActiveMatchForSession(
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle()
-  return data
+  return data ? mapMatchRow(data) : null
 }
 
 export async function getSessionPlayersMap(
-  supabase: SupabaseClient,
+  supabase: TypedSupabaseClient,
   sessionId: string
 ): Promise<Map<string, number>> {
   const { data } = await supabase
@@ -87,7 +173,7 @@ export async function getSessionPlayersMap(
 }
 
 export async function getSessionPlayersList(
-  supabase: SupabaseClient,
+  supabase: TypedSupabaseClient,
   sessionId: string
 ) {
   const { data } = await supabase
@@ -98,20 +184,20 @@ export async function getSessionPlayersList(
 }
 
 export async function getMaxGamesPlayed(
-  supabase: SupabaseClient,
+  supabase: TypedSupabaseClient,
   sessionId: string
 ) {
   const { data } = await supabase
     .from('session_players')
     .select('games_played')
     .eq('session_id', sessionId)
-  
+
   if (!data || data.length === 0) return 0
   return Math.max(...data.map(sp => sp.games_played || 0))
 }
 
 export async function addPlayerToSession(
-  supabase: SupabaseClient,
+  supabase: TypedSupabaseClient,
   sessionId: string,
   playerId: string,
   gamesPlayed: number
@@ -123,7 +209,7 @@ export async function addPlayerToSession(
   return { error }
 }
 
-export async function getLiveSessionData(supabase: SupabaseClient, sessionId: string, userId: string) {
+export async function getLiveSessionData(supabase: TypedSupabaseClient, sessionId: string, userId: string) {
   const [
     { data: session },
     { data: activeMatch },
@@ -139,11 +225,10 @@ export async function getLiveSessionData(supabase: SupabaseClient, sessionId: st
   ])
 
   return {
-    session,
-    activeMatch,
+    session: session ? { ...mapSessionRow(session), pin: session.pin ?? undefined } : null,
+    activeMatch: activeMatch ? mapMatchRow(activeMatch) : null,
     players,
     sessionPlayersData,
     completedMatchesCount
   }
 }
-

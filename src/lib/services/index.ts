@@ -1,3 +1,6 @@
 export * from './session.service'
 export * from './player.service'
 export * from './match.service'
+export * from './match-processing.service'
+export * from './attendance.service'
+export * from './mappers'
