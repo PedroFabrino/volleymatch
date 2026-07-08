@@ -13,6 +13,7 @@ import {
   getPlayersMmrData,
   getSessionPlayersGames,
   applyMmrUpdates,
+  parsePositionRecord,
 } from '@/lib/services'
 
 export async function computeMatchDraft(supabase: TypedSupabaseClient, sessionId: string, userId: string) {
@@ -109,8 +110,8 @@ export async function processBackgroundMatch(matchId: string, sessionId: string,
   const mmrUpdates = calculateMmrChanges({
     team_a_players: match.team_a_players,
     team_b_players: match.team_b_players,
-    team_a_positions: (match.team_a_positions ?? {}) as Record<string, string>,
-    team_b_positions: (match.team_b_positions ?? {}) as Record<string, string>,
+    team_a_positions: parsePositionRecord(match.team_a_positions),
+    team_b_positions: parsePositionRecord(match.team_b_positions),
     team_a_score: match.team_a_score,
     team_b_score: match.team_b_score,
     point_timeline: timeline as PointEvent[],

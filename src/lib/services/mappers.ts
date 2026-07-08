@@ -21,6 +21,12 @@ export function parsePositionMap(
   return Object.keys(result).length > 0 ? result : undefined
 }
 
+export function parsePositionRecord(
+  value: Json | null | undefined
+): Record<string, import('@/types/player').PlayerPosition> {
+  return parsePositionMap(value) ?? {}
+}
+
 export function mapMatchRow(
   row: {
     id: string
