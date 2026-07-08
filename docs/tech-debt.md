@@ -1,370 +1,345 @@
 # VolleyMatch — Tech Debt Register
 
-**Last audited:** 2026-07-07  
-**Audited against:** `AGENTS.md` architecture guide
+**Last audited:** 2026-07-08  
+**Audited against:** `AGENTS.md` architecture guide  
+**Current phase:** Phase 3 — polish & residual gaps (TD-060 → TD-071 open)
 
-> Items are grouped by rule category and scored **P1 (blocking/risky)**, **P2 (significant)**, or **P3 (minor/cosmetic)**.
-
----
-
-## TD-001 · File Size — `Scoreboard.tsx` is a God Component · P1
-
-| | |
-|---|---|
-| **File** | `src/features/live-session/components/Scoreboard.tsx` |
-| **Size** | 602 lines (hard limit: 300) |
-| **Rule** | AGENTS §4.1 — Feature component hard limit is 300 lines |
-
-**What's wrong:**  
-`Scoreboard.tsx` is a 602-line monolith that contains 7+ distinct visual sections — the scoreboard panels, the timer/top-bar overlay, Team A & B roster accordions, the Up-Next queue, the Admin footer controls, the Substitution modal, the Swap Position modal, and the Match Over modal — all in a single component.
-
-**Remediation:**  
-Split into focused sub-components within `features/live-session/components/`:
-
-```
-ScorePanel.tsx          # Team A / B tap-to-score areas (landscape view)
-RosterPanel.tsx         # Portrait team roster accordion (reusable for both teams)
-QueuePanel.tsx          # "Next Up" portrait queue section
-AdminControls.tsx       # Bottom footer action buttons
-SubstitutionModal.tsx   # Player substitution modal
-SwapPositionModal.tsx   # Position swap modal
-MatchOverModal.tsx      # End-of-game result + actions modal
-```
-
-Keep `Scoreboard.tsx` as the top-level orchestrator under ~150 lines.
+> Items are scored **P1 (blocking/risky)**, **P2 (significant)**, or **P3 (minor/cosmetic)**.  
+> Detailed implementation notes live in [`docs/implementation/tech-debts/`](implementation/tech-debts/).
 
 ---
 
-## TD-002 · File Size — `live-session/actions.ts` is a God Action File · P1
+## Current Status Snapshot
 
-| | |
+| Metric | Value |
 |---|---|
-| **File** | `src/features/live-session/actions.ts` |
-| **Size** | 406 lines (hard limit: 200) |
-| **Rule** | AGENTS §4.1 — `actions.ts` hard limit is 200 lines |
+| Total TD items tracked | **72** (TD-001 → TD-072) |
+| Fully resolved | **59** |
+| Open | **11** (TD-060 → TD-071) |
+| Won't Fix (documented exception) | **1** (TD-072, inherits TD-030) |
+| Files over any hard limit | **0** (excluding generated `database.ts`) |
+| `any` type instances | **0** |
+| `supabase.from()` outside `lib/services/` | **1** open (`ActiveSessionBanner`) + OG route exception |
+| Cross-feature imports | **0** |
+| Files importing >10 modules | **0** |
 
-**What's wrong:**  
-The file contains 7 distinct public actions + 2 private helpers (`computeMatchDraft`, `processBackgroundMatch`), the latter of which is a full background job runner spanning ~80 lines. `saveMatch` also calls `computeMatchDraft` implying it carries two responsibilities.
+---
 
-**Remediation:**  
-Extract private helpers into a dedicated internal module:
+## How This Register Evolved
 
-```
-features/live-session/
-├── actions.ts          # Public server actions only (~150 lines)
-└── _draft.ts           # computeMatchDraft + processBackgroundMatch (private, not exported via index.ts)
+The tech-debt program runs in three phases. Each phase ends with a fresh codebase audit against
+`AGENTS.md`; newly discovered violations receive sequential TD IDs and a follow-up document in
+`docs/implementation/tech-debts/`.
+
+```mermaid
+flowchart LR
+  P1["Phase 1\nInitial Register\nTD-001 → TD-017"]
+  P2["Phase 2\nFollow-Up Audits\nTD-018 → TD-059"]
+  P3["Phase 3\nCurrent Gaps\nTD-060 → TD-072"]
+  P1 -->|"All resolved ✅"| P2
+  P2 -->|"All resolved ✅"| P3
+  P3 -->|"11 open, 1 won't fix"| Next["Next audit after\nTD-060–071 close"]
 ```
 
+### Phase 1 — Initial Register (2026-07-07)
+
+**Scope:** First full audit of the Next.js migration codebase.  
+**Items:** TD-001 → TD-017  
+**Status:** All resolved ✅
+
+The original register captured the highest-impact violations found at migration time: god
+components (`Scoreboard.tsx` at 602 lines), god action files, `any` types across 13 files, raw
+Supabase calls in pages, spectator/summary UI in `app/`, cross-feature imports, and missing
+barrels.
+
+| ID | Priority | Category | Original issue | Resolution |
+|---|---|---|---|---|
+| TD-001 | P1 | File size | `Scoreboard.tsx` — 602 lines | Decomposed → 177-line orchestrator + 8 sub-components |
+| TD-002 | P1 | File size | `live-session/actions.ts` — 406 lines | Split → `actions.ts` (93 lines) + `_draft.ts` (126 lines) |
+| TD-003 | P1 | File size | `lib/stats/summaryStats.ts` — 473 lines | Split → `session-stats`, `dashboard-stats`, `stat-helpers`, barrel |
+| TD-004 | P1 | File size | `lib/matchmaking/index.ts` — 342 lines | Split → `types`, `draft`, `strict-draft`, `rotation`, barrel |
+| TD-005 | P2 | File size | `app/dashboard/page.tsx` — 211 lines | Extracted `features/dashboard/` → page 48 lines |
+| TD-006 | P2 | File size | `app/dashboard/session/page.tsx` — 238 lines | Extracted session components → page 91 lines |
+| TD-007 | P2 | File size | `app/dashboard/roster/page.tsx` — 190 lines | Extracted roster components → page 54 lines |
+| TD-008 | P1 | TypeScript | `any` in 13 files | Zero `any` repo-wide |
+| TD-009 | P2 | Architecture | Raw Supabase in summary page | `storeSummaryData()` in `lib/services/` |
+| TD-010 | P2 | Architecture | Raw Supabase in session/roster pages | All pages delegate to `lib/services/` |
+| TD-011 | P2 | Architecture | Spectator components in `app/view/` | Moved to `features/spectator/` slice |
+| TD-012 | P2 | Architecture | `HighlightsGrid.tsx` in `app/` | Moved to `features/summary/` |
+| TD-013 | P3 | Structure | `lib/stats/` missing barrel | `lib/stats/index.ts` created |
+| TD-014 | P2 | i18n | Hardcoded `"Swap Sides"` | `t('swapSides')` in `AdminControls` |
+| TD-015 | P1 | Architecture | Cross-feature `live-session` → `session` | `onEndSession` callback prop |
+| TD-016 | P3 | Architecture | Inline `signOut` in dashboard page | Extracted to `features/dashboard/actions.ts` |
+| TD-017 | P3 | Structure | Incomplete `session/index.ts` barrel | Exports actions + 3 components |
+
+**Implementation docs:** [`01`](implementation/tech-debts/01-TD015-cross-feature-import.md) – [`11`](implementation/tech-debts/11-TD014-TD016-polish.md)
+
 ---
 
-## TD-003 · File Size — `lib/stats/summaryStats.ts` is a God Library File · P1
+### Phase 2 — Follow-Up Audits (2026-07-08)
+
+**Scope:** Seven post-implementation audits; each pass fixed the prior batch then re-scanned the
+codebase for violations missed or introduced by remediation work.  
+**Items:** TD-018 → TD-059  
+**Status:** All resolved ✅
+
+| Audit | Doc | TD range | Theme | Items |
+|---|---|---|---|---|
+| #1 | [`12-TD018-TD024`](implementation/tech-debts/12-TD018-TD024-follow-up-gaps.md) | 018–024 | Residual god files, cross-layer imports, page Supabase | 7 |
+| #2 | [`13-TD025-TD031`](implementation/tech-debts/13-TD025-TD031-follow-up-gaps-2.md) | 025–031 | Roster action split, Database types stub, deep imports, OG i18n | 7 |
+| #3 | [`14-TD032-TD033`](implementation/tech-debts/14-TD032-TD033-follow-up-gaps-3.md) | 032–033 | Remaining page/route Supabase, position `as any` casts | 2 |
+| #4 | [`15-TD034-TD041`](implementation/tech-debts/15-TD034-TD041-follow-up-gaps-4.md) | 034–041 | Feature-action Supabase, typed clients, join flow relocation, page sizes | 8 |
+| #5 | [`16-TD042-TD050`](implementation/tech-debts/16-TD042-TD050-follow-up-gaps-5.md) | 042–050 | Spectator hook, service return types, HighlightsGrid, metadata i18n | 9 |
+| #6 | [`17-TD043-TD059`](implementation/tech-debts/17-TD043-TD059-follow-up-gaps-6.md) | 043–059 | Residual casts, ActionError, QrCodeModal, live page assembly, barrels | 17 |
+| — | [`01`–`11` impl docs](implementation/tech-debts/) | (Phase 1) | Targeted implementation guides for TD-001–017 | — |
+
+**Key outcomes from Phase 2:**
+
+- **`lib/services/`** is the sole Supabase access layer (feature actions, pages, and routes cleaned up; TD-034)
+- **`Database` generic** wired through all client factories and services (TD-035)
+- **`features/public-join/`**, **`features/spectator/`**, **`features/dashboard/`** slices fully established
+- **`ActionError` + `assertAuthenticated()`** replace hardcoded auth throws (TD-044)
+- **`parsePlayerPosition`** at service boundary; UI `as PlayerPosition` casts removed (TD-041)
+- **`getSpectatorViewData()` / `getLiveSessionViewData()`** extract page assembly logic (TD-048, TD-053)
+- **Root layout metadata** localized via `generateMetadata()` (TD-050)
+
+**Won't Fix carried forward:** TD-030 (OG image route Edge/i18n constraint) → TD-072
+
+---
+
+### Phase 3 — Current Open Items (2026-07-08)
+
+**Scope:** Audit #7 — fresh cross-check after TD-043 → TD-059 closed.  
+**Items:** TD-060 → TD-072  
+**Status:** 11 open, 1 won't fix  
+**Full detail:** [`18-TD060-TD072-follow-up-gaps-7.md`](implementation/tech-debts/18-TD060-TD072-follow-up-gaps-7.md)
+
+---
+
+## Open Items
+
+### TD-060 · Hardcoded English on Landing Page · P2
 
 | | |
 |---|---|
-| **File** | `src/lib/stats/summaryStats.ts` |
-| **Size** | 473 lines (hard limit: 350) |
-| **Rule** | AGENTS §4.1 — `lib/**/*.ts` hard limit is 350 lines |
+| **File** | `src/app/page.tsx` L25–47 |
+| **Rule** | AGENTS §6 |
 
-**What's wrong:**  
-The file contains two near-duplicate calculation pipelines (`getSessionSummaryData` and `computeDashboardStats`) plus many inline stat helper functions. There is no `index.ts` barrel for `lib/stats/`.
+Four user-facing strings are hardcoded (`"VolleyMatch"`, landing description, `"or"`, `"Login as Host"`).
+`JoinSessionForm` is already localized; the page wrapper is not.
 
-**Remediation:**
-- Extract into sub-modules: `session-stats.ts`, `dashboard-stats.ts`, `stat-helpers.ts`
-- Create `lib/stats/index.ts` as barrel export
+**Remediation:** Add a `Home` namespace to both locale files; use `getTranslations('Home')`.
 
 ---
 
-## TD-004 · File Size — `lib/matchmaking/index.ts` is a God File · P1
+### TD-061 · Residual Hardcoded English on Login Page · P3
 
 | | |
 |---|---|
-| **File** | `src/lib/matchmaking/index.ts` |
-| **Size** | 342 lines (soft limit: 250, approaching hard: 350) |
-| **Rule** | AGENTS §4.1, §4.6 — Approaching hard limit; called out as a god file in AGENTS.md |
+| **File** | `src/app/login/page.tsx` L14, 22 |
+| **Rule** | AGENTS §6 |
 
-**What's wrong:**  
-All matchmaking logic (type definitions, `isSetter`, `draftTeams`, `draftStrictTeams`, queue selection, setter compensation) lives in a single file.
+`"Back"` and `"VolleyMatch"` remain hardcoded. `Metadata.title` key already exists.
 
-**Remediation:**
-```
-lib/matchmaking/
-├── types.ts                # Player type and related types
-├── draft.ts                # draftTeams, draftStrictTeams
-├── rotation.ts             # Winner-stays-on queue selection logic
-├── setter-compensation.ts  # Setter bonus MMR logic
-└── index.ts                # Barrel re-export
-```
+**Remediation:** Add `Login.back`; use `getTranslations('Metadata')` for the brand name.
 
 ---
 
-## TD-005 · File Size — `app/dashboard/page.tsx` exceeds page limit · P2
+### TD-062 · Matchmaker Ignores Existing i18n Key · P3
 
 | | |
 |---|---|
-| **File** | `src/app/dashboard/page.tsx` |
-| **Size** | 211 lines (hard limit: 150) |
-| **Rule** | AGENTS §4.1, §3.1 — Page hard limit is 150 lines; pages must be thin orchestrators |
+| **File** | `src/features/live-session/components/Matchmaker.tsx` L57 |
+| **Rule** | AGENTS §6 |
 
-**What's wrong:**  
-The page contains 4 distinct visual sections rendered inline: header row, Quick Actions column, Player Rankings column, and Recent Matches column. `getPlayerName` helper and `signOut` action are also defined inline.
+Hardcoded `"Calculating next match..."` while `Matchmaker.preparingDraft` already exists in both locales.
 
-**Remediation:**  
-Create a feature slice (or extend `features/`) with:
-```
-features/dashboard/
-├── components/
-│   ├── QuickActionsColumn.tsx
-│   ├── PlayerRankingsColumn.tsx
-│   └── RecentMatchesColumn.tsx
-└── index.ts
-```
-Reduce `page.tsx` to data fetching + layout assembly.
+**Remediation:** Replace with `{t('preparingDraft')}` — no new keys required.
 
 ---
 
-## TD-006 · File Size — `app/dashboard/session/page.tsx` exceeds page limit · P2
+### TD-063 · Direct Supabase Query in Layout Component · P2
 
 | | |
 |---|---|
-| **File** | `src/app/dashboard/session/page.tsx` |
-| **Size** | 238 lines (hard limit: 150) |
-| **Rule** | AGENTS §3.1, §4.1 |
+| **File** | `src/components/layout/ActiveSessionBanner.tsx` L16–21 |
+| **Rule** | AGENTS §7 |
 
-**What's wrong:**  
-The page contains both the session queue display and the full house-rules form inline. Business logic (queue sorting, `queuedPlayers` construction with `sessionPlayersMap`) is performed inside the page function body.
+Banner queries `sessions` directly instead of using `getActiveSession()` from `lib/services/`.
 
-**Remediation:**  
-- Move queue-sorting logic to `features/session/` or `lib/`
-- Extract `SessionHouseRulesForm` and `SessionQueuePanel` into `features/session/components/`
+**Remediation:** Replace inline query with `getActiveSession(supabase, user.id)`.
 
 ---
 
-## TD-007 · File Size — `app/dashboard/roster/page.tsx` exceeds page limit · P2
+### TD-064 · Missing Auth Guards on Mutating Server Actions · P2
 
 | | |
 |---|---|
-| **File** | `src/app/dashboard/roster/page.tsx` |
-| **Size** | 190 lines (hard limit: 150) |
-| **Rule** | AGENTS §3.1, §4.1 |
+| **Rule** | AGENTS §4.3 |
+| **Files** | `features/live-session/actions.ts`, `features/live-session/team-actions.ts` |
 
-**What's wrong:**  
-The `availablePositions` constant and the entire add/edit player form are defined inline in the page. The player list with MMR display is also rendered directly in `page.tsx`.
+Three mutating actions perform writes without `assertAuthenticated(user)`:
 
-**Remediation:**  
-Move form and list rendering into `features/roster/components/`.
+| Function | File |
+|---|---|
+| `updateScore` | `actions.ts` |
+| `cancelMatch` | `actions.ts` |
+| `substitutePlayer` | `team-actions.ts` |
+
+**Remediation:** Add `getUser()` + `assertAuthenticated(user)` at the top of each, matching `saveMatch`.
 
 ---
 
-## TD-008 · `any` Type Violations — Multiple Files · P1
+### TD-065 · ActionError Codes Not Translated on Client · P3
 
 | | |
 |---|---|
-| **Rule** | AGENTS §4.5 — Do not use TypeScript `any` |
+| **Files** | `src/types/action-error.ts`, `Errors` namespace in locales |
+| **Rule** | AGENTS §6 |
 
-**Instances found:**
+`ActionError('unauthorized')` throws machine codes; `Errors` namespace exists but no client helper
+maps codes to `t('unauthorized')` when errors surface in the UI.
 
-| File | Lines | `any` usage |
-|---|---|---|
-| `features/live-session/actions.ts` | 18, 256, 379, 385, 396 | `supabase: any`, `teamAPositions?: any`, `update: any` |
-| `features/live-session/components/Matchmaker.tsx` | 11, 14 | `session: any`, `players: any[]`, `draft: any` |
-| `features/live-session/components/Scoreboard.tsx` | 191, 285, 342 | `teamPlayers: any[]`, `p: any` in map callbacks |
-| `features/roster/components/AttendanceToggle.tsx` | 30 | `player: any` |
-| `features/summary/components/TimelineViewer.tsx` | 7 | `timeline: any[]` |
-| `app/dashboard/session/page.tsx` | 31 | `queuedPlayers: any[]` |
-| `app/dashboard/summary/[session_id]/HighlightsGrid.tsx` | 9–16, 50 | Multiple `any` in prop interface |
-| `app/dashboard/summary/[session_id]/page.tsx` | 112 | `player: any` in `.map` |
-| `app/join/[pin]/PlayerJoinForm.tsx` | 9 | `session: any`, `players: any[]` |
-| `app/view/[pin]/SpectatorScoreboard.tsx` | 11, 173, 238, 265, 395 | Multiple `any` |
-| `app/view/[pin]/SpectatorMatchmaker.tsx` | 8 | `session: any` |
-| `lib/stats/summaryStats.ts` | 97, 101, 116, 331, 335, 350, 434 | Multiple `any` |
-| `app/api/og/summary/route.tsx` | 27, 136 | Sort callback `any`, catch `any` |
-
-**Remediation:**  
-- Use types from `src/types/` (`Session`, `Match`, `Player`) which already exist but aren't consumed everywhere
-- Replace `any` in lib files with exported types from `lib/mmr` and `lib/matchmaking`
-- Type the Supabase client with the `SupabaseClient` import from `@supabase/supabase-js` (already done in `summaryStats.ts` — apply the same pattern)
+**Remediation:** Add `getActionErrorMessage(error, t)` helper; use in client catch blocks.
 
 ---
 
-## TD-009 · Cross-Layer Supabase Call in `summary/[session_id]/page.tsx` · P2
+### TD-066 · HighlightDetailModal Exceeds Component Soft Limit · P3
 
 | | |
 |---|---|
-| **File** | `src/app/dashboard/summary/[session_id]/page.tsx` L35 |
-| **Rule** | AGENTS §7 — Pages must never call `supabase.from()` directly |
+| **File** | `src/features/summary/components/HighlightDetailModal.tsx` |
+| **Size** | 212 lines (soft limit: 200) |
+| **Rule** | AGENTS §4.1 |
 
-**What's wrong:**
-```ts
-// In page.tsx — violates the data access pattern
-await supabase.from('sessions').update({ summary_data: summaryData }).eq('id', sessionId);
-```
-
-**Remediation:**  
-Add a `storeSummaryData(supabase, sessionId, data)` method to `lib/services/session.service.ts` and call it from the page (or move this to a server action).
+**Remediation:** Extract per-variant panels (`HighlightMvpPanel`, etc.); keep modal shell ~80 lines.
 
 ---
 
-## TD-010 · Direct Supabase Queries in `app/` Pages · P2
+### TD-067 · lib/mmr/index.ts Approaching Soft Limit · P3
 
 | | |
 |---|---|
-| **Rule** | AGENTS §7 — `lib/services/` is the only place that calls Supabase |
+| **File** | `src/lib/mmr/index.ts` |
+| **Size** | 210 lines (soft limit: 250) |
+| **Rule** | AGENTS §4.1, §4.6 |
 
-**Pages with raw `supabase.from()` calls:**
-
-| File | Tables accessed |
-|---|---|
-| `app/dashboard/session/page.tsx` | `players`, `sessions`, `matches`, `session_players` |
-| `app/dashboard/roster/page.tsx` | `players` |
-
-Both should delegate to `lib/services/` functions.
+**Remediation:** When next touched, split into `calculation.ts`, `setter-bonus.ts`, `types.ts`, barrel.
 
 ---
 
-## TD-011 · Spectator Components in `app/` Instead of `features/` · P2
+### TD-068 · Hardcoded Product Branding on Public Pages · P3
 
 | | |
 |---|---|
-| **Files** | `src/app/view/[pin]/SpectatorScoreboard.tsx` (480 lines), `SpectatorMatchmaker.tsx`, `RealtimeSubscriber.tsx` |
-| **Rule** | AGENTS §3.1 — Pages are thin orchestrators; feature UI lives in `features/` |
+| **Rule** | AGENTS §6 |
+| **Files** | `app/page.tsx`, `app/login/page.tsx`, share pages, `ActiveSessionBanner.tsx` |
 
-**What's wrong:**  
-`SpectatorScoreboard.tsx` is a 480-line component placed inside the `app/` routing layer. Additionally, the `sortPlayersByPos` helper and player-row rendering are duplicated from `Scoreboard.tsx` — a clear code duplication smell.
+`"VolleyMatch"` hardcoded in JSX on 5 pages/components despite localized `Metadata.title`.
 
-**Remediation:**  
-- Move to `features/live-session/components/` or a dedicated `features/spectator/` slice
-- Extract shared `sortPlayersByPos` logic into `lib/` and a shared `PlayerRosterRow.tsx` component
+**Remediation:** Use `getTranslations('Metadata')` → `t('title')` on server pages.
 
 ---
 
-## TD-012 · Summary `HighlightsGrid.tsx` in `app/` Instead of `features/` · P2
+### TD-069 · LanguageSwitcher Hardcoded Labels · P3
 
 | | |
 |---|---|
-| **File** | `src/app/dashboard/summary/[session_id]/HighlightsGrid.tsx` (~340 lines) |
-| **Rule** | AGENTS §3.1, §3.4 — Feature-specific UI belongs in `features/` |
+| **File** | `src/components/layout/LanguageSwitcher.tsx`, `ThemeToggle.tsx` |
+| **Rule** | AGENTS §6 |
 
-**Remediation:**  
-Move to `features/summary/components/HighlightsGrid.tsx` and export via `features/summary/index.ts`.
+Hardcoded aria-labels and menu options (`"Change language"`, `"English"`, `"Português"`, `"Toggle theme"`).
+`Common.theme` key already exists for the theme toggle.
+
+**Remediation:** Add `Common.changeLanguage`, `Common.english`, `Common.portuguese`; use `useTranslations`.
 
 ---
 
-## TD-013 · `lib/stats/` Missing `index.ts` Barrel · P3
+### TD-070 · Position Record Casts in team-actions.ts · P3
 
 | | |
 |---|---|
-| **File** | `src/lib/stats/` |
-| **Rule** | AGENTS §3.3 — Each `lib/` sub-domain must have an `index.ts` barrel |
+| **File** | `src/features/live-session/team-actions.ts` |
+| **Rule** | AGENTS §4.5 — TD-041 residual at action layer |
 
-**What's wrong:**  
-`lib/stats/` has no `index.ts`. Consumers deep-import `@/lib/stats/summaryStats` directly, violating the barrel convention.
+JSON position columns cast as `Record<string, string>` instead of mapped through `mappers.ts`.
 
-**Remediation:**  
-Create `src/lib/stats/index.ts`:
-```ts
-export { getSessionSummaryData, computeDashboardStats } from './summaryStats'
-```
+**Remediation:** Add `parsePositionRecord(value: Json)` in `lib/services/mappers.ts`.
 
 ---
 
-## TD-014 · Hardcoded English String in `Scoreboard.tsx` · P2
+### TD-071 · Generated database.ts Exceeds File Size Limit · P3
 
 | | |
 |---|---|
-| **File** | `src/features/live-session/components/Scoreboard.tsx` L445 |
-| **Rule** | AGENTS §6 — All user-facing strings must use `next-intl` |
+| **File** | `src/types/database.ts` |
+| **Size** | 519 lines (hard limit: 300) |
+| **Rule** | AGENTS §4.1 |
 
-**What's wrong:**
-```tsx
-<ArrowLeftRight className="w-4 h-4" /> Swap Sides
-```
-`"Swap Sides"` is hardcoded and not routed through `next-intl`.
+Supabase-generated types; splitting would be overwritten on next `supabase gen types`.
 
-**Remediation:**  
-Add `"swapSides"` key to both `locales/en.json` and `locales/pt.json` and replace with `{t('swapSides')}`.
+**Remediation:** Document a project exception in `AGENTS.md` — generated types exempt from file-size limits.
 
 ---
 
-## TD-015 · Cross-Feature Import: `live-session` → `session` · P1
+### TD-072 · OG Image Route — Won't Fix · P3
 
 | | |
 |---|---|
-| **File** | `src/features/live-session/components/Matchmaker.tsx` L5 |
-| **Rule** | AGENTS §3.2 — Features must not import from other features |
+| **File** | `src/app/api/og/summary/route.tsx` |
+| **Status** | **Won't Fix** (inherits TD-030) |
 
-**What's wrong:**
-```ts
-import { endSession } from '@/features/session'
-```
-`live-session` directly depends on `session`, creating a cross-feature coupling that violates isolation boundaries.
-
-**Remediation:**  
-Pass `endSession` as a prop/callback to `Matchmaker`, or move `endSession` to `lib/` so both features can call it independently.
+Direct Supabase call and hardcoded English accepted due to Edge-runtime / i18n constraints.
+Inline comment in route file documents the exception.
 
 ---
 
-## TD-016 · Inline `signOut` in `dashboard/page.tsx` · P3
+## Open Items Summary
 
-| | |
+| ID | Priority | Category | File(s) | Status |
+|---|---|---|---|---|
+| TD-060 | P2 | i18n | `app/page.tsx` | Open |
+| TD-061 | P3 | i18n | `app/login/page.tsx` | Open |
+| TD-062 | P3 | i18n | `Matchmaker.tsx` | Open |
+| TD-063 | P2 | Architecture | `ActiveSessionBanner.tsx` | Open |
+| TD-064 | P2 | Security | `updateScore`, `cancelMatch`, `substitutePlayer` | Open |
+| TD-065 | P3 | i18n | ActionError client translation | Open |
+| TD-066 | P3 | File size | `HighlightDetailModal.tsx` | Open |
+| TD-067 | P3 | File size | `lib/mmr/index.ts` | Open |
+| TD-068 | P3 | i18n | Public page branding | Open |
+| TD-069 | P3 | i18n | `LanguageSwitcher`, `ThemeToggle` | Open |
+| TD-070 | P3 | TypeScript | `team-actions.ts` position casts | Open |
+| TD-071 | P3 | Structure | `types/database.ts` (generated) | Open |
+| TD-072 | P3 | Architecture | OG route | Won't Fix |
+
+---
+
+## Suggested Resolution Order (Phase 3)
+
+1. **TD-064** — Add missing auth guards (security, quick fix)
+2. **TD-063** — Route `ActiveSessionBanner` through `getActiveSession()`
+3. **TD-062** — Wire existing `preparingDraft` key (one-line fix)
+4. **TD-060 / TD-061 / TD-068** — Localize landing, login, and share-page branding
+5. **TD-069** — Localize language switcher and theme toggle aria-labels
+6. **TD-065** — Client-side ActionError translation helper
+7. **TD-070** — Position record parser at mapper layer
+8. **TD-066** — Decompose `HighlightDetailModal` when next touched
+9. **TD-067** — Split `lib/mmr/` when next touched
+10. **TD-071** — Document generated-type file-size exception in `AGENTS.md`
+
+---
+
+## Document Index
+
+All implementation and audit documents live in [`docs/implementation/tech-debts/`](implementation/tech-debts/):
+
+| Doc | Covers |
 |---|---|
-| **File** | `src/app/dashboard/page.tsx` L27–33 |
-| **Rule** | AGENTS §3.1 — Inline trivial actions are acceptable |
-
-This is within the letter of the rule (trivial one-off mutation). Low priority — tracked only because it compounds the page line count (TD-005). Acceptable as-is.
-
----
-
-## TD-017 · `features/session/index.ts` Barrel May Be Incomplete · P3
-
-| | |
-|---|---|
-| **File** | `src/features/session/index.ts` |
-| **Rule** | AGENTS §3.2 — The barrel is the only public API of a feature |
-
-**What's wrong:**  
-The file is only 27 bytes. If it doesn't re-export all public actions, consumers will resort to deep imports in the future.
-
-**Remediation:**  
-Ensure the barrel exports everything public:
-```ts
-export * from './actions'
-```
-
----
-
-## Summary Table
-
-| ID | Priority | Category | File(s) |
-|---|---|---|---|
-| TD-001 | P1 | File size | `Scoreboard.tsx` — 602 lines |
-| TD-002 | P1 | File size | `live-session/actions.ts` — 406 lines |
-| TD-003 | P1 | File size | `lib/stats/summaryStats.ts` — 473 lines |
-| TD-004 | P1 | File size | `lib/matchmaking/index.ts` — 342 lines |
-| TD-005 | P2 | File size | `app/dashboard/page.tsx` — 211 lines |
-| TD-006 | P2 | File size | `app/dashboard/session/page.tsx` — 238 lines |
-| TD-007 | P2 | File size | `app/dashboard/roster/page.tsx` — 190 lines |
-| TD-008 | P1 | TypeScript | `any` in 13 files |
-| TD-009 | P2 | Architecture | Raw `supabase.from()` in `summary/page.tsx` |
-| TD-010 | P2 | Architecture | Raw `supabase.from()` in `session/page.tsx`, `roster/page.tsx` |
-| TD-011 | P2 | Architecture | Spectator components in `app/view/` |
-| TD-012 | P2 | Architecture | `HighlightsGrid.tsx` in `app/` |
-| TD-013 | P3 | Structure | `lib/stats/` missing `index.ts` |
-| TD-014 | P2 | i18n | Hardcoded `"Swap Sides"` in `Scoreboard.tsx` |
-| TD-015 | P1 | Architecture | Cross-feature import `live-session` → `session` |
-| TD-016 | P3 | Architecture | Inline `signOut` in `dashboard/page.tsx` (acceptable) |
-| TD-017 | P3 | Structure | `features/session/index.ts` may be incomplete |
-
----
-
-## Suggested Resolution Order
-
-1. **TD-015** — Fix cross-feature import first (hardest architectural constraint to enforce later)
-2. **TD-001** — Decompose `Scoreboard.tsx` (biggest blast radius; blocks all future live-session work)
-3. **TD-002** — Split `live-session/actions.ts`
-4. **TD-008** — Eliminate `any` types (broad safety improvement, can be done incrementally per file)
-5. **TD-003 / TD-004** — Split god lib files (prioritise when those files are touched for features)
-6. **TD-010 / TD-009** — Move raw Supabase queries into `lib/services/`
-7. **TD-011 / TD-012** — Relocate spectator and summary components into `features/`
-8. **TD-005 / TD-006 / TD-007** — Reduce page sizes by extracting to feature slices
-9. **TD-013 / TD-017** — Barrel housekeeping
-10. **TD-014 / TD-016** — Minor polish
+| `01`–`11` | Phase 1 implementation guides (TD-001–017) |
+| `12` | Audit #1 — TD-018–024 |
+| `13` | Audit #2 — TD-025–031 |
+| `14` | Audit #3 — TD-032–033 |
+| `15` | Audit #4 — TD-034–041 |
+| `16` | Audit #5 — TD-042–050 |
+| `17` | Audit #6 — TD-043–059 |
+| `18` | Audit #7 — TD-060–072 **(current)** |
