@@ -1,4 +1,8 @@
 {
+  "Metadata": {
+    "title": "VolleyMatch",
+    "description": "Volleyball matchmaking and scorekeeping app"
+  },
   "Common": {
     "dashboard": "Dashboard",
     "logout": "Logout",
@@ -244,7 +248,12 @@
     "joinGame": "JOIN GAME",
     "alreadyInSession": "You are already in this session! You can go view the queue.",
     "selectPosition": "Please select at least one position.",
-    "joinFailed": "Failed to join session"
+    "joinFailed": "Failed to join session",
+    "errors": {
+      "invalidSession": "Invalid session.",
+      "duplicateName": "A player with this name already exists. Please choose a different name or select your profile.",
+      "createFailed": "Failed to create your profile."
+    }
   },
   "Spectator": {
     "liveTitle": "VolleyMatch Live",

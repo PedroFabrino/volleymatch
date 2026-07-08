@@ -1,4 +1,8 @@
 {
+  "Metadata": {
+    "title": "VolleyMatch",
+    "description": "App de matchmaking e placar de vôlei"
+  },
   "Common": {
     "dashboard": "Painel",
     "logout": "Sair",
@@ -241,7 +245,12 @@
     "joinGame": "ENTRAR NO JOGO",
     "alreadyInSession": "Você já está nesta sessão! Você pode ver a fila.",
     "selectPosition": "Selecione pelo menos uma posição.",
-    "joinFailed": "Falha ao entrar na sessão"
+    "joinFailed": "Falha ao entrar na sessão",
+    "errors": {
+      "invalidSession": "Sessão inválida.",
+      "duplicateName": "Já existe um jogador com este nome. Escolha outro nome ou selecione seu perfil.",
+      "createFailed": "Falha ao criar seu perfil."
+    }
   },
   "Spectator": {
     "liveTitle": "VolleyMatch Ao Vivo",
