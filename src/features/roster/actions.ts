@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { assertAuthenticated } from '@/types/action-error'
 import {
   findDuplicatePlayerName,
   insertPlayer,
@@ -15,7 +16,7 @@ export async function addPlayer(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) throw new Error('Unauthorized')
+  assertAuthenticated(user)
 
   const name = (formData.get('name') as string).trim()
 
@@ -49,7 +50,7 @@ export async function addPlayer(formData: FormData) {
 export async function updatePlayer(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
+  assertAuthenticated(user)
 
   const id = formData.get('id') as string
   const name = (formData.get('name') as string).trim()
@@ -80,7 +81,7 @@ export async function deletePlayer(playerId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) throw new Error('Unauthorized')
+  assertAuthenticated(user)
 
   await deletePlayerRecord(supabase, playerId, user.id)
   revalidatePath('/dashboard/roster')

@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { assertAuthenticated } from '@/types/action-error'
 import {
   getMatchTeamsAndPositions,
   updateMatchTeams,
@@ -64,7 +65,7 @@ export async function substitutePlayer(matchId: string, sessionId: string, team:
 export async function swapPositions(matchId: string, sessionId: string, playerAId: string, playerBId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
+  assertAuthenticated(user)
 
   const match = await getMatchTeamsAndPositions(supabase, matchId)
   if (!match) return
@@ -99,7 +100,7 @@ export async function swapPositions(matchId: string, sessionId: string, playerAI
 export async function swapTeams(matchId: string, sessionId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
+  assertAuthenticated(user)
 
   const match = await getMatchForTeamSwap(supabase, matchId)
   if (!match) return

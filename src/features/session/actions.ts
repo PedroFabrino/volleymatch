@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getSessionSummaryData } from '@/lib/stats'
+import { assertAuthenticated } from '@/types/action-error'
 import {
   deactivateAllSessions,
   createSession,
@@ -16,7 +17,7 @@ import {
 export async function startSession(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
+  assertAuthenticated(user)
 
   const targetScore = parseInt(formData.get('target_score') as string)
   const tieBreaker = formData.get('tie_breaker_rule') as string
@@ -61,7 +62,7 @@ export async function startSession(formData: FormData) {
 export async function endSession(sessionId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
+  assertAuthenticated(user)
 
   const summaryData = await getSessionSummaryData(supabase, sessionId)
 

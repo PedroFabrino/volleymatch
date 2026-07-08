@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { parsePlayerPosition, parsePlayerPositions } from '@/types/player'
+import { assertAuthenticated } from '@/types/action-error'
 import {
   setPlayerAttendance,
   batchSetPlayerAttendance,
@@ -18,7 +19,7 @@ import {
 export async function toggleAttendance(playerId: string, isPresent: boolean, activeSessionId?: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
+  assertAuthenticated(user)
 
   await setPlayerAttendance(supabase, playerId, user.id, isPresent)
 
@@ -40,7 +41,7 @@ export async function toggleAttendance(playerId: string, isPresent: boolean, act
 export async function batchToggleAttendance(updates: { playerId: string, isPresent: boolean, activeSessionId?: string }[]) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
+  assertAuthenticated(user)
 
   if (updates.length === 0) return
 
@@ -70,7 +71,7 @@ export async function batchToggleAttendance(updates: { playerId: string, isPrese
 export async function toggleActivePosition(playerId: string, pos: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
+  assertAuthenticated(user)
 
   const parsedPos = parsePlayerPosition(pos)
   if (!parsedPos || parsedPos === 'Any') return
@@ -99,7 +100,7 @@ export async function toggleActivePosition(playerId: string, pos: string) {
 export async function setAllAttendance(isPresent: boolean, activeSessionId?: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
+  assertAuthenticated(user)
 
   await setAllPlayerAttendance(supabase, user.id, isPresent)
 

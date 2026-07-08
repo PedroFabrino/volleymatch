@@ -9,6 +9,10 @@
     "theme": "Toggle Theme",
     "unknownPlayer": "Unknown"
   },
+  "Errors": {
+    "unauthorized": "You must be logged in to perform this action.",
+    "saveMatchFailed": "Failed to save the match. Please try again."
+  },
   "Dashboard": {
     "title": "VolleyMatch Dashboard",
     "subtitle": "Manage your games, track rankings, and view history.",

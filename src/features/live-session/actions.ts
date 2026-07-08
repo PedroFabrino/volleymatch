@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { after } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { ActionError, assertAuthenticated } from '@/types/action-error'
 import {
   insertMatch,
   getMatchScores,
@@ -18,7 +19,7 @@ import { computeMatchDraft, processBackgroundMatch } from './_draft'
 export async function generateMatch(sessionId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
+  assertAuthenticated(user)
 
   return await computeMatchDraft(supabase, sessionId, user.id)
 }
@@ -26,7 +27,7 @@ export async function generateMatch(sessionId: string) {
 export async function saveMatch(sessionId: string, teamA: string[], teamB: string[], teamAPositions?: Record<string, string>, teamBPositions?: Record<string, string>) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
+  assertAuthenticated(user)
 
   const { error } = await insertMatch(supabase, {
     session_id: sessionId,
@@ -42,7 +43,7 @@ export async function saveMatch(sessionId: string, teamA: string[], teamB: strin
 
   if (error) {
     console.error('FAILED TO INSERT MATCH', error)
-    throw new Error(error.message)
+    throw new ActionError('saveMatchFailed')
   }
 
   const draft = await computeMatchDraft(supabase, sessionId, user.id)
@@ -87,7 +88,7 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
   }
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
+  assertAuthenticated(user)
 
   await completeMatch(supabase, matchId)
 

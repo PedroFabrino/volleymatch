@@ -9,6 +9,10 @@
     "theme": "Alternar Tema",
     "unknownPlayer": "Desconhecido"
   },
+  "Errors": {
+    "unauthorized": "Você precisa estar logado para realizar esta ação.",
+    "saveMatchFailed": "Falha ao salvar a partida. Tente novamente."
+  },
   "Dashboard": {
     "title": "Painel VolleyMatch",
     "subtitle": "Gerencie seus jogos, acompanhe o ranking e veja o histórico.",
