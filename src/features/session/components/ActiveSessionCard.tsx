@@ -21,10 +21,7 @@ export default async function ActiveSessionCard({ session }: ActiveSessionCardPr
       >
         {t('resumeGame')}
       </Link>
-      <form action={async () => {
-        'use server'
-        await endSession(session.id)
-      }} className="w-full">
+      <form action={endSession.bind(null, session.id)} className="w-full">
         <button type="submit" className="w-full bg-red-100 hover:bg-red-200 text-red-700 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 font-bold py-2 rounded-xl transition-colors">
           {t('endGameDay')}
         </button>
