@@ -2,7 +2,7 @@
 
 **Last audited:** 2026-07-08  
 **Audited against:** `AGENTS.md` architecture guide  
-**Current phase:** Phase 4 complete — Audit #8 (TD-073 → TD-076 resolved)
+**Current phase:** Phase 5 — Audit #9 (TD-077 → TD-085 discovered; 7 open)
 
 > Items are scored **P1 (blocking/risky)**, **P2 (significant)**, or **P3 (minor/cosmetic)**.  
 > Detailed implementation notes live in [`docs/implementation/tech-debts/`](implementation/tech-debts/).
@@ -13,11 +13,11 @@
 
 | Metric | Value |
 |---|---|
-| Total TD items tracked | **76** (TD-001 → TD-076) |
-| Fully resolved | **70** |
-| Deferred | **1** (TD-067) |
+| Total TD items tracked | **85** (TD-001 → TD-085) |
+| Fully resolved | **74** |
+| Deferred | **2** (TD-067, TD-082) |
 | Won't Fix (documented exception) | **1** (TD-072, inherits TD-030) |
-| Open | **0** (TD-073 → TD-076 resolved) |
+| Open | **7** (TD-077 → TD-081, TD-083 → TD-085) |
 | Files over any hard limit | **0** (excluding generated `database.ts`) |
 | `any` type instances | **0** |
 | `supabase.from()` outside `lib/services/` | **0** (+ OG route documented exception) |
@@ -38,10 +38,12 @@ flowchart LR
   P2["Phase 2\nFollow-Up Audits\nTD-018 → TD-059"]
   P3["Phase 3\nAudit #7\nTD-060 → TD-072"]
   P4["Phase 4\nAudit #8\nTD-073 → TD-076"]
+  P5["Phase 5\nAudit #9\nTD-077 → TD-085"]
   P1 -->|"All resolved ✅"| P2
   P2 -->|"All resolved ✅"| P3
   P3 -->|"10 resolved, 1 deferred, 1 won't fix"| P4
-  P4 -->|"4 open"| Next["Next audit when\nnew violations found"]
+  P4 -->|"All resolved ✅"| P5
+  P5 -->|"7 open, 1 deferred"| Next["Next audit when\nviolations closed"]
 ```
 
 ### Phase 1 — Initial Register (2026-07-07)
@@ -136,11 +138,35 @@ codebase for violations missed or introduced by remediation work.
 **Status:** All resolved ✅  
 **Full detail:** [`19-TD073-TD076-follow-up-gaps-8.md`](implementation/tech-debts/19-TD073-TD076-follow-up-gaps-8.md)
 
+**Key outcomes from Phase 4:**
+
+- **Hook barrels** exported from `live-session/index.ts` and `spectator/index.ts` (TD-073)
+- **`useScoreboard`** split into timer, votes, and actions hooks — **76-line orchestrator** (TD-074)
+- **Dashboard pages** trimmed via `HistoryMatchCard`, `LeaderboardTable`, `SummaryPageHeader` (TD-075)
+- **`Matchmaker`** surfaces `ActionError` via `getActionErrorMessage()` (TD-076)
+
+---
+
+### Phase 5 — Audit #9 (2026-07-08)
+
+**Scope:** Fresh cross-check after TD-073 → TD-076 remediation landed in the working tree.  
+**Items:** TD-077 → TD-085  
+**Status:** 7 open · 1 deferred (TD-082) · TD-067/TD-072 carry forward  
+**Full detail:** [`20-TD077-TD085-follow-up-gaps-9.md`](implementation/tech-debts/20-TD077-TD085-follow-up-gaps-9.md)
+
+**Key findings from Phase 5:**
+
+- **Audit #8 fully verified** — all four items closed in the working tree ✅
+- **Login auth** still exposes raw Supabase `error.message` in URL and UI (TD-079, P2)
+- **Action-error adoption incomplete** — share flows, `startSession`, and score mutations still swallow failures (TD-078, TD-084, TD-085)
+- **Residual deep imports** in hook modules bypass feature barrels (TD-077)
+- **`session-read.service.ts`** at 230 lines — new deferred split candidate (TD-082)
+
 ---
 
 ## Open Items
 
-No open items. All tracked tech debts (TD-001 → TD-076) are resolved, deferred, or won't fix.
+Seven open items (TD-077 → TD-081, TD-083 → TD-085). See [`20-TD077-TD085-follow-up-gaps-9.md`](implementation/tech-debts/20-TD077-TD085-follow-up-gaps-9.md) for remediation detail.
 
 ---
 
@@ -156,6 +182,19 @@ No open items. All tracked tech debts (TD-001 → TD-076) are resolved, deferred
 
 Split into `calculation.ts`, `setter-bonus.ts`, `types.ts`, barrel when MMR features are next
 modified.
+
+---
+
+### TD-082 · session-read.service.ts Approaching Soft Limit · P3
+
+| | |
+|---|---|
+| **File** | `src/lib/services/session-read.service.ts` |
+| **Size** | 230 lines (soft limit: 250) |
+| **Status** | **Deferred** — split when next touched for session-read work |
+
+Split into core session queries and page-assembly helpers (`getLiveSessionViewData`, etc.) when
+session read paths are next modified.
 
 ---
 
@@ -175,21 +214,26 @@ Inline comment in route file documents the exception.
 
 | ID | Priority | Category | File(s) | Status |
 |---|---|---|---|---|
-| TD-073 | P3 | Structure | Residual `../hooks` / `../attendance-actions` imports | **Resolved** ✅ |
-| TD-074 | P3 | File size | `live-session/hooks.ts` — 220 lines | **Resolved** ✅ |
-| TD-075 | P3 | File size | History, leaderboard, summary session pages | **Resolved** ✅ |
-| TD-076 | P3 | i18n | Matchmaker swallows ActionError | **Resolved** ✅ |
+| TD-077 | P3 | Structure | Hook modules deep-import `./actions` | **Open** |
+| TD-078 | P3 | i18n | `ShareButton`, `HighlightsGrid` share errors | **Open** |
+| TD-079 | P2 | i18n | Login raw Supabase errors in URL/UI | **Open** |
+| TD-080 | P3 | Architecture | `app/login/actions.ts` in routing layer | **Open** |
+| TD-081 | P3 | Structure | View page deep-imports `spectator.service` | **Open** |
+| TD-082 | P3 | File size | `session-read.service.ts` — 230 lines | Deferred |
+| TD-083 | P3 | i18n | Roster English URL error token | **Open** |
+| TD-084 | P3 | i18n | `startSession` silent failure | **Open** |
+| TD-085 | P3 | Architecture | Score/substitution event failures swallowed | **Open** |
 | TD-067 | P3 | File size | `lib/mmr/index.ts` | Deferred |
 | TD-072 | P3 | Architecture | OG route | Won't Fix |
 
-All other items (TD-001 → TD-076) are resolved, deferred, or won't fix ✅
+All other items (TD-001 → TD-076) are resolved ✅
 
 ---
 
 ## Suggested Next Step
 
-No open tech-debt items remain. TD-067 (`lib/mmr/index.ts` split) remains deferred until the
-next MMR feature work.
+Start with **TD-079** (login error i18n, P2) and **TD-081** (one-line barrel import fix).
+Then close the TD-065 adoption gap: **TD-078**, **TD-084**, **TD-085**.
 
 ---
 
@@ -208,3 +252,4 @@ All implementation and audit documents live in [`docs/implementation/tech-debts/
 | `17` | Audit #6 — TD-043–059 |
 | `18` | Audit #7 — TD-060–072 |
 | `19` | Audit #8 — TD-073–076 **(resolved)** |
+| `20` | Audit #9 — TD-077–085 **(7 open, 1 deferred)** |
