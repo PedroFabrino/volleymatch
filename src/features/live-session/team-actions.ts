@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { assertAuthenticated } from '@/types/action-error'
+import type { PlayerPosition } from '@/types/player'
 import {
   getMatchTeamsAndPositions,
   updateMatchTeams,
@@ -12,20 +13,23 @@ import {
   swapMatchTeams,
   getMatchEvents,
   upsertMatchEvents,
+  parsePositionRecord,
 } from '@/lib/services'
 
 export async function substitutePlayer(matchId: string, sessionId: string, team: 'a' | 'b', playerOutId: string, playerInId: string) {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  assertAuthenticated(user)
 
   const match = await getMatchTeamsAndPositions(supabase, matchId)
   if (!match) return
 
   let newTeamA = match.team_a_players
   let newTeamB = match.team_b_players
-  let newPositionsA = (match.team_a_positions as Record<string, string>) || {}
-  let newPositionsB = (match.team_b_positions as Record<string, string>) || {}
+  let newPositionsA = parsePositionRecord(match.team_a_positions)
+  let newPositionsB = parsePositionRecord(match.team_b_positions)
 
-  let filledPosition = 'Any'
+  let filledPosition: PlayerPosition = 'Any'
 
   if (team === 'a') {
     newTeamA = newTeamA.filter(id => id !== playerOutId)
@@ -70,8 +74,8 @@ export async function swapPositions(matchId: string, sessionId: string, playerAI
   const match = await getMatchTeamsAndPositions(supabase, matchId)
   if (!match) return
 
-  const newPositionsA = { ...((match.team_a_positions as Record<string, string>) || {}) }
-  const newPositionsB = { ...((match.team_b_positions as Record<string, string>) || {}) }
+  const newPositionsA = { ...parsePositionRecord(match.team_a_positions) }
+  const newPositionsB = { ...parsePositionRecord(match.team_b_positions) }
 
   const aOnTeamA = match.team_a_players.includes(playerAId)
   const bOnTeamA = match.team_a_players.includes(playerBId)
@@ -108,8 +112,8 @@ export async function swapTeams(matchId: string, sessionId: string) {
   await swapMatchTeams(supabase, matchId, {
     team_a_players: match.team_a_players,
     team_b_players: match.team_b_players,
-    team_a_positions: match.team_a_positions as Record<string, string> | null,
-    team_b_positions: match.team_b_positions as Record<string, string> | null,
+    team_a_positions: parsePositionRecord(match.team_a_positions),
+    team_b_positions: parsePositionRecord(match.team_b_positions),
     team_a_score: match.team_a_score,
     team_b_score: match.team_b_score,
   })

@@ -54,6 +54,8 @@ export async function saveMatch(sessionId: string, teamA: string[], teamB: strin
 
 export async function updateScore(matchId: string, sessionId: string, team: 'a' | 'b', increment: number) {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  assertAuthenticated(user)
 
   const match = await getMatchScores(supabase, matchId)
   if (!match) return
@@ -109,6 +111,9 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
 
 export async function cancelMatch(matchId: string, sessionId: string) {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  assertAuthenticated(user)
+
   await deleteMatch(supabase, matchId)
   revalidatePath('/dashboard/session', 'page')
   redirect('/dashboard/session')
