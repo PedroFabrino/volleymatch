@@ -27,3 +27,16 @@ export type MatchDraft = {
   teamAPositions?: Record<string, PlayerPosition>;
   teamBPositions?: Record<string, PlayerPosition>;
 };
+
+export type NextTeamSlot = {
+  position: PlayerPosition;
+  playerId: string | null;
+  playerName: string | null;
+  isTbd: boolean;
+};
+
+export type NextTeamPreview = {
+  teamA: NextTeamSlot[];
+  teamB: NextTeamSlot[];
+  targetSize: number;
+};
