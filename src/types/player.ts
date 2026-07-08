@@ -6,6 +6,7 @@ export interface Player {
   is_present_today: boolean;
   positions: string[];
   active_positions?: string[] | null;
+  initial_tier?: string;
 }
 
 export type PlayerStat = {
