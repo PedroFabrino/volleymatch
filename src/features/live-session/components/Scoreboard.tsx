@@ -1,7 +1,8 @@
 'use client'
 
 import { useTransition, useOptimistic, useRef, useEffect, useState } from 'react'
-import { updateScore, finishMatch, cancelMatch, substitutePlayer, swapPositions, swapTeams } from '../actions'
+import { updateScore, finishMatch, cancelMatch } from '../actions'
+import { substitutePlayer, swapPositions, swapTeams } from '../team-actions'
 import { Clock } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import type { PlayerWithStatus } from '@/lib/matchmaking'
