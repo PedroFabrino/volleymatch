@@ -54,7 +54,7 @@ export default function Matchmaker({ session, players, isFirstMatch, onEndSessio
     return (
       <div className="flex flex-col items-center justify-center p-12 gap-4 h-full pt-32">
         <div className="animate-spin text-4xl">⚙️</div>
-        <p className="text-gray-400 text-sm">Calculating next match...</p>
+        <p className="text-gray-400 text-sm">{t('preparingDraft')}</p>
       </div>
     )
   }
