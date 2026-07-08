@@ -2,6 +2,25 @@
 
 All features in implementation order. Each builds on the previous.
 
+> **Note:** Older sections below reference pre-migration paths (e.g. `src/utils/`, `src/app/.../actions.ts`). Current code lives under `src/features/`, `src/lib/`, and thin `src/app/` routes. See `AGENTS.md` for the current layout.
+
+---
+
+## Current Status
+
+| # | Feature | Status |
+|---|---------|--------|
+| 1 | Strict mode algorithm correction | ✅ Done |
+| 2 | Spectator queue / next-team preview | ✅ Done (evolved into Next Team panel + point attribution voting) |
+| 3 | PIN-based player self-registration | ✅ Done |
+| 4 | MMR history table | ✅ Done |
+| 5 | Session summary card | ✅ Done |
+| 6 | Session end flow & shareable image | ✅ Done |
+| 7 | Player account reclaim | 🔮 Not started |
+| 8 | AppSumo lifetime deal | 🔮🔮 Future |
+
+**Open product work (post-migration):** spectator scoring-type migration deploy, player reclaim, freemium/paywall.
+
 ---
 
 ## 1. Strict Mode Algorithm Correction
@@ -601,14 +620,13 @@ Expected: 200–600 purchases → $12k–$35k one-time. Run once, cap at ~500 li
       [x] /dashboard/summary/[session_id] page
       [x] getSessionSummaryData() — MVP, comeback, blowout, leaderboard, iron man
 
-[ ] 6. Session End Flow & Shareable Image
-      [ ] endSession() — redirect to /dashboard/summary/[session_id]
-      [ ] sessions.summary_data JSONB column — supabase/migrations/*.sql migration file
-      [ ] Apply migration to production (supabase db push)
-      [ ] endSession() — compute stats via getSessionSummaryData(), persist summary_data
-      [ ] Summary page reads summary_data first, falls back to live query
-      [ ] src/app/api/og/session-summary/route.ts (@vercel/og — API route exception)
-      [ ] ShareButton.tsx — Web Share API + download fallback
+[x] 6. Session End Flow & Shareable Image
+      [x] endSession() — redirect to /dashboard/summary/[session_id]
+      [x] sessions.summary_data JSONB column
+      [x] endSession() — compute stats via getSessionSummaryData(), persist summary_data
+      [x] Summary page reads summary_data first, falls back to live query
+      [x] src/app/api/og/summary/route.tsx (@vercel/og — API route exception)
+      [x] ShareButton.tsx — Web Share API + download fallback
 
 [ ] 7. Player Account Reclaim  🔮
       [ ] players.user_id column
