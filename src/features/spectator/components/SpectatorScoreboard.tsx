@@ -38,7 +38,7 @@ export default function SpectatorScoreboard({
     queueLength,
     optScoreA,
     optScoreB,
-    isMatchOver,
+    showMatchDoneOverlay,
     teamAPlayers,
     teamBPlayers,
     benchPlayers,
@@ -69,7 +69,7 @@ export default function SpectatorScoreboard({
         matchmakingMode={session.matchmaking_mode}
       />
 
-      {isMatchOver && (
+      {showMatchDoneOverlay && (
         <div className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-sm overflow-hidden flex flex-col items-center p-8 shadow-2xl">
             <h2 className="text-4xl font-black text-white mb-2 text-center uppercase tracking-wider">

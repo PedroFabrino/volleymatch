@@ -36,6 +36,8 @@ export function useSpectatorScoreboard(
   const optScoreA = match.team_a_score
   const optScoreB = match.team_b_score
   const isMatchOver = optScoreA >= session.target_score || optScoreB >= session.target_score
+  const hasPendingVoting = voting.queueLength > 0 || voting.votingState !== 'idle'
+  const showMatchDoneOverlay = isMatchOver && !hasPendingVoting
 
   const teamAPlayers = resolveTeamPlayers(match.team_a_players, playersWithStatus)
   const teamBPlayers = resolveTeamPlayers(match.team_b_players, playersWithStatus)
@@ -52,7 +54,7 @@ export function useSpectatorScoreboard(
     ...voting,
     optScoreA,
     optScoreB,
-    isMatchOver,
+    showMatchDoneOverlay,
     teamAPlayers,
     teamBPlayers,
     benchPlayers,
