@@ -16,6 +16,8 @@ type SpectatorViewSwitchProps = {
   session: Session
   activeMatch: Match | null
   playersWithStatus: PlayerWithStatus[]
+  lastMatchWinningTeamIds: string[]
+  lastMatchLosingTeamIds: string[]
 }
 
 function resolveInitialMatch(sessionId: string, activeMatch: Match | null) {
@@ -32,6 +34,8 @@ export default function SpectatorViewSwitch({
   session,
   activeMatch,
   playersWithStatus,
+  lastMatchWinningTeamIds,
+  lastMatchLosingTeamIds,
 }: SpectatorViewSwitchProps) {
   const [retainedMatch, setRetainedMatch] = useState<Match | null>(() =>
     resolveInitialMatch(session.id, activeMatch)
@@ -68,5 +72,12 @@ export default function SpectatorViewSwitch({
     )
   }
 
-  return <SpectatorMatchmaker session={session} playersWithStatus={playersWithStatus} />
+  return (
+    <SpectatorMatchmaker
+      session={session}
+      playersWithStatus={playersWithStatus}
+      lastMatchWinningTeamIds={lastMatchWinningTeamIds}
+      lastMatchLosingTeamIds={lastMatchLosingTeamIds}
+    />
+  )
 }

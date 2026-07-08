@@ -27,7 +27,7 @@ export default async function ViewSessionPage(props: { params: Promise<{ pin: st
     redirect('/?error=invalid_pin')
   }
 
-  const { session, activeMatch, playersWithStatus } = data
+  const { session, activeMatch, playersWithStatus, lastMatchWinningTeamIds, lastMatchLosingTeamIds } = data
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col pb-8">
@@ -49,6 +49,8 @@ export default async function ViewSessionPage(props: { params: Promise<{ pin: st
           session={session}
           activeMatch={activeMatch}
           playersWithStatus={playersWithStatus}
+          lastMatchWinningTeamIds={lastMatchWinningTeamIds}
+          lastMatchLosingTeamIds={lastMatchLosingTeamIds}
         />
       </div>
     </div>

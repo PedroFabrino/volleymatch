@@ -15,6 +15,8 @@ export type SpectatorViewData = {
   session: SessionWithPin
   activeMatch: Match | null
   playersWithStatus: PlayerWithStatus[]
+  lastMatchWinningTeamIds: string[]
+  lastMatchLosingTeamIds: string[]
 }
 
 export async function getSpectatorViewData(
@@ -61,7 +63,13 @@ export async function getSpectatorViewData(
   )
 
   return {
-    data: { session, activeMatch, playersWithStatus },
+    data: {
+      session,
+      activeMatch,
+      playersWithStatus,
+      lastMatchWinningTeamIds: lastWinners,
+      lastMatchLosingTeamIds: lastLosers,
+    },
     error: null,
   }
 }
