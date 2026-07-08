@@ -50,7 +50,7 @@ export default function SpectatorScoreboard({
     hasPendingVoting,
     teamAPlayers,
     teamBPlayers,
-    benchPlayers,
+    nextTeamPreview,
   } = useSpectatorScoreboard(session, match, playersWithStatus)
 
   useEffect(() => {
@@ -78,8 +78,7 @@ export default function SpectatorScoreboard({
       <SpectatorQueuePanel
         queueOpen={queueOpen}
         setQueueOpen={setQueueOpen}
-        benchPlayers={benchPlayers}
-        matchmakingMode={session.matchmaking_mode}
+        nextTeamPreview={nextTeamPreview}
       />
 
       {showMatchDoneOverlay && (

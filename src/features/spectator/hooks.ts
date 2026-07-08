@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { resolveTeamPlayers } from '@/utils/resolveTeamPlayers'
+import { buildNextTeamPreview } from '@/lib/matchmaking'
 import { useSpectatorVoting } from './useSpectatorVoting'
 import type { PlayerWithStatus } from '@/lib/matchmaking'
 import type { Session, Match } from '@/types'
@@ -55,6 +56,17 @@ export function useSpectatorScoreboard(
     (p) => !match.team_a_players.includes(p.id) && !match.team_b_players.includes(p.id)
   )
 
+  const nextTeamPreview = useMemo(() => {
+    const players = playersWithStatus.map(({ draftStatus, draftedPosition, positionSlotFill, ...player }) => player)
+    return buildNextTeamPreview(
+      players,
+      match.team_a_players,
+      match.team_b_players,
+      session.matchmaking_mode === 'strict',
+      true,
+    )
+  }, [playersWithStatus, match.team_a_players, match.team_b_players, session.matchmaking_mode])
+
   return {
     teamsOpen,
     setTeamsOpen,
@@ -69,5 +81,6 @@ export function useSpectatorScoreboard(
     teamAPlayers,
     teamBPlayers,
     benchPlayers,
+    nextTeamPreview,
   }
 }
