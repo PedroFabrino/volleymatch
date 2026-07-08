@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { generateMatch, saveMatch } from '@/features/live-session'
+import { generateMatch, saveMatch } from '../actions'
 import { Check, Users, Trophy, RefreshCw, PowerOff } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { getActionErrorMessage } from '@/utils/getActionErrorMessage'

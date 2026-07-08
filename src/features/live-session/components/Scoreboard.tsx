@@ -4,11 +4,11 @@ import { useTranslations } from 'next-intl'
 import { Clock } from 'lucide-react'
 import type { PlayerWithStatus } from '@/lib/matchmaking'
 import type { Session, Match, Player } from '@/types'
-import { finishMatch } from '@/features/live-session'
+import { finishMatch } from '../actions'
+import { useScoreboard } from '../hooks'
 import { ScorePanel, RosterPanel, QueuePanel } from './ScoreboardPanels'
 import { AdminControls } from './AdminControls'
 import { SubstitutionModal, SwapPositionModal, MatchOverModal } from './ScoreboardModals'
-import { useScoreboard } from '@/features/live-session'
 
 export default function Scoreboard({ session, match, players, playersWithStatus }: { 
   session: Session, 
