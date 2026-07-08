@@ -16,6 +16,7 @@
 | [feature-spectator-point-attribution.md](./feature-spectator-point-attribution.md) | Spectator “who scored?” voting |
 | [feature-point-scoring-type.md](./feature-point-scoring-type.md) | Spike / block / ace / other scoring types |
 | [feature-optimistic-first-architecture.md](./feature-optimistic-first-architecture.md) | Optimistic UI patterns (design notes) |
+| [feature-host-access-sharing.md](./feature-host-access-sharing.md) | Host delegation, co-host grants, multi-coach concurrency |
 | [implementation/background-persistence-architecture.md](./implementation/background-persistence-architecture.md) | Background persistence design notes |
 
 ## Implementation audits
