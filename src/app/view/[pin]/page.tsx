@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getTranslations } from 'next-intl/server'
-import { SpectatorScoreboard, SpectatorMatchmaker, RealtimeSubscriber } from '@/features/spectator'
+import { SpectatorViewSwitch, RealtimeSubscriber } from '@/features/spectator'
 import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher'
 import { getSpectatorViewData } from '@/lib/services/spectator.service'
 
@@ -45,15 +45,11 @@ export default async function ViewSessionPage(props: { params: Promise<{ pin: st
       </div>
 
       <div className="flex-1 mt-4 px-4 max-w-4xl mx-auto w-full">
-        {activeMatch ? (
-          <SpectatorScoreboard
-            session={session}
-            match={activeMatch}
-            playersWithStatus={playersWithStatus}
-          />
-        ) : (
-          <SpectatorMatchmaker session={session} playersWithStatus={playersWithStatus} />
-        )}
+        <SpectatorViewSwitch
+          session={session}
+          activeMatch={activeMatch}
+          playersWithStatus={playersWithStatus}
+        />
       </div>
     </div>
   )

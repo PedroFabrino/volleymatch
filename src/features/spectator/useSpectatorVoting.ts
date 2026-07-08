@@ -6,6 +6,7 @@ import {
   mergePromptQueue,
   type VotingPrompt,
 } from './voting-prompts'
+import { loadStoredQueue, saveStoredQueue } from './spectator-voting-storage'
 import type { Match } from '@/types'
 
 type VotingState = 'idle' | 'voting' | 'voted'
@@ -22,7 +23,7 @@ type MatchScoreRow = {
 }
 
 export function useSpectatorVoting({ match, sessionId, votedForLabel }: UseSpectatorVotingOptions) {
-  const [promptQueue, setPromptQueue] = useState<VotingPrompt[]>([])
+  const [promptQueue, setPromptQueue] = useState<VotingPrompt[]>(() => loadStoredQueue(match.id))
   const [votingState, setVotingState] = useState<VotingState>('idle')
   const [votingTeam, setVotingTeam] = useState<'a' | 'b' | null>(null)
   const [votingScoreSnapshot, setVotingScoreSnapshot] = useState<{ a: number; b: number } | null>(null)
@@ -32,6 +33,7 @@ export function useSpectatorVoting({ match, sessionId, votedForLabel }: UseSpect
   const [countdown, setCountdown] = useState(10)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const lastSeenScoresRef = useRef({ a: match.team_a_score, b: match.team_b_score })
+  const previousMatchIdRef = useRef<string | null>(null)
 
   const activePromptId = promptQueue[0]?.id ?? null
   const promptQueueRef = useRef(promptQueue)
@@ -78,9 +80,18 @@ export function useSpectatorVoting({ match, sessionId, votedForLabel }: UseSpect
   }, [getVoterToken, match.id])
 
   useEffect(() => {
+    saveStoredQueue(match.id, promptQueue)
+  }, [match.id, promptQueue])
+
+  useEffect(() => {
+    const isNewMatch = previousMatchIdRef.current !== null && previousMatchIdRef.current !== match.id
+    previousMatchIdRef.current = match.id
     lastSeenScoresRef.current = { a: match.team_a_score, b: match.team_b_score }
-    setPromptQueue([])
-  }, [match.id])
+
+    if (isNewMatch) {
+      setPromptQueue([])
+    }
+  }, [match.id, match.team_a_score, match.team_b_score])
 
   useEffect(() => {
     const prompt = promptQueueRef.current[0]
@@ -187,6 +198,8 @@ export function useSpectatorVoting({ match, sessionId, votedForLabel }: UseSpect
     )
   }
 
+  const hasPendingVoting = promptQueue.length > 0 || votingState !== 'idle'
+
   return {
     votingState,
     votingTeam,
@@ -197,6 +210,7 @@ export function useSpectatorVoting({ match, sessionId, votedForLabel }: UseSpect
     castVote,
     dismissCurrentPrompt,
     queueLength: promptQueue.length,
+    hasPendingVoting,
   }
 }
 

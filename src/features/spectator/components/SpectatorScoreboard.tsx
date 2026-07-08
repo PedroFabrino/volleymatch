@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { Session, Match } from '@/types'
 import { PlayerWithStatus } from '@/lib/matchmaking'
@@ -15,10 +16,12 @@ export default function SpectatorScoreboard({
   session,
   match,
   playersWithStatus,
+  onVotingPendingChange,
 }: {
   session: Session
   match: Match
   playersWithStatus: PlayerWithStatus[]
+  onVotingPendingChange?: (pending: boolean) => void
 }) {
   const t = useTranslations('Scoreboard')
   const {
@@ -39,10 +42,15 @@ export default function SpectatorScoreboard({
     optScoreA,
     optScoreB,
     showMatchDoneOverlay,
+    hasPendingVoting,
     teamAPlayers,
     teamBPlayers,
     benchPlayers,
   } = useSpectatorScoreboard(session, match, playersWithStatus)
+
+  useEffect(() => {
+    onVotingPendingChange?.(hasPendingVoting)
+  }, [hasPendingVoting, onVotingPendingChange])
 
   return (
     <div className="flex flex-col h-[80vh] bg-gray-900 overflow-hidden relative rounded-3xl border border-gray-800 shadow-2xl">
