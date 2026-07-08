@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { Clock, ChevronDown, ChevronRight } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-import { submitPointAttribution } from '@/app/view/[pin]/actions'
+import { submitPointAttribution } from '../actions'
 
 import { PlayerWithStatus } from '@/lib/matchmaking'
 import { Session, Match } from '@/types'
