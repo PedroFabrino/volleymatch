@@ -16,10 +16,20 @@ export function useSpectatorScoreboard(
   const [queueOpen, setQueueOpen] = useState(true)
   const [elapsed, setElapsed] = useState('00:00')
 
+  const scoringTypeLabels = {
+    spike: t('scoringTypeSpike'),
+    block: t('scoringTypeBlock'),
+    ace: t('scoringTypeAce'),
+    other: t('scoringTypeOther'),
+  } as const
+
   const voting = useSpectatorVoting({
     match,
     sessionId: session.id,
-    votedForLabel: (name) => t('votedFor', { name }),
+    votedForLabel: (name, scoringType) => t('votedForWithType', {
+      name,
+      type: scoringTypeLabels[scoringType],
+    }),
   })
 
   useEffect(() => {

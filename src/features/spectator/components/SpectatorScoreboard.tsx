@@ -31,12 +31,17 @@ export default function SpectatorScoreboard({
     setQueueOpen,
     elapsed,
     votingState,
+    votingPhase,
     votingTeam,
     countdown,
     voteCounts,
     myVote,
+    selectedPlayerId,
+    selectedPlayerName,
+    selectedScoringType,
     toastMessage,
-    castVote,
+    selectPlayer,
+    selectScoringType,
     dismissCurrentPrompt,
     queueLength,
     optScoreA,
@@ -95,13 +100,18 @@ export default function SpectatorScoreboard({
 
       <VotingOverlay
         votingState={votingState}
+        votingPhase={votingPhase}
         votingTeam={votingTeam}
         countdown={countdown}
         queueLength={queueLength}
         teamPlayers={votingTeam === 'a' ? teamAPlayers : teamBPlayers}
         voteCounts={voteCounts}
         myVote={myVote}
-        castVote={castVote}
+        selectedPlayerId={selectedPlayerId}
+        selectedPlayerName={selectedPlayerName}
+        selectedScoringType={selectedScoringType}
+        selectPlayer={selectPlayer}
+        selectScoringType={selectScoringType}
         onDone={dismissCurrentPrompt}
         toastMessage={toastMessage}
       />
