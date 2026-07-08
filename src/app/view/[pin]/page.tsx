@@ -1,5 +1,4 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getTranslations } from 'next-intl/server'
 import { SpectatorScoreboard, SpectatorMatchmaker, RealtimeSubscriber } from '@/features/spectator'
@@ -10,9 +9,8 @@ import { getSpectatorViewData } from '@/lib/services/spectator.service'
 const getCachedSpectatorViewData = async (pin: string) => {
   return unstable_cache(
     async () => {
-      const supabase = await createClient()
       const adminSupabase = createAdminClient()
-      return getSpectatorViewData(supabase, adminSupabase, pin)
+      return getSpectatorViewData(adminSupabase, adminSupabase, pin)
     },
     ['spectator-view', pin],
     { revalidate: 5, tags: [`spectator-${pin}`] }
