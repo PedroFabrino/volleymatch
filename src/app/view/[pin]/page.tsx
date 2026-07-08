@@ -3,18 +3,13 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getTranslations } from 'next-intl/server'
 import { SpectatorScoreboard, SpectatorMatchmaker, RealtimeSubscriber } from '@/features/spectator'
 import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher'
-import { unstable_cache } from 'next/cache'
 import { getSpectatorViewData } from '@/lib/services/spectator.service'
 
-const getCachedSpectatorViewData = async (pin: string) => {
-  return unstable_cache(
-    async () => {
-      const adminSupabase = createAdminClient()
-      return getSpectatorViewData(adminSupabase, adminSupabase, pin)
-    },
-    ['spectator-view', pin],
-    { revalidate: 5, tags: [`spectator-${pin}`] }
-  )()
+export const dynamic = 'force-dynamic'
+
+async function loadSpectatorViewData(pin: string) {
+  const adminSupabase = createAdminClient()
+  return getSpectatorViewData(adminSupabase, adminSupabase, pin)
 }
 
 export default async function ViewSessionPage(props: { params: Promise<{ pin: string }> }) {
@@ -22,7 +17,7 @@ export default async function ViewSessionPage(props: { params: Promise<{ pin: st
   const pin = params.pin
   const t = await getTranslations('Spectator')
 
-  const { data, error } = await getCachedSpectatorViewData(pin)
+  const { data, error } = await loadSpectatorViewData(pin)
 
   if (error) {
     console.error('Supabase Error fetching session:', error)

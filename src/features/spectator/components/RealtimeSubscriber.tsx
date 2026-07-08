@@ -6,9 +6,9 @@ import { createClient } from '@/lib/supabase/client'
 
 export default function RealtimeSubscriber({ sessionId }: { sessionId: string }) {
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
+    const supabase = createClient()
     let timeoutId: NodeJS.Timeout
     const debouncedRefresh = () => {
       clearTimeout(timeoutId)
@@ -18,7 +18,7 @@ export default function RealtimeSubscriber({ sessionId }: { sessionId: string })
     }
 
     // We subscribe to all changes on matches and session_players where session_id matches
-    const matchesChannel = supabase.channel('public:matches')
+    const matchesChannel = supabase.channel(`spectator:matches:${sessionId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'matches', filter: `session_id=eq.${sessionId}` },
@@ -29,7 +29,7 @@ export default function RealtimeSubscriber({ sessionId }: { sessionId: string })
       )
       .subscribe()
 
-    const sessionsChannel = supabase.channel('public:sessions')
+    const sessionsChannel = supabase.channel(`spectator:sessions:${sessionId}`)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'sessions', filter: `id=eq.${sessionId}` },
@@ -41,10 +41,11 @@ export default function RealtimeSubscriber({ sessionId }: { sessionId: string })
       .subscribe()
 
     return () => {
+      clearTimeout(timeoutId)
       supabase.removeChannel(matchesChannel)
       supabase.removeChannel(sessionsChannel)
     }
-  }, [sessionId, router, supabase])
+  }, [sessionId, router])
 
   // Invisible component
   return null
