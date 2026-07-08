@@ -1,7 +1,24 @@
 import type { PlayerPosition } from '@/types/player'
 import type { NextTeamPreview, NextTeamSlot, Player } from './types'
 import { draftTeams } from './draft'
-import { draftStrictTeams, orderQueueGroup } from './strict-draft'
+import { orderQueueGroupDeterministic, orderPlayersForNextTeamPreview } from './strict-draft'
+
+const SLOT_SORT_ORDER: PlayerPosition[] = [
+  'Setter',
+  'Outside Hitter',
+  'Opposite Hitter',
+  'Middle Blocker',
+  'Libero',
+  'Any',
+]
+
+function sortNextTeamSlots(slots: NextTeamSlot[]): NextTeamSlot[] {
+  return [...slots].sort((a, b) => {
+    const orderA = SLOT_SORT_ORDER.indexOf(a.position)
+    const orderB = SLOT_SORT_ORDER.indexOf(b.position)
+    return (orderA === -1 ? 99 : orderA) - (orderB === -1 ? 99 : orderB)
+  })
+}
 
 const POSITION_BLUEPRINT: Array<{ pos: PlayerPosition; count: number }> = [
   { pos: 'Setter', count: 2 },
@@ -17,15 +34,6 @@ const POSITION_BLUEPRINT_FALLBACK: Array<{ pos: PlayerPosition; count: number }>
   { pos: 'Outside Hitter', count: 4 },
   { pos: 'Opposite Hitter', count: 2 },
   { pos: 'Libero', count: 2 },
-]
-
-const POSITION_DISPLAY_ORDER: PlayerPosition[] = [
-  'Setter',
-  'Outside Hitter',
-  'Opposite Hitter',
-  'Middle Blocker',
-  'Libero',
-  'Any',
 ]
 
 function resolveBlueprint(allAvailablePlayers: Player[]) {
@@ -51,41 +59,12 @@ function playerSlot(position: PlayerPosition, player: Player): NextTeamSlot {
   return { position, playerId: player.id, playerName: player.name, isTbd: false }
 }
 
-function sortTeamSlots(slots: NextTeamSlot[]): NextTeamSlot[] {
-  return [...slots].sort((a, b) => {
-    const orderA = POSITION_DISPLAY_ORDER.indexOf(a.position)
-    const orderB = POSITION_DISPLAY_ORDER.indexOf(b.position)
-    return orderA - orderB
-  })
-}
-
 function padTeamSlots(slots: NextTeamSlot[], targetSize: number): NextTeamSlot[] {
   const padded = [...slots]
   while (padded.length < targetSize) {
     padded.push(emptySlot('Any'))
   }
-  return sortTeamSlots(padded)
-}
-
-function draftResultToPreview(
-  teamA: Player[],
-  teamB: Player[],
-  teamAPositions: Record<string, PlayerPosition>,
-  teamBPositions: Record<string, PlayerPosition>,
-  targetSize: number,
-): NextTeamPreview {
-  const toSlots = (team: Player[], positions: Record<string, PlayerPosition>) => (
-    padTeamSlots(
-      team.map((player) => playerSlot(positions[player.id] || 'Any', player)),
-      targetSize,
-    )
-  )
-
-  return {
-    teamA: toSlots(teamA, teamAPositions),
-    teamB: toSlots(teamB, teamBPositions),
-    targetSize,
-  }
+  return sortNextTeamSlots(padded)
 }
 
 function countPosition(slots: NextTeamSlot[], position: PlayerPosition) {
@@ -197,11 +176,13 @@ export function buildNextTeamPreview(
   fillFromBenchOnly: boolean,
 ): NextTeamPreview {
   const lastMatchAllIds = new Set([...lastMatchWinningTeamIds, ...lastMatchLosingTeamIds])
-  const benchPlayers = orderQueueGroup(allAvailablePlayers.filter(p => !lastMatchAllIds.has(p.id)))
+  const benchPlayers = orderQueueGroupDeterministic(allAvailablePlayers.filter(p => !lastMatchAllIds.has(p.id)))
   const { targetSize } = resolveBlueprint(allAvailablePlayers)
 
   if (!isStrictMode) {
-    const pool = fillFromBenchOnly ? benchPlayers : allAvailablePlayers
+    const pool = fillFromBenchOnly
+      ? benchPlayers
+      : orderQueueGroupDeterministic(allAvailablePlayers)
     return buildCasualPreview(pool, 6)
   }
 
@@ -209,10 +190,10 @@ export function buildNextTeamPreview(
     return draftStrictFromPool(benchPlayers, allAvailablePlayers, true)
   }
 
-  const drafted = draftStrictTeams(allAvailablePlayers, lastMatchWinningTeamIds, lastMatchLosingTeamIds)
-  const playerMap = new Map(allAvailablePlayers.map(p => [p.id, p]))
-  const teamA = drafted.teamA.map(id => playerMap.get(id)).filter((p): p is Player => Boolean(p))
-  const teamB = drafted.teamB.map(id => playerMap.get(id)).filter((p): p is Player => Boolean(p))
-
-  return draftResultToPreview(teamA, teamB, drafted.teamAPositions, drafted.teamBPositions, targetSize)
+  const fullQueue = orderPlayersForNextTeamPreview(
+    allAvailablePlayers,
+    lastMatchWinningTeamIds,
+    lastMatchLosingTeamIds,
+  )
+  return draftStrictFromPool(fullQueue, allAvailablePlayers, false)
 }

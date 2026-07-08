@@ -51,4 +51,18 @@ describe('buildNextTeamPreview', () => {
 
     expect(filled.length).toBe(14)
   })
+
+  it('returns the same preview for repeated calls with identical input', () => {
+    const players: Player[] = []
+    for (let i = 0; i < 2; i++) players.push(createPlayer(`s${i}`, ['Setter']))
+    for (let i = 0; i < 4; i++) players.push(createPlayer(`oh${i}`, ['Outside Hitter']))
+    for (let i = 0; i < 2; i++) players.push(createPlayer(`op${i}`, ['Opposite Hitter']))
+    for (let i = 0; i < 4; i++) players.push(createPlayer(`mb${i}`, ['Middle Blocker']))
+    for (let i = 0; i < 2; i++) players.push(createPlayer(`l${i}`, ['Libero']))
+
+    const first = buildNextTeamPreview(players, [], [], true, false)
+    const second = buildNextTeamPreview(players, [], [], true, false)
+
+    expect(first).toEqual(second)
+  })
 })

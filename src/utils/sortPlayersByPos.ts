@@ -1,4 +1,5 @@
 import { POSITION_SORT_ORDER, parsePlayerPosition } from '@/types/player'
+import type { NextTeamSlot } from '@/lib/matchmaking/types'
 
 export { POSITION_SORT_ORDER as POSITION_ORDER }
 
@@ -31,4 +32,8 @@ export function sortPlayersByPos<T extends { id: string; positions?: string[] }>
     const posB = (positions && positions[b.id] && positions[b.id] !== 'Any') ? positions[b.id] : (b.positions?.[0] || 'Any')
     return positionSortIndex(posA) - positionSortIndex(posB)
   })
+}
+
+export function sortNextTeamSlots(slots: NextTeamSlot[]): NextTeamSlot[] {
+  return [...slots].sort((a, b) => positionSortIndex(a.position) - positionSortIndex(b.position))
 }

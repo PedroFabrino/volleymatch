@@ -18,6 +18,35 @@ export function orderQueueGroup(players: Player[]): Player[] {
     .flatMap(games => shuffleArray(grouped.get(games)!));
 }
 
+/** Stable queue order for previews — fewest games first, then player id. */
+export function orderQueueGroupDeterministic(players: Player[]): Player[] {
+  if (players.length === 0) return [];
+
+  const grouped = new Map<number, Player[]>();
+  for (const p of players) {
+    const games = p.games_played_today;
+    if (!grouped.has(games)) grouped.set(games, []);
+    grouped.get(games)!.push(p);
+  }
+
+  return [...grouped.keys()]
+    .sort((a, b) => a - b)
+    .flatMap(games => [...grouped.get(games)!].sort((a, b) => a.id.localeCompare(b.id)));
+}
+
+/** Deterministic bench → winners → losers order for next-team preview. */
+export function orderPlayersForNextTeamPreview(
+  allPlayers: Player[],
+  lastMatchWinningTeamIds: string[],
+  lastMatchLosingTeamIds: string[],
+): Player[] {
+  const lastMatchAllIds = new Set([...lastMatchWinningTeamIds, ...lastMatchLosingTeamIds]);
+  const bench = orderQueueGroupDeterministic(allPlayers.filter(p => !lastMatchAllIds.has(p.id)));
+  const winners = orderQueueGroupDeterministic(allPlayers.filter(p => lastMatchWinningTeamIds.includes(p.id)));
+  const losers = orderQueueGroupDeterministic(allPlayers.filter(p => lastMatchLosingTeamIds.includes(p.id)));
+  return [...bench, ...winners, ...losers];
+}
+
 /** Bench → winners → losers, each bucket ordered by queue priority. */
 export function orderPlayersForQueuePreview(
   allPlayers: Player[],
