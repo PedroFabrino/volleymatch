@@ -5,15 +5,9 @@ import { Clock } from 'lucide-react'
 import type { PlayerWithStatus } from '@/lib/matchmaking'
 import type { Session, Match, Player } from '@/types'
 import { finishMatch } from '../actions'
-
-import { ScorePanel } from './ScorePanel'
-import { RosterPanel } from './RosterPanel'
-import { QueuePanel } from './QueuePanel'
+import { ScorePanel, RosterPanel, QueuePanel } from './ScoreboardPanels'
 import { AdminControls } from './AdminControls'
-import { SubstitutionModal } from './SubstitutionModal'
-import { SwapPositionModal } from './SwapPositionModal'
-import { MatchOverModal } from './MatchOverModal'
-
+import { SubstitutionModal, SwapPositionModal, MatchOverModal } from './ScoreboardModals'
 import { useScoreboard } from '../hooks'
 
 export default function Scoreboard({ session, match, players, playersWithStatus }: { 

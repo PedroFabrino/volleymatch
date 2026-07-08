@@ -8,13 +8,12 @@ import { submitPointAttribution } from '../actions'
 
 import { PlayerWithStatus } from '@/lib/matchmaking'
 import { Session, Match } from '@/types'
-import { sortPlayersByPos } from '@/utils/sortPlayersByPos'
-import { PlayerRosterRow } from '@/components/PlayerRosterRow'
-
-import SpectatorScorePanel from './SpectatorScorePanel'
-import SpectatorRosterPanel from './SpectatorRosterPanel'
-import SpectatorQueuePanel from './SpectatorQueuePanel'
-import VotingOverlay from './VotingOverlay'
+import {
+  SpectatorScorePanel,
+  SpectatorRosterPanel,
+  SpectatorQueuePanel,
+  VotingOverlay,
+} from './SpectatorPanels'
 
 export default function SpectatorScoreboard({ session, match, playersWithStatus }: { session: Session, match: Match, playersWithStatus: PlayerWithStatus[] }) {
   const t = useTranslations('Scoreboard')
