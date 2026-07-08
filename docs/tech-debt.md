@@ -2,7 +2,7 @@
 
 **Last audited:** 2026-07-08  
 **Audited against:** `AGENTS.md` architecture guide  
-**Current phase:** Phase 4 — Audit #8 (TD-073 → TD-076 open)
+**Current phase:** Phase 4 complete — Audit #8 (TD-073 → TD-076 resolved)
 
 > Items are scored **P1 (blocking/risky)**, **P2 (significant)**, or **P3 (minor/cosmetic)**.  
 > Detailed implementation notes live in [`docs/implementation/tech-debts/`](implementation/tech-debts/).
@@ -17,7 +17,7 @@
 | Fully resolved | **70** |
 | Deferred | **1** (TD-067) |
 | Won't Fix (documented exception) | **1** (TD-072, inherits TD-030) |
-| Open | **4** (TD-073 → TD-076) |
+| Open | **0** (TD-073 → TD-076 resolved) |
 | Files over any hard limit | **0** (excluding generated `database.ts`) |
 | `any` type instances | **0** |
 | `supabase.from()` outside `lib/services/` | **0** (+ OG route documented exception) |
@@ -133,66 +133,14 @@ codebase for violations missed or introduced by remediation work.
 
 **Scope:** Verification pass after TD-060 → TD-071 remediation landed in the working tree.  
 **Items:** TD-073 → TD-076  
-**Status:** 4 open  
+**Status:** All resolved ✅  
 **Full detail:** [`19-TD073-TD076-follow-up-gaps-8.md`](implementation/tech-debts/19-TD073-TD076-follow-up-gaps-8.md)
 
 ---
 
 ## Open Items
 
-### TD-073 · Residual Intra-Feature Deep Imports · P3
-
-| | |
-|---|---|
-| **Rule** | AGENTS §3.2 |
-| **Files** | `Scoreboard.tsx`, `SpectatorScoreboard.tsx`, `AttendanceToggle.tsx`, `AttendanceControls.tsx` |
-
-TD-059 closed all `../actions` imports ✅. Four components still use `../hooks` or
-`../attendance-actions` instead of the feature barrel.
-
-**Remediation:** Export hooks from feature barrels; update roster components to import from
-`@/features/roster`.
-
----
-
-### TD-074 · live-session/hooks.ts Exceeds Soft Limit · P3
-
-| | |
-|---|---|
-| **File** | `src/features/live-session/hooks.ts` |
-| **Size** | 220 lines (soft limit: 200) |
-| **Rule** | AGENTS §4.1 |
-
-**Remediation:** Split `useScoreboard` into timer, vote-toast, and action sub-hooks when next
-touched for live-session work.
-
----
-
-### TD-075 · Dashboard Pages Marginally Over Page Soft Limit · P3
-
-| | |
-|---|---|
-| **Rule** | AGENTS §4.1 |
-| **Files** | `history/page.tsx` (102), `leaderboard/page.tsx` (107), `summary/[session_id]/page.tsx` (101) |
-
-All three are localized and use `lib/services/` ✅ — violation is structural only.
-
-**Remediation:** Extract `HistoryMatchCard`, `LeaderboardTable`, and `SummaryPageHeader` into
-feature components.
-
----
-
-### TD-076 · Matchmaker Swallows Action Errors · P3
-
-| | |
-|---|---|
-| **File** | `src/features/live-session/components/Matchmaker.tsx` L27–28 |
-| **Rule** | AGENTS §6 — TD-065 residual |
-
-`generateMatch` / `saveMatch` errors are caught and `console.error`'d with no user-facing
-feedback despite `getActionErrorMessage()` existing.
-
-**Remediation:** Add error state + `getActionErrorMessage()` in the Matchmaker draft panel.
+No open items. All tracked tech debts (TD-001 → TD-076) are resolved, deferred, or won't fix.
 
 ---
 
@@ -227,21 +175,21 @@ Inline comment in route file documents the exception.
 
 | ID | Priority | Category | File(s) | Status |
 |---|---|---|---|---|
-| TD-073 | P3 | Structure | Residual `../hooks` / `../attendance-actions` imports | **Open** |
-| TD-074 | P3 | File size | `live-session/hooks.ts` — 220 lines | **Open** |
-| TD-075 | P3 | File size | History, leaderboard, summary session pages | **Open** |
-| TD-076 | P3 | i18n | Matchmaker swallows ActionError | **Open** |
+| TD-073 | P3 | Structure | Residual `../hooks` / `../attendance-actions` imports | **Resolved** ✅ |
+| TD-074 | P3 | File size | `live-session/hooks.ts` — 220 lines | **Resolved** ✅ |
+| TD-075 | P3 | File size | History, leaderboard, summary session pages | **Resolved** ✅ |
+| TD-076 | P3 | i18n | Matchmaker swallows ActionError | **Resolved** ✅ |
 | TD-067 | P3 | File size | `lib/mmr/index.ts` | Deferred |
 | TD-072 | P3 | Architecture | OG route | Won't Fix |
 
-All other items (TD-001 → TD-066, TD-068 → TD-071) are resolved ✅
+All other items (TD-001 → TD-076) are resolved, deferred, or won't fix ✅
 
 ---
 
 ## Suggested Next Step
 
-Wire user-facing error feedback in `Matchmaker` (TD-076) — quick win that completes TD-065
-adoption. Then route remaining intra-feature imports through barrels (TD-073).
+No open tech-debt items remain. TD-067 (`lib/mmr/index.ts` split) remains deferred until the
+next MMR feature work.
 
 ---
 
@@ -259,4 +207,4 @@ All implementation and audit documents live in [`docs/implementation/tech-debts/
 | `16` | Audit #5 — TD-042–050 |
 | `17` | Audit #6 — TD-043–059 |
 | `18` | Audit #7 — TD-060–072 |
-| `19` | Audit #8 — TD-073–076 **(current)** |
+| `19` | Audit #8 — TD-073–076 **(resolved)** |

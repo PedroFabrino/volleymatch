@@ -10,7 +10,7 @@
 > **Status of original register (TD-001 → TD-017):** All resolved ✅  
 > **Status of follow-up audits (TD-018 → TD-059):** All resolved ✅  
 > **Status of audit #7 (TD-060 → TD-072):** TD-060–066, TD-068–071 resolved ✅ · TD-067 deferred · TD-072 Won't Fix  
-> **Status of audit #8 (TD-073 → TD-076):** 4 new open items
+> **Status of audit #8 (TD-073 → TD-076):** All resolved ✅
 
 ---
 
@@ -143,10 +143,10 @@ Add local error state + `useTranslations('Errors')`. Display
 
 | ID | Priority | Category | File(s) | Status |
 |---|---|---|---|---|
-| TD-073 | P3 | Structure | Residual `../hooks` and `../attendance-actions` imports | **Open** |
-| TD-074 | P3 | File size | `live-session/hooks.ts` — 220 lines | **Open** |
-| TD-075 | P3 | File size | History, leaderboard, summary session pages — 101–107 lines | **Open** |
-| TD-076 | P3 | i18n | Matchmaker swallows ActionError without user feedback | **Open** |
+| TD-073 | P3 | Structure | Residual `../hooks` and `../attendance-actions` imports | **Resolved** ✅ |
+| TD-074 | P3 | File size | `live-session/hooks.ts` — 220 lines | **Resolved** ✅ |
+| TD-075 | P3 | File size | History, leaderboard, summary session pages — 101–107 lines | **Resolved** ✅ |
+| TD-076 | P3 | i18n | Matchmaker swallows ActionError without user feedback | **Resolved** ✅ |
 
 ---
 
@@ -155,10 +155,10 @@ Add local error state + `useTranslations('Errors')`. Display
 | Metric | Count |
 |---|---|
 | TD items total (001–076) | 76 |
-| Fully resolved (001–066, 068–071) | **69** |
+| Fully resolved (001–066, 068–071, 073–076) | **73** |
 | Deferred (067) | **1** |
 | Won't Fix (072) | **1** |
-| New open (073–076) | **4** |
+| New open (073–076) | **0** |
 | Files over any hard limit | **0** (excluding generated `database.ts`) |
 | `any` type instances | **0** |
 | `supabase.from()` outside `lib/services/` + documented OG exception | **0** |
