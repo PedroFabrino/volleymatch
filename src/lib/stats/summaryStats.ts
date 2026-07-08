@@ -1,4 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js'
+import { Match, MatchEvent } from '../../types/match'
+import { Player } from '../../types/player'
 
 export async function getSessionSummaryData(supabase: SupabaseClient, sessionId: string) {
   // 1. Fetch all completed matches
@@ -28,8 +30,8 @@ export async function getSessionSummaryData(supabase: SupabaseClient, sessionId:
     .eq('session_id', sessionId)
 
   const playersData = sessionPlayers?.map(sp => ({
-    id: (sp.players as any).id,
-    name: (sp.players as any).name,
+    id: (sp.players as { id: string }).id,
+    name: (sp.players as { name: string }).name,
     games_played: sp.games_played
   })) || []
 
@@ -94,11 +96,11 @@ export async function getSessionSummaryData(supabase: SupabaseClient, sessionId:
 
   // --- Biggest Comeback & Difference ---
   let maxComeback = 0
-  let biggestComebackMatch: any = null
+  let biggestComebackMatch: Match | null = null
   let turningPoint = { winningScore: 0, losingScore: 0 }
 
   let maxDiff = 0
-  let biggestDiffMatch: any = null
+  let biggestDiffMatch: Match | null = null
 
   matches?.forEach(match => {
     const diff = Math.abs(match.team_a_score - match.team_b_score)
@@ -113,7 +115,7 @@ export async function getSessionSummaryData(supabase: SupabaseClient, sessionId:
       
       const winner = match.team_a_score > match.team_b_score ? 'a' : 'b';
 
-      match.match_events.forEach((event: any) => {
+      match.match_events.forEach((event: MatchEvent) => {
         if (event.event_type === 'score' && event.score_a !== undefined && event.score_b !== undefined) {
           if (winner === 'a') {
             const deficit = event.score_b - event.score_a;
@@ -328,11 +330,11 @@ export async function getGlobalSummaryData(supabase: SupabaseClient, hosterId: s
 
   // --- Biggest Comeback & Difference ---
   let maxComeback = 0
-  let biggestComebackMatch: any = null
+  let biggestComebackMatch: Match | null = null
   let turningPoint = { winningScore: 0, losingScore: 0 }
 
   let maxDiff = 0
-  let biggestDiffMatch: any = null
+  let biggestDiffMatch: Match | null = null
 
   matches?.forEach(match => {
     const diff = Math.abs(match.team_a_score - match.team_b_score)
@@ -347,7 +349,7 @@ export async function getGlobalSummaryData(supabase: SupabaseClient, hosterId: s
       
       const winner = match.team_a_score > match.team_b_score ? 'a' : 'b';
 
-      match.match_events.forEach((event: any) => {
+      match.match_events.forEach((event: MatchEvent) => {
         if (event.event_type === 'score' && event.score_a !== undefined && event.score_b !== undefined) {
           if (winner === 'a') {
             const deficit = event.score_b - event.score_a;
@@ -431,7 +433,7 @@ export async function getGlobalSummaryData(supabase: SupabaseClient, hosterId: s
   }
 }
 
-export function computeDashboardStats(players: any[], completedMatches: any[]) {
+export function computeDashboardStats(players: Player[], completedMatches: Match[]) {
   const playerStats: Record<string, { matches: number; wins: number; name: string, mmr: number }> = {}
   
   if (players) {

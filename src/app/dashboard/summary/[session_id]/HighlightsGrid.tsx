@@ -3,17 +3,19 @@
 import { useState } from 'react'
 import { Trophy, TrendingUp, Flame, Swords, X, Share2, Copy, Check } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { Match } from '../../../../../types/match'
+import { PlayerStat } from '../../../../../types/player'
 
 type Props = {
   sessionId: string;
-  mvp: any;
+  mvp: PlayerStat | null;
   bestPartner: { name: string, wins: number } | null;
-  biggestComebackMatch: any;
+  biggestComebackMatch: Match | null;
   maxComeback: number;
   turningPoint: { winningScore: number, losingScore: number };
-  biggestDiffMatch: any;
+  biggestDiffMatch: Match | null;
   maxDiff: number;
-  playersData: any[];
+  playersData: { id: string, name: string }[];
   topScorer?: { id: string, name: string, points: number } | null;
   isGlobal?: boolean;
   hosterId?: string;
@@ -47,7 +49,7 @@ export default function HighlightsGrid({
   }
 
   const getPlayerNames = (teamIds: string[]) => {
-    return teamIds.map((id: string) => playersData.find((p: any) => p.id === id)?.name).join(', ')
+    return teamIds.map((id: string) => playersData.find(p => p.id === id)?.name).join(', ')
   }
 
   return (

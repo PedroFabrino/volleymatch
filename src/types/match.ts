@@ -20,3 +20,10 @@ export interface MatchEvent {
   score_a?: number;
   score_b?: number;
 }
+
+export type MatchDraft = {
+  teamA: string[]
+  teamB: string[]
+  teamAPositions?: Record<string, string>
+  teamBPositions?: Record<string, string>
+}
