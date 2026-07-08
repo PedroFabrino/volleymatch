@@ -9,6 +9,7 @@ import type { PlayerWithStatus } from '@/lib/matchmaking'
 import { createClient } from '@/lib/supabase/client'
 
 import type { Session, Match, Player } from '@/types'
+import { sortPlayersByPos } from '@/utils/sortPlayersByPos'
 
 import { ScorePanel } from './ScorePanel'
 import { RosterPanel } from './RosterPanel'
@@ -178,17 +179,6 @@ export default function Scoreboard({ session, match, players, playersWithStatus 
     if (a.draftStatus !== 'in_next_match' && b.draftStatus === 'in_next_match') return 1;
     return 0;
   });
-
-  const sortOrder = ['Setter', 'Middle Blocker', 'Outside Hitter', 'Opposite Hitter', 'Libero', 'Any'];
-  const sortPlayersByPos = (teamPlayers: Player[], positions?: Record<string, string>) => {
-    return [...teamPlayers].sort((a, b) => {
-      const posA = (positions && positions[a.id] && positions[a.id] !== 'Any') ? positions[a.id] : (a.positions?.[0] || 'Any');
-      const posB = (positions && positions[b.id] && positions[b.id] !== 'Any') ? positions[b.id] : (b.positions?.[0] || 'Any');
-      const indexA = sortOrder.indexOf(posA);
-      const indexB = sortOrder.indexOf(posB);
-      return (indexA === -1 ? 99 : indexA) - (indexB === -1 ? 99 : indexB);
-    });
-  }
 
   const sortedTeamA = sortPlayersByPos(teamAPlayers, match.team_a_positions);
   const sortedTeamB = sortPlayersByPos(teamBPlayers, match.team_b_positions);

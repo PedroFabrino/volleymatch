@@ -2,6 +2,7 @@
 
 import { ChevronUp, ChevronDown, Minus } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { PlayerRosterRow } from '@/components'
 
 type RosterPanelProps = {
   team: 'a' | 'b'
@@ -52,41 +53,16 @@ export function RosterPanel({
       </div>
       {isOpen && (
         <ul className="flex flex-col gap-2">
-          {players.map((p) => {
-            const pos = positions?.[p.id];
-            const displayPos = (pos && pos !== 'Any') ? pos : (p.positions?.[0] || 'Any');
-            const isLibero = displayPos === 'Libero';
-            return (
-              <li key={p.id} className={`${isLibero ? 'bg-amber-900/30 border border-amber-500/30' : 'bg-gray-800'} rounded-lg p-3 shadow flex justify-between items-center`}>
-                <div>
-                  <div className={`font-bold ${isLibero ? 'text-amber-100' : 'text-gray-100'}`}>{p.name}</div>
-                  <div className="text-[10px] text-gray-400 mt-1 flex flex-wrap gap-1 font-bold">
-                    {pos && pos !== 'Any' ? (
-                      <span className={`${isLibero ? 'bg-amber-900/60 text-amber-200' : isTeamA ? 'bg-red-900/50 text-red-200' : 'bg-blue-900/50 text-blue-200'} px-2 py-0.5 rounded`}>{posT(pos as any)}</span>
-                    ) : (
-                      p.positions && p.positions.length > 0 ? p.positions.map((ppos: string) => (
-                        <span key={ppos} className={`${ppos === 'Libero' ? 'bg-amber-900/60 text-amber-200' : 'bg-gray-700'} px-1 rounded`}>{posT(ppos as any)}</span>
-                      )) : t('any')
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <button 
-                    onClick={() => onSub({ id: p.id, name: p.name, team })}
-                    className="bg-gray-700 text-xs px-2 py-1 rounded text-gray-300 hover:bg-gray-600 transition"
-                  >
-                    {t('sub')}
-                  </button>
-                  <button
-                    onClick={() => onSwap({ id: p.id, name: p.name, team, position: displayPos })}
-                    className="bg-gray-700 text-xs px-2 py-1 rounded text-gray-300 hover:bg-gray-600 transition ml-1"
-                  >
-                    {t('swap')}
-                  </button>
-                </div>
-              </li>
-            )
-          })}
+          {players.map((p) => (
+            <PlayerRosterRow
+              key={p.id}
+              player={p}
+              position={positions?.[p.id]}
+              team={team}
+              onSub={onSub}
+              onSwap={onSwap}
+            />
+          ))}
         </ul>
       )}
     </div>
