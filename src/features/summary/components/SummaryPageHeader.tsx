@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft, Calendar } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
-import { ShareButton } from './ShareButton'
+import ShareButton from './ShareButton'
 
 type SummaryPageHeaderProps = {
   sessionId: string
