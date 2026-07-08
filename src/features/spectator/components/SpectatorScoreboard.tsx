@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { Session, Match } from '@/types'
 import { PlayerWithStatus } from '@/lib/matchmaking'
-import { useSpectatorScoreboard } from '../hooks'
+import { useSpectatorScoreboard } from '@/features/spectator'
 import {
   SpectatorScorePanel,
   SpectatorRosterPanel,

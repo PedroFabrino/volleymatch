@@ -8,7 +8,7 @@ import { finishMatch } from '@/features/live-session'
 import { ScorePanel, RosterPanel, QueuePanel } from './ScoreboardPanels'
 import { AdminControls } from './AdminControls'
 import { SubstitutionModal, SwapPositionModal, MatchOverModal } from './ScoreboardModals'
-import { useScoreboard } from '../hooks'
+import { useScoreboard } from '@/features/live-session'
 
 export default function Scoreboard({ session, match, players, playersWithStatus }: { 
   session: Session, 
