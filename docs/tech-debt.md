@@ -2,7 +2,7 @@
 
 **Last audited:** 2026-07-08  
 **Audited against:** `AGENTS.md` architecture guide  
-**Current phase:** Phase 3 complete — TD-067 deferred (split `lib/mmr/` when next touched)
+**Current phase:** Phase 4 — Audit #8 (TD-073 → TD-076 open)
 
 > Items are scored **P1 (blocking/risky)**, **P2 (significant)**, or **P3 (minor/cosmetic)**.  
 > Detailed implementation notes live in [`docs/implementation/tech-debts/`](implementation/tech-debts/).
@@ -13,11 +13,11 @@
 
 | Metric | Value |
 |---|---|
-| Total TD items tracked | **72** (TD-001 → TD-072) |
-| Fully resolved | **69** |
+| Total TD items tracked | **76** (TD-001 → TD-076) |
+| Fully resolved | **70** |
 | Deferred | **1** (TD-067) |
 | Won't Fix (documented exception) | **1** (TD-072, inherits TD-030) |
-| Open | **0** |
+| Open | **4** (TD-073 → TD-076) |
 | Files over any hard limit | **0** (excluding generated `database.ts`) |
 | `any` type instances | **0** |
 | `supabase.from()` outside `lib/services/` | **0** (+ OG route documented exception) |
@@ -28,7 +28,7 @@
 
 ## How This Register Evolved
 
-The tech-debt program runs in three phases. Each phase ends with a fresh codebase audit against
+The tech-debt program runs in phases. Each phase ends with a fresh codebase audit against
 `AGENTS.md`; newly discovered violations receive sequential TD IDs and a follow-up document in
 `docs/implementation/tech-debts/`.
 
@@ -36,10 +36,12 @@ The tech-debt program runs in three phases. Each phase ends with a fresh codebas
 flowchart LR
   P1["Phase 1\nInitial Register\nTD-001 → TD-017"]
   P2["Phase 2\nFollow-Up Audits\nTD-018 → TD-059"]
-  P3["Phase 3\nCurrent Gaps\nTD-060 → TD-072"]
+  P3["Phase 3\nAudit #7\nTD-060 → TD-072"]
+  P4["Phase 4\nAudit #8\nTD-073 → TD-076"]
   P1 -->|"All resolved ✅"| P2
   P2 -->|"All resolved ✅"| P3
-  P3 -->|"10 resolved, 1 deferred, 1 won't fix"| Next["Next audit when\nnew violations found"]
+  P3 -->|"10 resolved, 1 deferred, 1 won't fix"| P4
+  P4 -->|"4 open"| Next["Next audit when\nnew violations found"]
 ```
 
 ### Phase 1 — Initial Register (2026-07-07)
@@ -108,178 +110,104 @@ codebase for violations missed or introduced by remediation work.
 
 ---
 
-### Phase 3 — Current Open Items (2026-07-08)
+### Phase 3 — Audit #7 (2026-07-08)
 
-**Scope:** Audit #7 — fresh cross-check after TD-043 → TD-059 closed.  
+**Scope:** Fresh cross-check after TD-043 → TD-059 closed.  
 **Items:** TD-060 → TD-072  
-**Status:** 11 open, 1 won't fix  
+**Status:** 10 resolved ✅ · 1 deferred (TD-067) · 1 won't fix (TD-072)  
 **Full detail:** [`18-TD060-TD072-follow-up-gaps-7.md`](implementation/tech-debts/18-TD060-TD072-follow-up-gaps-7.md)
+
+**Key outcomes from Phase 3:**
+
+- **Landing, login, share pages** localized (`Home`, `Login`, `Metadata` namespaces; TD-060, TD-061, TD-068)
+- **`ActiveSessionBanner`** routes through `getActiveSession()` service (TD-063)
+- **Auth guards** added to `updateScore`, `cancelMatch`, `substitutePlayer` (TD-064)
+- **`getActionErrorMessage()`** helper created; wired in `PlayerJoinForm` (TD-065)
+- **`HighlightDetailModal`** decomposed into 4 variant panels — **157 lines** (TD-066)
+- **`parsePositionRecord()`** in mappers; used in team actions and draft logic (TD-070)
+- **Generated `database.ts`** file-size exception documented in `AGENTS.md` §4.1 (TD-071)
+
+---
+
+### Phase 4 — Audit #8 (2026-07-08)
+
+**Scope:** Verification pass after TD-060 → TD-071 remediation landed in the working tree.  
+**Items:** TD-073 → TD-076  
+**Status:** 4 open  
+**Full detail:** [`19-TD073-TD076-follow-up-gaps-8.md`](implementation/tech-debts/19-TD073-TD076-follow-up-gaps-8.md)
 
 ---
 
 ## Open Items
 
-### TD-060 · Hardcoded English on Landing Page · P2
+### TD-073 · Residual Intra-Feature Deep Imports · P3
 
 | | |
 |---|---|
-| **File** | `src/app/page.tsx` L25–47 |
-| **Rule** | AGENTS §6 |
+| **Rule** | AGENTS §3.2 |
+| **Files** | `Scoreboard.tsx`, `SpectatorScoreboard.tsx`, `AttendanceToggle.tsx`, `AttendanceControls.tsx` |
 
-Four user-facing strings are hardcoded (`"VolleyMatch"`, landing description, `"or"`, `"Login as Host"`).
-`JoinSessionForm` is already localized; the page wrapper is not.
+TD-059 closed all `../actions` imports ✅. Four components still use `../hooks` or
+`../attendance-actions` instead of the feature barrel.
 
-**Remediation:** Add a `Home` namespace to both locale files; use `getTranslations('Home')`.
+**Remediation:** Export hooks from feature barrels; update roster components to import from
+`@/features/roster`.
 
 ---
 
-### TD-061 · Residual Hardcoded English on Login Page · P3
+### TD-074 · live-session/hooks.ts Exceeds Soft Limit · P3
 
 | | |
 |---|---|
-| **File** | `src/app/login/page.tsx` L14, 22 |
-| **Rule** | AGENTS §6 |
-
-`"Back"` and `"VolleyMatch"` remain hardcoded. `Metadata.title` key already exists.
-
-**Remediation:** Add `Login.back`; use `getTranslations('Metadata')` for the brand name.
-
----
-
-### TD-062 · Matchmaker Ignores Existing i18n Key · P3
-
-| | |
-|---|---|
-| **File** | `src/features/live-session/components/Matchmaker.tsx` L57 |
-| **Rule** | AGENTS §6 |
-
-Hardcoded `"Calculating next match..."` while `Matchmaker.preparingDraft` already exists in both locales.
-
-**Remediation:** Replace with `{t('preparingDraft')}` — no new keys required.
-
----
-
-### TD-063 · Direct Supabase Query in Layout Component · P2
-
-| | |
-|---|---|
-| **File** | `src/components/layout/ActiveSessionBanner.tsx` L16–21 |
-| **Rule** | AGENTS §7 |
-
-Banner queries `sessions` directly instead of using `getActiveSession()` from `lib/services/`.
-
-**Remediation:** Replace inline query with `getActiveSession(supabase, user.id)`.
-
----
-
-### TD-064 · Missing Auth Guards on Mutating Server Actions · P2
-
-| | |
-|---|---|
-| **Rule** | AGENTS §4.3 |
-| **Files** | `features/live-session/actions.ts`, `features/live-session/team-actions.ts` |
-
-Three mutating actions perform writes without `assertAuthenticated(user)`:
-
-| Function | File |
-|---|---|
-| `updateScore` | `actions.ts` |
-| `cancelMatch` | `actions.ts` |
-| `substitutePlayer` | `team-actions.ts` |
-
-**Remediation:** Add `getUser()` + `assertAuthenticated(user)` at the top of each, matching `saveMatch`.
-
----
-
-### TD-065 · ActionError Codes Not Translated on Client · P3
-
-| | |
-|---|---|
-| **Files** | `src/types/action-error.ts`, `Errors` namespace in locales |
-| **Rule** | AGENTS §6 |
-
-`ActionError('unauthorized')` throws machine codes; `Errors` namespace exists but no client helper
-maps codes to `t('unauthorized')` when errors surface in the UI.
-
-**Remediation:** Add `getActionErrorMessage(error, t)` helper; use in client catch blocks.
-
----
-
-### TD-066 · HighlightDetailModal Exceeds Component Soft Limit · P3
-
-| | |
-|---|---|
-| **File** | `src/features/summary/components/HighlightDetailModal.tsx` |
-| **Size** | 212 lines (soft limit: 200) |
+| **File** | `src/features/live-session/hooks.ts` |
+| **Size** | 220 lines (soft limit: 200) |
 | **Rule** | AGENTS §4.1 |
 
-**Remediation:** Extract per-variant panels (`HighlightMvpPanel`, etc.); keep modal shell ~80 lines.
+**Remediation:** Split `useScoreboard` into timer, vote-toast, and action sub-hooks when next
+touched for live-session work.
 
 ---
+
+### TD-075 · Dashboard Pages Marginally Over Page Soft Limit · P3
+
+| | |
+|---|---|
+| **Rule** | AGENTS §4.1 |
+| **Files** | `history/page.tsx` (102), `leaderboard/page.tsx` (107), `summary/[session_id]/page.tsx` (101) |
+
+All three are localized and use `lib/services/` ✅ — violation is structural only.
+
+**Remediation:** Extract `HistoryMatchCard`, `LeaderboardTable`, and `SummaryPageHeader` into
+feature components.
+
+---
+
+### TD-076 · Matchmaker Swallows Action Errors · P3
+
+| | |
+|---|---|
+| **File** | `src/features/live-session/components/Matchmaker.tsx` L27–28 |
+| **Rule** | AGENTS §6 — TD-065 residual |
+
+`generateMatch` / `saveMatch` errors are caught and `console.error`'d with no user-facing
+feedback despite `getActionErrorMessage()` existing.
+
+**Remediation:** Add error state + `getActionErrorMessage()` in the Matchmaker draft panel.
+
+---
+
+## Deferred / Won't Fix
 
 ### TD-067 · lib/mmr/index.ts Approaching Soft Limit · P3
 
 | | |
 |---|---|
 | **File** | `src/lib/mmr/index.ts` |
-| **Size** | 210 lines (soft limit: 250) |
-| **Rule** | AGENTS §4.1, §4.6 |
+| **Size** | 239 lines (soft limit: 250) |
+| **Status** | **Deferred** — split when next touched for MMR work |
 
-**Remediation:** When next touched, split into `calculation.ts`, `setter-bonus.ts`, `types.ts`, barrel.
-
----
-
-### TD-068 · Hardcoded Product Branding on Public Pages · P3
-
-| | |
-|---|---|
-| **Rule** | AGENTS §6 |
-| **Files** | `app/page.tsx`, `app/login/page.tsx`, share pages, `ActiveSessionBanner.tsx` |
-
-`"VolleyMatch"` hardcoded in JSX on 5 pages/components despite localized `Metadata.title`.
-
-**Remediation:** Use `getTranslations('Metadata')` → `t('title')` on server pages.
-
----
-
-### TD-069 · LanguageSwitcher Hardcoded Labels · P3
-
-| | |
-|---|---|
-| **File** | `src/components/layout/LanguageSwitcher.tsx`, `ThemeToggle.tsx` |
-| **Rule** | AGENTS §6 |
-
-Hardcoded aria-labels and menu options (`"Change language"`, `"English"`, `"Português"`, `"Toggle theme"`).
-`Common.theme` key already exists for the theme toggle.
-
-**Remediation:** Add `Common.changeLanguage`, `Common.english`, `Common.portuguese`; use `useTranslations`.
-
----
-
-### TD-070 · Position Record Casts in team-actions.ts · P3
-
-| | |
-|---|---|
-| **File** | `src/features/live-session/team-actions.ts` |
-| **Rule** | AGENTS §4.5 — TD-041 residual at action layer |
-
-JSON position columns cast as `Record<string, string>` instead of mapped through `mappers.ts`.
-
-**Remediation:** Add `parsePositionRecord(value: Json)` in `lib/services/mappers.ts`.
-
----
-
-### TD-071 · Generated database.ts Exceeds File Size Limit · P3
-
-| | |
-|---|---|
-| **File** | `src/types/database.ts` |
-| **Size** | 519 lines (hard limit: 300) |
-| **Rule** | AGENTS §4.1 |
-
-Supabase-generated types; splitting would be overwritten on next `supabase gen types`.
-
-**Remediation:** Document a project exception in `AGENTS.md` — generated types exempt from file-size limits.
+Split into `calculation.ts`, `setter-bonus.ts`, `types.ts`, barrel when MMR features are next
+modified.
 
 ---
 
@@ -299,7 +227,11 @@ Inline comment in route file documents the exception.
 
 | ID | Priority | Category | File(s) | Status |
 |---|---|---|---|---|
-| TD-067 | P3 | File size | `lib/mmr/index.ts` | Deferred — split when next touched |
+| TD-073 | P3 | Structure | Residual `../hooks` / `../attendance-actions` imports | **Open** |
+| TD-074 | P3 | File size | `live-session/hooks.ts` — 220 lines | **Open** |
+| TD-075 | P3 | File size | History, leaderboard, summary session pages | **Open** |
+| TD-076 | P3 | i18n | Matchmaker swallows ActionError | **Open** |
+| TD-067 | P3 | File size | `lib/mmr/index.ts` | Deferred |
 | TD-072 | P3 | Architecture | OG route | Won't Fix |
 
 All other items (TD-001 → TD-066, TD-068 → TD-071) are resolved ✅
@@ -308,7 +240,8 @@ All other items (TD-001 → TD-066, TD-068 → TD-071) are resolved ✅
 
 ## Suggested Next Step
 
-Split `lib/mmr/index.ts` along concern boundaries when the next MMR feature touches that module (see audit #7 TD-067).
+Wire user-facing error feedback in `Matchmaker` (TD-076) — quick win that completes TD-065
+adoption. Then route remaining intra-feature imports through barrels (TD-073).
 
 ---
 
@@ -325,4 +258,5 @@ All implementation and audit documents live in [`docs/implementation/tech-debts/
 | `15` | Audit #4 — TD-034–041 |
 | `16` | Audit #5 — TD-042–050 |
 | `17` | Audit #6 — TD-043–059 |
-| `18` | Audit #7 — TD-060–072 **(current)** |
+| `18` | Audit #7 — TD-060–072 |
+| `19` | Audit #8 — TD-073–076 **(current)** |
