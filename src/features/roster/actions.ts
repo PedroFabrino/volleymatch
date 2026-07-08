@@ -91,5 +91,3 @@ export async function deletePlayer(playerId: string) {
   await supabase.from('players').delete().eq('id', playerId).eq('hoster_id', user.id)
   revalidatePath('/dashboard/roster')
 }
-
-}

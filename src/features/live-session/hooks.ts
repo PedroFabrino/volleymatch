@@ -94,7 +94,7 @@ export function useScoreboard(
       supabase.removeChannel(channel)
       if (voteDebounceTimeoutRef.current) clearTimeout(voteDebounceTimeoutRef.current)
     }
-  }, [session.id, players])
+  }, [session.id, players, t])
 
   // Optimistic UI states for instant feedback
   const [optScoreA, addOptScoreA] = useOptimistic(
