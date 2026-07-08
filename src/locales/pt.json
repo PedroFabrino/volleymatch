@@ -159,7 +159,9 @@
     "reroll": "Refazer Sorteio",
     "startMatch": "Iniciar Partida",
     "endSession": "Encerrar Sessão",
-    "confirmEndSession": "Tem certeza que deseja encerrar esta sessão?"
+    "confirmEndSession": "Tem certeza que deseja encerrar esta sessão?",
+    "preparingDraft": "Preparando sorteio...",
+    "generateFailed": "Falha ao gerar a partida. Tente novamente."
   },
   "Scoreboard": {
     "cancelGame": "Cancelar Jogo",

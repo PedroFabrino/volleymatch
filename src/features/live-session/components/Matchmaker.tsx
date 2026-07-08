@@ -2,8 +2,9 @@
 
 import { useState, useTransition } from 'react'
 import { generateMatch, saveMatch } from '@/features/live-session'
-import { Shuffle, Check, Users, ArrowUpDown, Undo2, Ban, Trophy, RefreshCw, PowerOff } from 'lucide-react'
+import { Check, Users, Trophy, RefreshCw, PowerOff } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { getActionErrorMessage } from '@/utils/getActionErrorMessage'
 import { Session } from '@/types/session'
 import { Player } from '@/types/player'
 import { MatchDraft } from '@/types/match'
@@ -16,26 +17,32 @@ export default function Matchmaker({ session, players, isFirstMatch, onEndSessio
   const router = useRouter()
   const [draft, setDraft] = useState<MatchDraft | null>((session.pending_draft as MatchDraft) ?? null)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [error, setError] = useState('')
   const t = useTranslations('Matchmaker')
+  const tErrors = useTranslations('Errors')
 
   const handleGenerate = async () => {
-    if (isGenerating) return;
-    setIsGenerating(true);
+    if (isGenerating) return
+    setIsGenerating(true)
+    setError('')
     try {
       const result = await generateMatch(session.id)
       if (result) setDraft(result)
     } catch (e) {
-      console.error(e)
+      setError(getActionErrorMessage(e, tErrors, t('generateFailed')))
     } finally {
-      setIsGenerating(false);
+      setIsGenerating(false)
     }
   }
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (!draft) return
-    startTransition(() => {
-      saveMatch(session.id, draft.teamA, draft.teamB, draft.teamAPositions, draft.teamBPositions)
-    })
+    setError('')
+    try {
+      await saveMatch(session.id, draft.teamA, draft.teamB, draft.teamAPositions, draft.teamBPositions)
+    } catch (e) {
+      setError(getActionErrorMessage(e, tErrors, t('generateFailed')))
+    }
   }
 
   const getTeamAverageMMR = (teamIds: string[]) => {
@@ -70,6 +77,12 @@ export default function Matchmaker({ session, players, isFirstMatch, onEndSessio
           <Trophy className="w-20 h-20 mx-auto text-yellow-500 mb-6" />
           <h2 className="text-3xl font-black mb-2 text-white">{t('ready')}</h2>
           <p className="text-gray-400 mb-8">{t('readyDesc')}</p>
+
+          {error && (
+            <div className="mb-4 bg-red-900/50 border border-red-500 text-red-200 px-4 py-2 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
           
           <div className="flex flex-col gap-4">
             <button 
@@ -98,6 +111,12 @@ export default function Matchmaker({ session, players, isFirstMatch, onEndSessio
       ) : (
         <div className="w-full max-w-4xl pt-20 pb-8 flex flex-col gap-8">
           <h2 className="text-3xl font-black text-white">{t('draftPreview')}</h2>
+
+          {error && (
+            <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-2 rounded-lg text-sm text-left">
+              {error}
+            </div>
+          )}
           
           <div className="flex flex-col md:flex-row gap-6 w-full text-left">
             <DraftTeamPanel

@@ -160,7 +160,8 @@
     "startMatch": "Start Match",
     "endSession": "End Session",
     "confirmEndSession": "Are you sure you want to end this session?",
-    "preparingDraft": "Preparing draft..."
+    "preparingDraft": "Preparing draft...",
+    "generateFailed": "Failed to generate the match. Please try again."
   },
   "Scoreboard": {
     "cancelGame": "Cancel Game",
