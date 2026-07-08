@@ -129,6 +129,7 @@
     "clearAll": "Clear All"
   },
   "Matchmaker": {
+    "backToDashboard": "Back to Dashboard",
     "ready": "Ready for the Court",
     "readyDesc": "The matchmaking algorithm will draft the most balanced teams based on player skill and rotation history.",
     "drafting": "Drafting Teams...",
@@ -144,6 +145,8 @@
   },
   "Scoreboard": {
     "cancelGame": "Cancel Game",
+    "spectatorVotedToast": "🗳️ Spectators: {name} scored",
+    "votedFor": "Voted for {name} ✓",
     "finishEarly": "Finish Early",
     "redTeam": "Red Team",
     "blueTeam": "Blue Team",

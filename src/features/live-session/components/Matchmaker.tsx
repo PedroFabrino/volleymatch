@@ -76,7 +76,7 @@ export default function Matchmaker({ session, players, isFirstMatch, onEndSessio
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center relative w-full overflow-y-auto">
-      <a href="/dashboard/session" className="absolute top-6 left-6 p-3 bg-gray-800 rounded-full hover:bg-gray-700 transition shadow-lg z-10" title="Back to Dashboard">
+      <a href="/dashboard/session" className="absolute top-6 left-6 p-3 bg-gray-800 rounded-full hover:bg-gray-700 transition shadow-lg z-10" title={t('backToDashboard')}>
         <Users className="w-6 h-6 text-gray-300" />
       </a>
 

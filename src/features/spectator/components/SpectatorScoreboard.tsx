@@ -148,7 +148,7 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
 
     setMyVote(playerId)
     setVotingState('voted')
-    setToastMessage(`Voted for ${playerName} ✓`)
+    setToastMessage(t('votedFor', { name: playerName }))
     setTimeout(() => setToastMessage(null), 2000)
 
     const token = getVoterToken()

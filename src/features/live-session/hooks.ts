@@ -1,4 +1,5 @@
 import { useTransition, useOptimistic, useRef, useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { updateScore, finishMatch, cancelMatch } from './actions'
 import { substitutePlayer, swapPositions, swapTeams } from './team-actions'
 import { createClient } from '@/lib/supabase/client'
@@ -13,6 +14,7 @@ export function useScoreboard(
   playersWithStatus: PlayerWithStatus[]
 ) {
   const [isPending, startTransition] = useTransition()
+  const t = useTranslations('Scoreboard')
   
   // Timer State
   const [elapsed, setElapsed] = useState('00:00')
@@ -79,7 +81,7 @@ export function useScoreboard(
             if (winnerId) {
               const winnerPlayer = players.find(p => p.id === winnerId)
               if (winnerPlayer) {
-                setToastMessage(`🗳️ Spectators: ${winnerPlayer.name} scored`)
+                setToastMessage(t('spectatorVotedToast', { name: winnerPlayer.name }))
                 setTimeout(() => setToastMessage(null), 4000)
               }
             }

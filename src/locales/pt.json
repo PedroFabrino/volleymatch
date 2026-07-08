@@ -129,6 +129,7 @@
     "clearAll": "Limpar Todos"
   },
   "Matchmaker": {
+    "backToDashboard": "Voltar ao Dashboard",
     "ready": "Pronto para a Quadra",
     "readyDesc": "O algoritmo formará as equipes mais equilibradas com base na habilidade e histórico de rotação.",
     "drafting": "Sorteando Equipes...",
@@ -143,6 +144,8 @@
   },
   "Scoreboard": {
     "cancelGame": "Cancelar Jogo",
+    "spectatorVotedToast": "🗳️ Espectadores: {name} marcou",
+    "votedFor": "Votou em {name} ✓",
     "finishEarly": "Encerrar Cedo",
     "redTeam": "Equipe Vermelha",
     "blueTeam": "Equipe Azul",
