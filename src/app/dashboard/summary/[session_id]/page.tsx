@@ -5,7 +5,7 @@ import { Trophy, ArrowLeft, TrendingUp, Flame, Swords, Calendar } from 'lucide-r
 import { getTranslations } from 'next-intl/server'
 import { HighlightsGrid, ShareButton } from '@/features/summary'
 import { getSessionSummaryData } from '@/lib/stats'
-import { storeSummaryData } from '@/lib/services'
+import { storeSummaryData, getSessionById } from '@/lib/services'
 import { PlayerStat } from '@/types/player'
 
 export default async function SessionSummaryPage(props: { params: Promise<{ session_id: string }> }) {
@@ -20,12 +20,7 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
   const sessionId = params.session_id
 
   // 1. Fetch Session Info
-  const { data: session } = await supabase
-    .from('sessions')
-    .select('*')
-    .eq('id', sessionId)
-    .eq('hoster_id', user.id)
-    .single()
+  const session = await getSessionById(supabase, sessionId, user.id)
 
   if (!session) redirect('/dashboard')
 

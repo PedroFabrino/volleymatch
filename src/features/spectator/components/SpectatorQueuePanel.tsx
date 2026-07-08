@@ -1,8 +1,9 @@
 'use client'
 
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronRight, Clock, Loader2, Info } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { PlayerWithStatus } from '@/lib/matchmaking'
+import { PlayerPosition } from '@/types/player'
 
 type SpectatorQueuePanelProps = {
   queueOpen: boolean
@@ -70,7 +71,7 @@ export default function SpectatorQueuePanel({
                         ).map(fill => (
                           <div key={fill.position} className="flex items-center gap-2">
                             <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">
-                              {posT(fill.position as any)}
+                              {posT(fill.position as PlayerPosition)}
                             </span>
                             <div className="flex gap-0.5">
                               {Array.from({ length: fill.total }).map((_, i) => (

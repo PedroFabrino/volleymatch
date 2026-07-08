@@ -2,10 +2,10 @@
 
 import { useState, useTransition } from 'react'
 import { generateMatch, saveMatch } from '../actions'
-import { Trophy, Users, Check, RefreshCw, PowerOff } from 'lucide-react'
+import { Shuffle, Check, Users, ArrowUpDown, Undo2, Ban, Trophy, RefreshCw, PowerOff } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Session } from '@/types/session'
-import { Player } from '@/types/player'
+import { Player, PlayerPosition } from '@/types/player'
 import { MatchDraft } from '@/types/match'
 
 import { useRouter } from 'next/navigation'
@@ -130,7 +130,7 @@ export default function Matchmaker({ session, players, isFirstMatch, onEndSessio
                     <li key={id} className={`p-3 rounded-lg font-semibold flex justify-between items-center ${isLibero ? 'bg-amber-900/30 border border-amber-500/30 text-amber-100' : 'bg-gray-800/80 text-gray-100'}`}>
                       <span>{getPlayerName(id)}</span>
                       {displayPos !== 'Any' && (
-                        <span className={`font-bold text-xs px-2 py-1 rounded ${isLibero ? 'bg-amber-900/60 text-amber-200' : 'bg-red-900/50 text-red-200'}`}>{tPos(displayPos as any)}</span>
+                        <span className={`font-bold text-xs px-2 py-1 rounded ${isLibero ? 'bg-amber-900/60 text-amber-200' : 'bg-red-900/50 text-red-200'}`}>{tPos(displayPos as PlayerPosition)}</span>
                       )}
                     </li>
                   )
@@ -152,7 +152,7 @@ export default function Matchmaker({ session, players, isFirstMatch, onEndSessio
                     <li key={id} className={`p-3 rounded-lg font-semibold flex justify-between items-center ${isLibero ? 'bg-amber-900/30 border border-amber-500/30 text-amber-100' : 'bg-gray-800/80 text-gray-100'}`}>
                       <span>{getPlayerName(id)}</span>
                       {displayPos !== 'Any' && (
-                        <span className={`font-bold text-xs px-2 py-1 rounded ${isLibero ? 'bg-amber-900/60 text-amber-200' : 'bg-blue-900/50 text-blue-200'}`}>{tPos(displayPos as any)}</span>
+                        <span className={`font-bold text-xs px-2 py-1 rounded ${isLibero ? 'bg-amber-900/60 text-amber-200' : 'bg-blue-900/50 text-blue-200'}`}>{tPos(displayPos as PlayerPosition)}</span>
                       )}
                     </li>
                   )

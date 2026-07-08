@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { getSessionSummaryData } from '@/lib/stats'
+import { getSessionByIdAdmin } from '@/lib/services'
 import { Trophy, TrendingUp, Flame, Swords, Calendar } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
@@ -17,11 +18,7 @@ export default async function PublicShareHighlightPage(props: { params: Promise<
   const supabase = createAdminClient()
 
   // Fetch Session Info to ensure it exists and get date
-  const { data: session } = await supabase
-    .from('sessions')
-    .select('created_at')
-    .eq('id', sessionId)
-    .single()
+  const { data: session } = await getSessionByIdAdmin(supabase, sessionId)
 
   if (!session) redirect('/')
 

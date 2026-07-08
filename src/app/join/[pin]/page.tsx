@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import PlayerJoinForm from './PlayerJoinForm'
+import { getSessionByPin, getPlayersByHoster } from '@/lib/services'
 
 export default async function JoinSessionPage(props: { params: Promise<{ pin: string }> }) {
   const params = await props.params
@@ -9,22 +10,14 @@ export default async function JoinSessionPage(props: { params: Promise<{ pin: st
   const supabase = await createClient()
 
   // Get Session Details by PIN (must be active)
-  const { data: session, error } = await supabase
-    .from('sessions')
-    .select('*')
-    .eq('pin', pin)
-    .eq('is_active', true)
-    .single()
+  const { data: session, error } = await getSessionByPin(supabase, pin)
 
   if (error || !session) {
     redirect('/?error=invalid_pin')
   }
 
   // Get all players for this host so they can select themselves if they are returning
-  const { data: players } = await supabase
-    .from('players')
-    .select('*')
-    .eq('hoster_id', session.hoster_id)
+  const players = await getPlayersByHoster(supabase, session.hoster_id)
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col pb-8">

@@ -2,7 +2,7 @@ import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { deletePlayer } from '../actions'
 import { User, Shield, Activity, Trash2, Edit2 } from 'lucide-react'
-import { Player } from '@/types/player'
+import { Player, PlayerPosition } from '@/types/player'
 
 type PlayerListProps = {
   players: Player[]
@@ -62,7 +62,7 @@ export default async function PlayerList({ players }: PlayerListProps) {
                 <div className="flex flex-wrap gap-1">
                   {player.positions && player.positions.length > 0 ? (
                     player.positions.map((pos: string) => (
-                      <span key={pos} className="bg-gray-100 dark:bg-gray-800 border dark:border-gray-700 text-xs px-1.5 py-0.5 rounded">{posT(pos as any)}</span>
+                      <span key={pos} className="bg-gray-100 dark:bg-gray-800 border dark:border-gray-700 text-xs px-1.5 py-0.5 rounded">{posT(pos as PlayerPosition)}</span>
                     ))
                   ) : (
                     <span className="text-gray-400 dark:text-gray-500 italic">{t('noPosition')}</span>

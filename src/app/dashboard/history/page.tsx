@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getPlayers, getCompletedMatchesWithEvents } from '@/lib/services'
 import { History as HistoryIcon, ArrowLeft } from 'lucide-react'
 import { TimelineViewer } from '@/features/summary'
 import { getTranslations } from 'next-intl/server'
@@ -12,17 +13,8 @@ export default async function HistoryPage() {
 
   if (!user) redirect('/login')
 
-  const { data: players } = await supabase
-    .from('players')
-    .select('id, name')
-    .eq('hoster_id', user.id)
-
-  const { data: completedMatches } = await supabase
-    .from('matches')
-    .select('*, match_events(*)')
-    .eq('hoster_id', user.id)
-    .eq('is_completed', true)
-    .order('created_at', { ascending: false })
+  const players = await getPlayers(supabase, user.id)
+  const completedMatches = await getCompletedMatchesWithEvents(supabase, user.id)
 
   const playerNames: Record<string, string> = {}
   if (players) {

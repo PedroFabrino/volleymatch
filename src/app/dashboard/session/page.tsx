@@ -5,7 +5,7 @@ import { AttendanceToggle, AttendanceControls } from '@/features/roster'
 import { SessionHouseRulesForm, ActiveSessionCard, SessionQueuePanel } from '@/features/session'
 import { ArrowLeft, Users } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
-import { getActiveSession, getActiveMatchForSession, getSessionPlayersMap } from '@/lib/services'
+import { getActiveSession, getActiveMatchForSession, getSessionPlayersMap, getPlayersByHoster } from '@/lib/services'
 import { buildQueuedPlayerList } from '@/lib/stats'
 import { Player } from '@/types/player'
 
@@ -16,10 +16,7 @@ export default async function SessionSetupPage() {
 
   if (!user) redirect('/login')
 
-  const { data: players } = await supabase
-    .from('players')
-    .select('*')
-    .order('name', { ascending: true })
+  const players = await getPlayersByHoster(supabase, user.id)
 
   // Check if there is an active session
   const activeSession = await getActiveSession(supabase, user.id)

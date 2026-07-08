@@ -4,6 +4,7 @@ import { useTransition, useOptimistic, useState } from 'react'
 import { batchToggleAttendance, toggleActivePosition } from '../attendance-actions'
 import { Check, X, Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { PlayerPosition } from '@/types/player'
 
 // Global debounce queue for attendance toggles across all player components
 type AttendanceUpdate = { resolve: () => void, reject: (err: unknown) => void, payload: { playerId: string, isPresent: boolean, activeSessionId?: string } }
@@ -120,7 +121,7 @@ export default function AttendanceToggle({ player, activeSessionId }: { player: 
                 } ${isOnlyPosition ? 'opacity-80 cursor-default' : 'cursor-pointer'} ${isLoading ? 'opacity-70' : ''}`}
               >
                 {isLoading && <Loader2 className="w-3 h-3 animate-spin" />}
-                {t(pos as any)}
+                {t(pos as PlayerPosition)}
               </button>
             )
           })}

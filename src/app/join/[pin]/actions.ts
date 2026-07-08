@@ -2,6 +2,8 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
+import { getSessionByIdAdmin, getMaxGamesPlayed, addPlayerToSession } from '@/lib/services'
+import { getPlayerByName, createPlayer, markPlayerPresent } from '@/lib/services'
 
 export async function joinSessionAction(formData: FormData) {
   // Use admin client to bypass RLS since the QR scanner is an unauthenticated guest
@@ -17,11 +19,7 @@ export async function joinSessionAction(formData: FormData) {
   const positions = formData.getAll('positions') as string[]
 
   // Validate session exists and is active
-  const { data: session, error: sessionError } = await supabase
-    .from('sessions')
-    .select('id, hoster_id')
-    .eq('id', sessionId)
-    .single()
+  const { data: session, error: sessionError } = await getSessionByIdAdmin(supabase, sessionId)
 
   if (sessionError || !session) {
     console.error("Session lookup error:", sessionError)
@@ -32,39 +30,27 @@ export async function joinSessionAction(formData: FormData) {
 
   if (playerId) {
     // Returning player
-    await supabase
-      .from('players')
-      .update({ is_present_today: true })
-      .eq('id', playerId)
+    await markPlayerPresent(supabase, playerId)
 
   } else {
     // New player
     const mmr = initialTier === 'Beginner' ? 800 : initialTier === 'Intermediate' ? 1000 : 1200
     
     // Safety check for duplicate name
-    const { data: existingPlayer } = await supabase
-      .from('players')
-      .select('id')
-      .eq('hoster_id', session.hoster_id)
-      .ilike('name', name.trim())
-      .maybeSingle()
+    const existingPlayer = await getPlayerByName(supabase, session.hoster_id, name.trim())
 
     if (existingPlayer) {
       throw new Error('A player with this name already exists. Please choose a different name or select your profile.')
     }
 
-    const { data: newPlayer, error: createError } = await supabase
-      .from('players')
-      .insert({
-        hoster_id: session.hoster_id,
-        name: name.trim(),
-        mmr,
-        initial_tier: initialTier,
-        positions,
-        is_present_today: true
-      })
-      .select()
-      .single()
+    const { data: newPlayer, error: createError } = await createPlayer(supabase, {
+      hoster_id: session.hoster_id,
+      name: name.trim(),
+      mmr,
+      initial_tier: initialTier,
+      positions,
+      is_present_today: true
+    })
 
     if (createError || !newPlayer) {
       throw new Error('Failed to create your profile.')
@@ -74,21 +60,10 @@ export async function joinSessionAction(formData: FormData) {
   }
 
   // Get the current max games_played for this session to place the user at the bottom of the queue
-  const { data: sessionPlayers } = await supabase
-    .from('session_players')
-    .select('games_played')
-    .eq('session_id', sessionId)
-
-  let maxGamesPlayed = 0
-  if (sessionPlayers && sessionPlayers.length > 0) {
-    maxGamesPlayed = Math.max(...sessionPlayers.map(sp => sp.games_played || 0))
-  }
+  const maxGamesPlayed = await getMaxGamesPlayed(supabase, sessionId)
 
   // Ensure they are in the session_players table
-  await supabase.from('session_players').upsert(
-    { session_id: sessionId, player_id: finalPlayerId, games_played: maxGamesPlayed },
-    { onConflict: 'session_id, player_id', ignoreDuplicates: true }
-  )
+  await addPlayerToSession(supabase, sessionId, finalPlayerId, maxGamesPlayed)
 
   return { success: true }
 }

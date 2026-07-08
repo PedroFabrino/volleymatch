@@ -5,21 +5,14 @@ import { SpectatorScoreboard, SpectatorMatchmaker, RealtimeSubscriber } from '@/
 import { previewNextDraft, sortPlayersByDraftPriority } from '@/lib/matchmaking'
 import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher'
 import { unstable_cache } from 'next/cache'
+import { getPresentPlayersByHoster, getSessionPlayersList, getSessionByPin, getActiveMatchForSession, getLastCompletedMatchForSession } from '@/lib/services'
 
 const getSessionPlayers = async (sessionId: string, hosterId: string) => {
   return unstable_cache(
     async () => {
       const supabase = createAdminClient()
-      const { data: rawPlayers } = await supabase
-        .from('players')
-        .select('*')
-        .eq('hoster_id', hosterId)
-        .eq('is_present_today', true)
-
-      const { data: sessionPlayers } = await supabase
-        .from('session_players')
-        .select('player_id, games_played')
-        .eq('session_id', sessionId)
+      const rawPlayers = await getPresentPlayersByHoster(supabase, hosterId)
+      const sessionPlayers = await getSessionPlayersList(supabase, sessionId)
 
       return { rawPlayers, sessionPlayers }
     },
@@ -35,12 +28,7 @@ export default async function ViewSessionPage(props: { params: Promise<{ pin: st
   const supabase = await createClient()
 
   // 1. Get Session Details by PIN (must be active)
-  const { data: session, error } = await supabase
-    .from('sessions')
-    .select('*')
-    .eq('pin', pin)
-    .eq('is_active', true)
-    .single()
+  const { data: session, error } = await getSessionByPin(supabase, pin)
 
   if (error) {
     console.error('Supabase Error fetching session:', error)
@@ -52,14 +40,7 @@ export default async function ViewSessionPage(props: { params: Promise<{ pin: st
   }
 
   // 2. Get Active Match (if any)
-  const { data: activeMatch } = await supabase
-    .from('matches')
-    .select('*')
-    .eq('session_id', session.id)
-    .eq('is_completed', false)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single()
+  const activeMatch = await getActiveMatchForSession(supabase, session.id)
 
   // 3. Get all players for this host
   const { rawPlayers, sessionPlayers } = await getSessionPlayers(session.id, session.hoster_id)
@@ -73,14 +54,7 @@ export default async function ViewSessionPage(props: { params: Promise<{ pin: st
   })
 
   // 4. Get Last Completed Match (for previewing the next draft accurately in strict mode)
-  const { data: lastCompletedMatch } = await supabase
-    .from('matches')
-    .select('team_a_players, team_b_players')
-    .eq('session_id', session.id)
-    .eq('is_completed', true)
-    .order('completed_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
+  const lastCompletedMatch = await getLastCompletedMatchForSession(supabase, session.id)
 
   const lastWinners = activeMatch 
     ? activeMatch.team_a_players 

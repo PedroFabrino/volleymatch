@@ -4,6 +4,7 @@ import { Trophy, RefreshCw } from 'lucide-react'
 
 import { PlayerWithStatus } from '@/lib/matchmaking'
 import { Session } from '@/types/session'
+import { PlayerPosition } from '@/types/player'
 import { useTranslations } from 'next-intl'
 
 export default function SpectatorMatchmaker({ session, playersWithStatus }: { session: Session, playersWithStatus: PlayerWithStatus[] }) {
@@ -43,7 +44,7 @@ export default function SpectatorMatchmaker({ session, playersWithStatus }: { se
                       p.positionSlotFill.filter(f => f.position === p.draftedPosition).map(fill => (
                         <div key={fill.position} className="flex items-center gap-2">
                           <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">
-                            {posT(fill.position as any)}
+                            {posT(fill.position as PlayerPosition)}
                           </span>
                           <div className="flex gap-0.5">
                             {Array.from({ length: fill.total }).map((_, i) => (
@@ -81,7 +82,7 @@ export default function SpectatorMatchmaker({ session, playersWithStatus }: { se
                       {p.positionSlotFill.map(fill => (
                         <div key={fill.position} className="flex items-center gap-2">
                           <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">
-                            {posT(fill.position as any)}
+                            {posT(fill.position as PlayerPosition)}
                           </span>
                           <div className="flex gap-0.5">
                             {Array.from({ length: fill.total }).map((_, i) => (

@@ -5,6 +5,7 @@ import { ArrowLeft } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import { getPlayersByHoster } from '@/lib/services'
 import { PlayerForm, PlayerList } from '@/features/roster'
+import { PlayerPosition } from '@/types/player'
 
 export default async function RosterPage(props: { searchParams: Promise<{ error?: string, edit?: string }> }) {
   const searchParams = await props.searchParams
@@ -21,7 +22,7 @@ export default async function RosterPage(props: { searchParams: Promise<{ error?
   // Fetch all players for this hoster
   const players = await getPlayersByHoster(supabase, user.id)
 
-  const availablePositions = [
+  const availablePositions: PlayerPosition[] = [
     'Setter', 'Outside Hitter', 'Middle Blocker', 'Libero', 'Opposite Hitter'
   ]
 

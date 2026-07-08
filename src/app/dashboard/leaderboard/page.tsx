@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getPlayers, getCompletedMatches } from '@/lib/services'
 import { Medal, ArrowLeft } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 
@@ -10,16 +11,8 @@ export default async function LeaderboardPage() {
 
   if (!user) redirect('/login')
 
-  const { data: players } = await supabase
-    .from('players')
-    .select('id, name, mmr')
-    .eq('hoster_id', user.id)
-
-  const { data: completedMatches } = await supabase
-    .from('matches')
-    .select('*')
-    .eq('hoster_id', user.id)
-    .eq('is_completed', true)
+  const players = await getPlayers(supabase, user.id)
+  const completedMatches = await getCompletedMatches(supabase, user.id)
 
   const playerStats: Record<string, { matches: number; wins: number; name: string, mmr: number }> = {}
   

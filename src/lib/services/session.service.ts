@@ -10,6 +10,35 @@ export async function getActiveSession(supabase: SupabaseClient, userId: string)
   return data
 }
 
+export async function getSessionById(supabase: SupabaseClient, sessionId: string, hosterId: string) {
+  const { data } = await supabase
+    .from('sessions')
+    .select('*')
+    .eq('id', sessionId)
+    .eq('hoster_id', hosterId)
+    .single()
+  return data
+}
+
+export async function getSessionByIdAdmin(supabase: SupabaseClient, sessionId: string) {
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('id, hoster_id, created_at')
+    .eq('id', sessionId)
+    .single()
+  return { data, error }
+}
+
+export async function getSessionByPin(supabase: SupabaseClient, pin: string) {
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('*')
+    .eq('pin', pin)
+    .eq('is_active', true)
+    .single()
+  return { data, error }
+}
+
 export async function getPastSessions(supabase: SupabaseClient, userId: string, limit = 5) {
   const { data } = await supabase
     .from('sessions')
@@ -37,7 +66,7 @@ export async function getActiveMatchForSession(
 ) {
   const { data } = await supabase
     .from('matches')
-    .select('team_a_players, team_b_players')
+    .select('*')
     .eq('session_id', sessionId)
     .eq('is_completed', false)
     .order('created_at', { ascending: false })
@@ -55,6 +84,43 @@ export async function getSessionPlayersMap(
     .select('player_id, games_played')
     .eq('session_id', sessionId)
   return new Map((data ?? []).map(sp => [sp.player_id, sp.games_played]))
+}
+
+export async function getSessionPlayersList(
+  supabase: SupabaseClient,
+  sessionId: string
+) {
+  const { data } = await supabase
+    .from('session_players')
+    .select('player_id, games_played')
+    .eq('session_id', sessionId)
+  return data || []
+}
+
+export async function getMaxGamesPlayed(
+  supabase: SupabaseClient,
+  sessionId: string
+) {
+  const { data } = await supabase
+    .from('session_players')
+    .select('games_played')
+    .eq('session_id', sessionId)
+  
+  if (!data || data.length === 0) return 0
+  return Math.max(...data.map(sp => sp.games_played || 0))
+}
+
+export async function addPlayerToSession(
+  supabase: SupabaseClient,
+  sessionId: string,
+  playerId: string,
+  gamesPlayed: number
+) {
+  const { error } = await supabase.from('session_players').upsert(
+    { session_id: sessionId, player_id: playerId, games_played: gamesPlayed },
+    { onConflict: 'session_id, player_id', ignoreDuplicates: true }
+  )
+  return { error }
 }
 
 export async function getLiveSessionData(supabase: SupabaseClient, sessionId: string, userId: string) {

@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { getGlobalSummaryData } from '@/lib/stats'
+import { getPlayerCount } from '@/lib/services'
 import { Trophy, TrendingUp, Flame, Swords } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
@@ -17,10 +18,7 @@ export default async function PublicShareGlobalHighlightPage(props: { params: Pr
   const supabase = createAdminClient()
 
   // Verify hoster exists by checking if they have any players
-  const { count } = await supabase
-    .from('players')
-    .select('*', { count: 'exact', head: true })
-    .eq('hoster_id', hosterId)
+  const count = await getPlayerCount(supabase, hosterId)
 
   if (count === 0) redirect('/')
 

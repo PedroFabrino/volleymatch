@@ -1,11 +1,13 @@
+export type PlayerPosition = 'Setter' | 'Outside Hitter' | 'Middle Blocker' | 'Opposite Hitter' | 'Libero' | 'Any';
+
 export interface Player {
   id: string;
   name: string;
   mmr: number;
   hoster_id: string;
   is_present_today: boolean;
-  positions: string[];
-  active_positions?: string[] | null;
+  positions: PlayerPosition[];
+  active_positions?: PlayerPosition[] | null;
   initial_tier?: string;
 }
 

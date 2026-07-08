@@ -1,11 +1,11 @@
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { addPlayer, updatePlayer } from '../actions'
-import { Player } from '@/types/player'
+import { Player, PlayerPosition } from '@/types/player'
 
 type PlayerFormProps = {
   editingPlayer?: Player | null
-  availablePositions: string[]
+  availablePositions: PlayerPosition[]
   searchParamsError?: string
 }
 
@@ -67,7 +67,7 @@ export default async function PlayerForm({ editingPlayer, availablePositions, se
                   defaultChecked={editingPlayer?.positions?.includes(pos)}
                   className="rounded text-blue-600 w-4 h-4 dark:bg-gray-800 dark:border-gray-700" 
                 />
-                <span className="text-sm text-gray-700 dark:text-gray-300">{posT(pos as any)}</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">{posT(pos as PlayerPosition)}</span>
               </label>
             ))}
           </div>
