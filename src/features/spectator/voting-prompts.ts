@@ -17,6 +17,11 @@ export function buildScorePrompts(
   prev: { a: number; b: number },
   next: { a: number; b: number }
 ): VotingPrompt[] {
+  const pointsScored = next.a + next.b - (prev.a + prev.b)
+  if (pointsScored <= 0) {
+    return []
+  }
+
   const prompts: VotingPrompt[] = []
   let tempA = prev.a
   let tempB = prev.b

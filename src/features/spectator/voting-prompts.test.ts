@@ -21,6 +21,10 @@ describe('buildScorePrompts', () => {
   it('ignores score decreases', () => {
     expect(buildScorePrompts({ a: 3, b: 2 }, { a: 2, b: 2 })).toEqual([])
   })
+
+  it('ignores side swaps that mirror scores without new points', () => {
+    expect(buildScorePrompts({ a: 6, b: 4 }, { a: 4, b: 6 })).toEqual([])
+  })
 })
 
 describe('mergePromptQueue', () => {
