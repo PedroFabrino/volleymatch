@@ -1,5 +1,12 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import {
+  getActiveSession,
+  getPlayers,
+  getCompletedMatches,
+  getPastSessions,
+} from '@/lib/services'
+import { computeDashboardStats } from '@/lib/stats'
 import { DashboardHeader, QuickActionsColumn, PlayerRankingsColumn, RecentMatchesColumn, PastSessionsRow, signOut } from '@/features/dashboard'
 
 export default async function DashboardPage() {
@@ -11,13 +18,12 @@ export default async function DashboardPage() {
   }
 
   const [activeSession, players, completedMatches, pastSessions] = await Promise.all([
-    import('@/lib/services').then(s => s.getActiveSession(supabase, user.id)),
-    import('@/lib/services').then(s => s.getPlayers(supabase, user.id)),
-    import('@/lib/services').then(s => s.getCompletedMatches(supabase, user.id)),
-    import('@/lib/services').then(s => s.getPastSessions(supabase, user.id))
+    getActiveSession(supabase, user.id),
+    getPlayers(supabase, user.id),
+    getCompletedMatches(supabase, user.id),
+    getPastSessions(supabase, user.id),
   ])
 
-  const { computeDashboardStats } = await import('@/lib/stats')
   const { playerStats, rankedPlayers, latestMatches } = computeDashboardStats(players, completedMatches)
 
   return (
@@ -40,4 +46,3 @@ export default async function DashboardPage() {
     </div>
   )
 }
-
