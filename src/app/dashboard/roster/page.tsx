@@ -6,6 +6,7 @@ import { getTranslations } from 'next-intl/server'
 import { getPlayersByHoster } from '@/lib/services'
 import { PlayerForm, PlayerList } from '@/features/roster'
 import { SELECTABLE_POSITIONS } from '@/types/player'
+import { resolveEffectiveHosterId } from '@/lib/auth/host-context'
 
 export default async function RosterPage(props: { searchParams: Promise<{ error?: string, edit?: string }> }) {
   const searchParams = await props.searchParams
@@ -19,8 +20,8 @@ export default async function RosterPage(props: { searchParams: Promise<{ error?
     redirect('/login')
   }
 
-  // Fetch all players for this hoster
-  const players = await getPlayersByHoster(supabase, user.id)
+  const effectiveHosterId = await resolveEffectiveHosterId(user.id)
+  const players = await getPlayersByHoster(supabase, effectiveHosterId)
 
   const availablePositions = SELECTABLE_POSITIONS
 

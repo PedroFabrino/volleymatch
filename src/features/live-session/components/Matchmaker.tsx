@@ -12,7 +12,7 @@ import { DraftTeamPanel } from './DraftTeamPanel'
 
 import { useRouter } from 'next/navigation'
 
-export default function Matchmaker({ session, players, isFirstMatch, onEndSession }: { session: Session, players: Player[], isFirstMatch: boolean, onEndSession: (sessionId: string) => Promise<void> }) {
+export default function Matchmaker({ session, players, isFirstMatch, onEndSession }: { session: Session, players: Player[], isFirstMatch: boolean, onEndSession?: (sessionId: string) => Promise<void> }) {
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
   const [draft, setDraft] = useState<MatchDraft | null>((session.pending_draft as MatchDraft) ?? null)
@@ -94,6 +94,7 @@ export default function Matchmaker({ session, players, isFirstMatch, onEndSessio
               {isGenerating ? t('drafting') : t('generate')}
             </button>
             
+            {onEndSession && (
             <button 
               onClick={async () => {
                 if (confirm(t('confirmEndSession'))) {
@@ -106,6 +107,7 @@ export default function Matchmaker({ session, players, isFirstMatch, onEndSessio
             >
               <PowerOff className="w-5 h-5" /> {t('endSession')}
             </button>
+            )}
           </div>
         </div>
       ) : (

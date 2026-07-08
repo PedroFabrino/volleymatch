@@ -8,6 +8,7 @@ import { getTranslations } from 'next-intl/server'
 import { getActiveSession, getActiveMatchForSession, getSessionPlayersMap, getPlayersByHoster } from '@/lib/services'
 import { buildQueuedPlayerList } from '@/lib/stats'
 import { Player } from '@/types/player'
+import { resolveEffectiveHosterId } from '@/lib/auth/host-context'
 
 export default async function SessionSetupPage() {
   const supabase = await createClient()
@@ -16,10 +17,10 @@ export default async function SessionSetupPage() {
 
   if (!user) redirect('/login')
 
-  const players = await getPlayersByHoster(supabase, user.id)
+  const effectiveHosterId = await resolveEffectiveHosterId(user.id)
+  const players = await getPlayersByHoster(supabase, effectiveHosterId)
 
-  // Check if there is an active session
-  const activeSession = await getActiveSession(supabase, user.id)
+  const activeSession = await getActiveSession(supabase, effectiveHosterId)
 
   let queuedPlayers: (Player & { games_played_today: number })[] = []
 

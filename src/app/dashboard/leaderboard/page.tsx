@@ -4,6 +4,7 @@ import { getPlayers, getCompletedMatches } from '@/lib/services'
 import { Medal, ArrowLeft } from 'lucide-react'
 import { LeaderboardTable } from '@/features/dashboard'
 import { getTranslations } from 'next-intl/server'
+import { resolveEffectiveHosterId } from '@/lib/auth/host-context'
 
 export default async function LeaderboardPage() {
   const supabase = await createClient()
@@ -12,8 +13,9 @@ export default async function LeaderboardPage() {
 
   if (!user) redirect('/login')
 
-  const players = await getPlayers(supabase, user.id)
-  const completedMatches = await getCompletedMatches(supabase, user.id)
+  const effectiveHosterId = await resolveEffectiveHosterId(user.id)
+  const players = await getPlayers(supabase, effectiveHosterId)
+  const completedMatches = await getCompletedMatches(supabase, effectiveHosterId)
 
   const playerStats: Record<string, { matches: number; wins: number; name: string; mmr: number }> = {}
 
