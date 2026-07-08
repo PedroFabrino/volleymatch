@@ -19,3 +19,40 @@ export async function getPastSessions(supabase: SupabaseClient, userId: string, 
     .limit(limit)
   return data || []
 }
+
+export async function storeSummaryData(
+  supabase: SupabaseClient,
+  sessionId: string,
+  summaryData: unknown
+): Promise<void> {
+  await supabase
+    .from('sessions')
+    .update({ summary_data: summaryData })
+    .eq('id', sessionId)
+}
+
+export async function getActiveMatchForSession(
+  supabase: SupabaseClient,
+  sessionId: string
+) {
+  const { data } = await supabase
+    .from('matches')
+    .select('team_a_players, team_b_players')
+    .eq('session_id', sessionId)
+    .eq('is_completed', false)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  return data
+}
+
+export async function getSessionPlayersMap(
+  supabase: SupabaseClient,
+  sessionId: string
+): Promise<Map<string, number>> {
+  const { data } = await supabase
+    .from('session_players')
+    .select('player_id, games_played')
+    .eq('session_id', sessionId)
+  return new Map((data ?? []).map(sp => [sp.player_id, sp.games_played]))
+}

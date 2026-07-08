@@ -6,6 +6,7 @@ import { getTranslations } from 'next-intl/server'
 import HighlightsGrid from './HighlightsGrid'
 import ShareButton from './ShareButton'
 import { getSessionSummaryData } from '@/lib/stats'
+import { storeSummaryData } from '@/lib/services'
 import { PlayerStat } from '@/types/player'
 
 export default async function SessionSummaryPage(props: { params: Promise<{ session_id: string }> }) {
@@ -33,7 +34,7 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
   
   if (!summaryData) {
     summaryData = await getSessionSummaryData(supabase, sessionId);
-    await supabase.from('sessions').update({ summary_data: summaryData }).eq('id', sessionId);
+    await storeSummaryData(supabase, sessionId, summaryData);
   }
 
     const {

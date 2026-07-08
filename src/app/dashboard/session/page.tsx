@@ -7,6 +7,7 @@ import { AttendanceToggle } from '@/features/roster'
 import { AttendanceControls } from '@/features/roster'
 import { ArrowLeft, Users, Trophy } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
+import { getActiveSession, getActiveMatchForSession, getSessionPlayersMap } from '@/lib/services'
 
 export default async function SessionSetupPage() {
   const supabase = await createClient()
@@ -21,35 +22,15 @@ export default async function SessionSetupPage() {
     .order('name', { ascending: true })
 
   // Check if there is an active session
-  const { data: activeSession } = await supabase
-    .from('sessions')
-    .select('id')
-    .eq('hoster_id', user.id)
-    .eq('is_active', true)
-    .single()
+  const activeSession = await getActiveSession(supabase, user.id)
 
   let activeMatch = null
   let queuedPlayers: (Player & { games_played_today: number })[] = []
 
   if (activeSession) {
-    const { data: match } = await supabase
-      .from('matches')
-      .select('team_a_players, team_b_players')
-      .eq('session_id', activeSession.id)
-      .eq('is_completed', false)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      
-    activeMatch = match
+    activeMatch = await getActiveMatchForSession(supabase, activeSession.id)
 
-    // Get games played from session_players
-    const { data: sessionPlayers } = await supabase
-      .from('session_players')
-      .select('player_id, games_played')
-      .eq('session_id', activeSession.id)
-
-    const sessionPlayersMap = new Map(sessionPlayers?.map(sp => [sp.player_id, sp.games_played]))
+    const sessionPlayersMap = await getSessionPlayersMap(supabase, activeSession.id)
 
     if (activeMatch) {
       const playingIds = new Set([...activeMatch.team_a_players, ...activeMatch.team_b_players])
