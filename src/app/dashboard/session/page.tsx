@@ -28,7 +28,7 @@ export default async function SessionSetupPage() {
     .single()
 
   let activeMatch = null
-  let queuedPlayers: any[] = []
+  let queuedPlayers: Player[] = []
 
   if (activeSession) {
     const { data: match } = await supabase

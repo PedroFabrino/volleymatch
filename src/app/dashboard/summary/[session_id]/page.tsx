@@ -6,6 +6,7 @@ import { getTranslations } from 'next-intl/server'
 import HighlightsGrid from './HighlightsGrid'
 import ShareButton from './ShareButton'
 import { getSessionSummaryData } from '@/lib/stats/summaryStats'
+import { PlayerStat } from '@/types/player'
 
 export default async function SessionSummaryPage(props: { params: Promise<{ session_id: string }> }) {
   const params = await props.params
@@ -109,7 +110,7 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
                 </tr>
               </thead>
               <tbody>
-                {leaderboard.map((player: any, index: number) => (
+                {leaderboard.map((player: PlayerStat, index: number) => (
                   <tr key={player.id} className="border-t dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition">
                     <td className="p-4 font-bold text-gray-500 dark:text-gray-400">{index + 1}</td>
                     <td className="p-4 font-bold text-gray-900 dark:text-gray-100">

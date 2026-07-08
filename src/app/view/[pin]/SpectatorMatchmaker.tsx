@@ -3,9 +3,10 @@
 import { Trophy, RefreshCw } from 'lucide-react'
 
 import { PlayerWithStatus } from '@/lib/matchmaking'
+import { Session } from '@/types/session'
 import { useTranslations } from 'next-intl'
 
-export default function SpectatorMatchmaker({ session, playersWithStatus }: { session: any, playersWithStatus: PlayerWithStatus[] }) {
+export default function SpectatorMatchmaker({ session, playersWithStatus }: { session: Session, playersWithStatus: PlayerWithStatus[] }) {
   const t = useTranslations('Scoreboard')
   const posT = useTranslations('Positions')
   const playingNext = playersWithStatus.filter(p => p.draftStatus === 'in_next_match')

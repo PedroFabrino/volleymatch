@@ -7,8 +7,9 @@ import { createClient } from '@/lib/supabase/client'
 import { submitPointAttribution } from './actions'
 
 import { PlayerWithStatus } from '@/lib/matchmaking'
+import { Session, Match } from '@/types'
 
-export default function SpectatorScoreboard({ session, match, playersWithStatus }: { session: any, match: any, playersWithStatus: PlayerWithStatus[] }) {
+export default function SpectatorScoreboard({ session, match, playersWithStatus }: { session: Session, match: Match, playersWithStatus: PlayerWithStatus[] }) {
   const t = useTranslations('Scoreboard')
   const posT = useTranslations('Positions')
 
@@ -170,7 +171,7 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
   const benchPlayers = playersWithStatus.filter(p => !match.team_a_players.includes(p.id) && !match.team_b_players.includes(p.id))
 
   const sortOrder = ['Setter', 'Middle Blocker', 'Outside Hitter', 'Opposite Hitter', 'Libero', 'Any'];
-  const sortPlayersByPos = (teamPlayers: any[], positions?: Record<string, string>) => {
+  const sortPlayersByPos = (teamPlayers: PlayerWithStatus[], positions?: Record<string, string>) => {
     return [...teamPlayers].sort((a, b) => {
       // Fallback to their primary position if drafted position is missing/Any
       const posA = (positions && positions[a.id] !== 'Any') ? positions[a.id] : (a.positions?.[0] || 'Any');
@@ -235,7 +236,7 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
             <h3 className="text-red-500 font-black text-lg uppercase tracking-wide">{t('redTeam')}</h3>
           </div>
           <ul className="flex flex-col gap-2">
-            {sortPlayersByPos(teamAPlayers, match.team_a_positions).map((p: any) => {
+            {sortPlayersByPos(teamAPlayers, match.team_a_positions).map((p: PlayerWithStatus) => {
               const pos = match.team_a_positions?.[p.id];
               const displayPos = (pos && pos !== 'Any') ? pos : (p.positions?.[0] || 'Any');
               const isLibero = displayPos === 'Libero';
@@ -262,7 +263,7 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
             <h3 className="text-blue-500 font-black text-lg uppercase tracking-wide">{t('blueTeam')}</h3>
           </div>
           <ul className="flex flex-col gap-2">
-            {sortPlayersByPos(teamBPlayers, match.team_b_positions).map((p: any) => {
+            {sortPlayersByPos(teamBPlayers, match.team_b_positions).map((p: PlayerWithStatus) => {
               const pos = match.team_b_positions?.[p.id];
               const displayPos = (pos && pos !== 'Any') ? pos : (p.positions?.[0] || 'Any');
               const isLibero = displayPos === 'Libero';
@@ -392,7 +393,7 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
           </div>
           
           <div className="flex flex-col gap-2">
-            {(votingTeam === 'a' ? teamAPlayers : teamBPlayers).map((p: any) => {
+            {(votingTeam === 'a' ? teamAPlayers : teamBPlayers).map((p: PlayerWithStatus | undefined) => {
               if (!p) return null
               const votes = voteCounts.get(p.id) || 0
               const isMyVote = myVote === p.id

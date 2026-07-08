@@ -40,7 +40,7 @@ export default async function PublicShareHighlightPage(props: { params: Promise<
   } = await getSessionSummaryData(supabase, sessionId)
 
   const getPlayerNames = (teamIds: string[]) => {
-    return teamIds.map((id: string) => playersData.find((p: any) => p.id === id)?.name).join(', ')
+    return teamIds.map((id: string) => playersData.find((p: { id: string, name: string }) => p.id === id)?.name).join(', ')
   }
 
   return (

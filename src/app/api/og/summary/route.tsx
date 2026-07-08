@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { PlayerStat } from '@/types/player'
 
 export const runtime = 'edge'
 
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
 
       const { mvp, leaderboard } = session.summary_data
       const date = new Date(session.created_at).toLocaleDateString()
-      const biggestGainer = [...leaderboard].sort((a: any, b: any) => b.mmrChange - a.mmrChange)[0]
+      const biggestGainer = [...leaderboard].sort((a: PlayerStat, b: PlayerStat) => b.mmrChange - a.mmrChange)[0]
 
       return new ImageResponse(
         (
@@ -133,8 +134,8 @@ export async function GET(request: Request) {
     }
 
     return new Response('Missing session_id or hoster_id', { status: 400 })
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error(e)
-    return new Response(`Failed to generate image: ${e.message}`, { status: 500 })
+    return new Response(`Failed to generate image: ${e instanceof Error ? e.message : String(e)}`, { status: 500 })
   }
 }

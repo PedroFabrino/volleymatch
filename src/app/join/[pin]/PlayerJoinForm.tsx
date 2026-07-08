@@ -3,10 +3,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { joinSessionAction } from './actions'
+import { Session } from '@/types/session'
+import { Player } from '@/types/player'
 
 const ALL_POSITIONS = ['Setter', 'Outside Hitter', 'Middle Blocker', 'Opposite Hitter', 'Libero']
 
-export default function PlayerJoinForm({ session, players }: { session: any, players: any[] }) {
+export default function PlayerJoinForm({ session, players }: { session: Session & { pin: string }, players: Player[] }) {
   const router = useRouter()
   const [name, setName] = useState('')
   const [positions, setPositions] = useState<string[]>([])
@@ -57,8 +59,8 @@ export default function PlayerJoinForm({ session, players }: { session: any, pla
       if (res?.success) {
         router.push(`/view/${session.pin}`)
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to join session')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to join session')
       setIsSubmitting(false)
     }
   }

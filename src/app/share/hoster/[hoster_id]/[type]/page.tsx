@@ -39,7 +39,7 @@ export default async function PublicShareGlobalHighlightPage(props: { params: Pr
   } = await getGlobalSummaryData(supabase, hosterId)
 
   const getPlayerNames = (teamIds: string[]) => {
-    return teamIds.map((id: string) => playersData.find((p: any) => p.id === id)?.name).join(', ')
+    return teamIds.map((id: string) => playersData.find((p: { id: string, name: string }) => p.id === id)?.name).join(', ')
   }
 
   return (
