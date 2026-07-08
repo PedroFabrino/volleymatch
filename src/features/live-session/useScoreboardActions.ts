@@ -22,7 +22,7 @@ export function useScoreboardActions(match: Match, sessionId: string) {
   useEffect(() => {
     setScoreA(match.team_a_score)
     setScoreB(match.team_b_score)
-  }, [match.id])
+  }, [match.id, match.team_a_score, match.team_b_score])
 
   const touchStartY = useRef<number | null>(null)
 
@@ -69,10 +69,14 @@ export function useScoreboardActions(match: Match, sessionId: string) {
   }
 
   const handleCancelMatch = () => startTransition(() => cancelMatch(match.id, sessionId))
-  const handleSwapTeams = () => startTransition(async () => {
-    await swapTeams(match.id, sessionId)
-    router.refresh()
-  })
+  const handleSwapTeams = () => {
+    setScoreA(scoreB)
+    setScoreB(scoreA)
+    startTransition(async () => {
+      await swapTeams(match.id, sessionId)
+      router.refresh()
+    })
+  }
   const handleFinishEarly = () => startTransition(() => finishMatch(match.id, sessionId))
 
   return {
