@@ -67,7 +67,7 @@ export default async function PlayerForm({ editingPlayer, availablePositions, se
                   defaultChecked={editingPlayer?.positions?.includes(pos)}
                   className="rounded text-blue-600 w-4 h-4 dark:bg-gray-800 dark:border-gray-700" 
                 />
-                <span className="text-sm text-gray-700 dark:text-gray-300">{posT(pos as PlayerPosition)}</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">{posT(pos)}</span>
               </label>
             ))}
           </div>

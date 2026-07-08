@@ -3,6 +3,7 @@
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { PlayerWithStatus } from '@/lib/matchmaking'
+import { PlayerPosition } from '@/types/player'
 import { sortPlayersByPos } from '@/utils/sortPlayersByPos'
 import { PlayerRosterRow } from '@/components/PlayerRosterRow'
 
@@ -11,8 +12,8 @@ type SpectatorRosterPanelProps = {
   setTeamsOpen: (open: boolean) => void
   teamAPlayers: PlayerWithStatus[]
   teamBPlayers: PlayerWithStatus[]
-  teamAPositions?: Record<string, string>
-  teamBPositions?: Record<string, string>
+  teamAPositions?: Record<string, PlayerPosition>
+  teamBPositions?: Record<string, PlayerPosition>
 }
 
 export default function SpectatorRosterPanel({

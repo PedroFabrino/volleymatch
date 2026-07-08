@@ -19,7 +19,7 @@ export function useScoreboard(
   // Timer State
   const [elapsed, setElapsed] = useState('00:00')
   const [subbingPlayer, setSubbingPlayer] = useState<{ id: string, name: string, team: 'a' | 'b' } | null>(null)
-  const [swappingPlayer, setSwappingPlayer] = useState<{ id: string, name: string, team: 'a' | 'b', position: string } | null>(null)
+  const [swappingPlayer, setSwappingPlayer] = useState<{ id: string, name: string, team: 'a' | 'b', position: import('@/types/player').PlayerPosition } | null>(null)
 
   // Hoster Voting Toast State
   const [toastMessage, setToastMessage] = useState<string | null>(null)

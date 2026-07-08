@@ -1,4 +1,5 @@
 import type { Player } from './types';
+import type { PlayerPosition } from '@/types/player';
 
 export function sortPlayersByDraftPriority(a: Player, b: Player, isFirstMatch: boolean) {
   if (a.games_played_today !== b.games_played_today) {
@@ -11,9 +12,9 @@ export function sortPlayersByDraftPriority(a: Player, b: Player, isFirstMatch: b
   return b.mmr - a.mmr;
 }
 
-export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinningTeamIds: string[], lastMatchLosingTeamIds: string[]): { teamA: string[], teamB: string[], teamAPositions: Record<string, string>, teamBPositions: Record<string, string> } {
+export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinningTeamIds: string[], lastMatchLosingTeamIds: string[]): { teamA: string[], teamB: string[], teamAPositions: Record<string, PlayerPosition>, teamBPositions: Record<string, PlayerPosition> } {
   const getPos = (p: Player) => (p.active_positions && p.active_positions.length > 0) ? p.active_positions : p.positions;
-  const hasPos = (p: Player, pos: string | string[]) => {
+  const hasPos = (p: Player, pos: PlayerPosition | PlayerPosition[]) => {
     const pPos = getPos(p);
     if (Array.isArray(pos)) return pos.some(x => pPos.includes(x));
     return pPos.includes(pos);
@@ -26,7 +27,7 @@ export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinning
   const pureLiberos = new Set(availableLiberos.map(p => p.id));
 
   let targetSize = 7;
-  let blueprint = [
+  let blueprint: Array<{ pos: PlayerPosition; count: number }> = [
     { pos: 'Setter', count: 2 },
     { pos: 'Outside Hitter', count: 4 },
     { pos: 'Opposite Hitter', count: 2 },
@@ -57,8 +58,8 @@ export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinning
 
   const teamA: Player[] = [];
   const teamB: Player[] = [];
-  const teamAPositions: Record<string, string> = {};
-  const teamBPositions: Record<string, string> = {};
+  const teamAPositions: Record<string, PlayerPosition> = {};
+  const teamBPositions: Record<string, PlayerPosition> = {};
 
   const getTeamMmr = (t: Player[]) => t.reduce((s, p) => s + p.mmr, 0);
 

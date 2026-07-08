@@ -4,12 +4,14 @@ import { getPlayers, getCompletedMatchesWithEvents } from '@/lib/services'
 import { History as HistoryIcon, ArrowLeft } from 'lucide-react'
 import { TimelineViewer } from '@/features/summary'
 import { getTranslations } from 'next-intl/server'
+import { MatchEvent } from '@/types/match'
 
 export default async function HistoryPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const t = await getTranslations('History')
+  const tCommon = await getTranslations('Common')
 
   if (!user) redirect('/login')
 
@@ -23,7 +25,7 @@ export default async function HistoryPage() {
     })
   }
 
-  const getPlayerName = (id: string) => playerNames[id] || 'Unknown'
+  const getPlayerName = (id: string) => playerNames[id] || tCommon('unknownPlayer')
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col transition-colors p-4 md:p-8">
@@ -86,7 +88,7 @@ export default async function HistoryPage() {
                   </div>
 
                   <TimelineViewer 
-                    timeline={match.match_events} 
+                    timeline={(match.match_events ?? []) as MatchEvent[]} 
                     matchStartTime={match.created_at}
                     playerNames={playerNames} 
                   />

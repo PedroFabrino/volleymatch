@@ -61,8 +61,8 @@ export default async function PlayerList({ players }: PlayerListProps) {
                 <Shield className="w-4 h-4 mt-0.5 flex-shrink-0" />
                 <div className="flex flex-wrap gap-1">
                   {player.positions && player.positions.length > 0 ? (
-                    player.positions.map((pos: string) => (
-                      <span key={pos} className="bg-gray-100 dark:bg-gray-800 border dark:border-gray-700 text-xs px-1.5 py-0.5 rounded">{posT(pos as PlayerPosition)}</span>
+                    player.positions.map((pos) => (
+                      <span key={pos} className="bg-gray-100 dark:bg-gray-800 border dark:border-gray-700 text-xs px-1.5 py-0.5 rounded">{posT(pos)}</span>
                     ))
                   ) : (
                     <span className="text-gray-400 dark:text-gray-500 italic">{t('noPosition')}</span>

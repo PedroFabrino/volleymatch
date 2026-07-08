@@ -101,7 +101,7 @@ export default function AttendanceToggle({ player, activeSessionId }: { player: 
       {/* Positions Override Row */}
       {optimisticIsPresent && player.positions?.length > 0 && (
         <div className="mt-3 pt-3 border-t border-green-200/50 flex gap-2 flex-wrap">
-          {player.positions.map((pos: string) => {
+          {player.positions.map((pos) => {
             const isActive = optimisticPositions.includes(pos)
             const isOnlyPosition = player.positions.length === 1
             const isLoading = isPending && togglingPos === pos
@@ -121,7 +121,7 @@ export default function AttendanceToggle({ player, activeSessionId }: { player: 
                 } ${isOnlyPosition ? 'opacity-80 cursor-default' : 'cursor-pointer'} ${isLoading ? 'opacity-70' : ''}`}
               >
                 {isLoading && <Loader2 className="w-3 h-3 animate-spin" />}
-                {t(pos as PlayerPosition)}
+                {t(pos)}
               </button>
             )
           })}

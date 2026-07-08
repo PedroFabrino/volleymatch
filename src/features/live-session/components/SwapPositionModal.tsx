@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl'
 import { Match, Player, PlayerPosition } from '@/types'
 
 type SwapPositionModalProps = {
-  swappingPlayer: { id: string; name: string; team: 'a' | 'b'; position: string }
+  swappingPlayer: { id: string; name: string; team: 'a' | 'b'; position: PlayerPosition }
   sortedTeamA: Player[]
   sortedTeamB: Player[]
   match: Match
@@ -48,7 +48,7 @@ export function SwapPositionModal({
                 >
                   <span className="font-bold text-white">{p.name}</span>
                   <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
-                    {displayPos !== 'Any' ? posT(displayPos as PlayerPosition) : displayPos}
+                    {displayPos !== 'Any' ? posT(displayPos) : displayPos}
                   </span>
                 </button>
               )

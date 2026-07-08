@@ -27,7 +27,11 @@ export async function GET(request: Request) {
         return new Response('Session summary not found', { status: 404 })
       }
 
-      const { mvp, leaderboard } = session.summary_data
+      const summaryData = session.summary_data as {
+        mvp: PlayerStat | null
+        leaderboard: PlayerStat[]
+      }
+      const { mvp, leaderboard } = summaryData
       const date = new Date(session.created_at).toLocaleDateString()
       const biggestGainer = [...leaderboard].sort((a: PlayerStat, b: PlayerStat) => b.mmrChange - a.mmrChange)[0]
 

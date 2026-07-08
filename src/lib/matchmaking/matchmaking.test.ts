@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { draftTeams, draftStrictTeams, Player } from './index';
+import type { PlayerPosition } from '@/types/player';
 
 describe('Matchmaking Algorithm', () => {
 
-  const createPlayer = (id: string, mmr: number, positions: string[], active_positions: string[] | null = null): Player => ({
+  const createPlayer = (id: string, mmr: number, positions: PlayerPosition[], active_positions: PlayerPosition[] | null = null): Player => ({
     id,
     name: `Player ${id}`,
     mmr,

@@ -3,17 +3,17 @@
 import { ChevronUp, ChevronDown, Minus } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { PlayerRosterRow } from '@/components/PlayerRosterRow'
-import { Player } from '@/types'
+import { Player, PlayerPosition } from '@/types'
 
 type RosterPanelProps = {
   team: 'a' | 'b'
   players: Player[]
-  positions: Record<string, string> | undefined
+  positions: Record<string, PlayerPosition> | undefined
   isOpen: boolean
   onToggle: () => void
   onDecrementScore: (e: React.MouseEvent) => void
   onSub: (player: { id: string; name: string; team: 'a' | 'b' }) => void
-  onSwap: (player: { id: string; name: string; team: 'a' | 'b'; position: string }) => void
+  onSwap: (player: { id: string; name: string; team: 'a' | 'b'; position: PlayerPosition }) => void
 }
 
 export function RosterPanel({

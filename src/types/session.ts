@@ -7,4 +7,5 @@ export interface Session {
   created_at: string;
   matchmaking_mode?: string;
   pending_draft?: unknown;
+  pin?: string;
 }
