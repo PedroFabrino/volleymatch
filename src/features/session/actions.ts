@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { getSessionSummaryData } from '@/lib/stats/summaryStats'
+import { getSessionSummaryData } from '@/lib/stats'
 
 export async function toggleAttendance(playerId: string, isPresent: boolean, activeSessionId?: string) {
   const supabase = await createClient()

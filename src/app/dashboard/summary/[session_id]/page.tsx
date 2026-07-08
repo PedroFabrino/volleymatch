@@ -5,7 +5,7 @@ import { Trophy, ArrowLeft, TrendingUp, Flame, Swords, Calendar } from 'lucide-r
 import { getTranslations } from 'next-intl/server'
 import HighlightsGrid from './HighlightsGrid'
 import ShareButton from './ShareButton'
-import { getSessionSummaryData } from '@/lib/stats/summaryStats'
+import { getSessionSummaryData } from '@/lib/stats'
 import { PlayerStat } from '@/types/player'
 
 export default async function SessionSummaryPage(props: { params: Promise<{ session_id: string }> }) {

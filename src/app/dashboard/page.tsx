@@ -22,7 +22,7 @@ export default async function DashboardPage() {
     import('@/lib/services').then(s => s.getPastSessions(supabase, user.id))
   ])
 
-  const { computeDashboardStats } = await import('@/lib/stats/summaryStats')
+  const { computeDashboardStats } = await import('@/lib/stats')
   const { playerStats, rankedPlayers, latestMatches } = computeDashboardStats(players as Player[], completedMatches)
 
   async function signOut() {
