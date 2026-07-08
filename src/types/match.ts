@@ -38,6 +38,8 @@ export type MatchDraft = {
   teamBPositions?: Record<string, PlayerPosition>
 }
 
+import type { ScoringType } from '@/types/pointAttribution'
+
 export interface PointAttribution {
   id: string;
   match_id: string;
@@ -46,6 +48,7 @@ export interface PointAttribution {
   score_b: number;
   attributed_to: string;
   team: 'a' | 'b';
+  scoring_type?: ScoringType;
   voter_token?: string;
   created_at?: string;
 }
