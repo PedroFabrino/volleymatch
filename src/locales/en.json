@@ -233,6 +233,7 @@
     "shareTitle": "VolleyMatch Recap",
     "shareText": "Check out our Game Day Recap!",
     "shareRecap": "Share Recap",
+    "shareFetchFailed": "Failed to fetch image",
     "createLeague": "Create Your Own League",
     "allTime": "All-Time"
   },

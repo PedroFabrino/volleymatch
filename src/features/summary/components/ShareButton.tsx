@@ -14,7 +14,7 @@ export default function ShareButton({ sessionId }: { sessionId: string }) {
       const response = await fetch(`/api/og/summary?session_id=${sessionId}`)
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(errorText || 'Failed to fetch image')
+        throw new Error(errorText || t('shareFetchFailed'))
       }
       const blob = await response.blob()
       
