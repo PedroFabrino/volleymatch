@@ -11,9 +11,13 @@ import { Session, Match } from '@/types'
 import { sortPlayersByPos } from '@/utils/sortPlayersByPos'
 import { PlayerRosterRow } from '@/components/PlayerRosterRow'
 
+import SpectatorScorePanel from './SpectatorScorePanel'
+import SpectatorRosterPanel from './SpectatorRosterPanel'
+import SpectatorQueuePanel from './SpectatorQueuePanel'
+import VotingOverlay from './VotingOverlay'
+
 export default function SpectatorScoreboard({ session, match, playersWithStatus }: { session: Session, match: Match, playersWithStatus: PlayerWithStatus[] }) {
   const t = useTranslations('Scoreboard')
-  const posT = useTranslations('Positions')
 
   // Accordion State
   const [teamsOpen, setTeamsOpen] = useState(false)
@@ -174,168 +178,29 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
 
   return (
     <div className="flex flex-col h-[80vh] bg-gray-900 overflow-hidden relative rounded-3xl border border-gray-800 shadow-2xl">
-      
-      {/* SCOREBOARD SECTION */}
-      <div className="relative flex flex-row w-full h-[35vh] shrink-0 border-b border-gray-800 shadow-lg z-20">
-        
-        {/* Top Bar Overlay */}
-        <div className="flex justify-between items-center p-4 bg-gray-950/60 absolute w-full top-0 z-10 text-white font-mono uppercase tracking-widest text-xs font-bold pointer-events-none">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-2 bg-black/40 px-3 py-1 rounded-full"><Clock className="w-4 h-4 text-blue-400" /> {elapsed}</span>
-          </div>
-          <div>{t('target')} {session.target_score}</div>
-        </div>
+      <SpectatorScorePanel 
+        elapsed={elapsed}
+        targetScore={session.target_score}
+        scoreA={optScoreA}
+        scoreB={optScoreB}
+      />
 
-        {/* Team A (Red) */}
-        <div className="relative flex-1 flex items-center justify-center bg-red-600">
-          <div className="text-[20vh] font-black text-white leading-none pt-4">
-            {optScoreA}
-          </div>
-        </div>
+      <SpectatorRosterPanel 
+        teamsOpen={teamsOpen}
+        setTeamsOpen={setTeamsOpen}
+        teamAPlayers={teamAPlayers}
+        teamBPlayers={teamBPlayers}
+        teamAPositions={match.team_a_positions}
+        teamBPositions={match.team_b_positions}
+      />
 
-        {/* Divider */}
-        <div className="h-full w-2 bg-gray-950 z-10" />
+      <SpectatorQueuePanel 
+        queueOpen={queueOpen}
+        setQueueOpen={setQueueOpen}
+        benchPlayers={benchPlayers}
+        matchmakingMode={session.matchmaking_mode}
+      />
 
-        {/* Team B (Blue) */}
-        <div className="relative flex-1 flex items-center justify-center bg-blue-600">
-          <div className="text-[20vh] font-black text-white leading-none pt-4">
-            {optScoreB}
-          </div>
-        </div>
-      </div>
-
-      {/* TEAM ROSTER SECTION */}
-      <div className="bg-gray-900 shrink-0 border-b border-gray-800 z-10 shadow-md">
-        <button 
-          onClick={() => setTeamsOpen(!teamsOpen)}
-          className="w-full flex justify-between items-center p-4 text-gray-400 hover:text-gray-200 transition-colors"
-        >
-          <h3 className="font-bold text-sm uppercase tracking-wider flex items-center gap-2">
-            {teamsOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-            {t('liveMatchRosters')}
-          </h3>
-          <span className="text-xs bg-gray-800 px-2 py-1 rounded">{t('playersCount', { count: 12 })}</span>
-        </button>
-        
-        {teamsOpen && (
-          <div className="flex flex-row w-full bg-gray-900 border-t border-gray-800">
-            
-            {/* Team A Roster */}
-            <div className="flex-1 p-4 border-r border-gray-800 max-h-[35vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700">
-          <div className="flex justify-between items-center border-b border-red-900/50 pb-2 mb-3">
-            <h3 className="text-red-500 font-black text-lg uppercase tracking-wide">{t('redTeam')}</h3>
-          </div>
-          <ul className="flex flex-col gap-2">
-            {sortPlayersByPos(teamAPlayers, match.team_a_positions).map((p: PlayerWithStatus) => (
-              <PlayerRosterRow
-                key={p.id}
-                player={p}
-                position={match.team_a_positions?.[p.id]}
-                team="a"
-                isSpectatorMode={true}
-              />
-            ))}
-          </ul>
-        </div>
-
-            {/* Team B Roster */}
-            <div className="flex-1 p-4 pb-4 max-h-[35vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700">
-          <div className="flex justify-between items-center border-b border-blue-900/50 pb-2 mb-3">
-            <h3 className="text-blue-500 font-black text-lg uppercase tracking-wide">{t('blueTeam')}</h3>
-          </div>
-          <ul className="flex flex-col gap-2">
-            {sortPlayersByPos(teamBPlayers, match.team_b_positions).map((p: PlayerWithStatus) => (
-              <PlayerRosterRow
-                key={p.id}
-                player={p}
-                position={match.team_b_positions?.[p.id]}
-                team="b"
-                isSpectatorMode={true}
-              />
-            ))}
-            </ul>
-          </div>
-        </div>
-        )}
-      </div>
-
-      {/* Queue Section */}
-      <div className="bg-gray-950 flex-1 flex flex-col min-h-0 relative">
-        <button 
-          onClick={() => setQueueOpen(!queueOpen)}
-          className="w-full flex justify-between items-center p-4 text-gray-400 hover:text-gray-200 transition-colors border-b border-gray-900 shadow-sm shrink-0"
-        >
-          <h3 className="font-bold text-sm uppercase tracking-wider flex items-center gap-2">
-            {queueOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-            {t('upNextQueue')}
-          </h3>
-          <span className="text-xs bg-gray-800 px-2 py-1 rounded">{t('playersCount', { count: benchPlayers.length })}</span>
-        </button>
-        
-        {queueOpen && (
-          <div className="flex flex-col gap-2 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-800 flex-1">
-            {benchPlayers.map((p) => {
-              let statusIcon = '🕐';
-              let statusColor = 'border-gray-700 bg-gray-900 opacity-60';
-              
-              if (p.draftStatus === 'in_next_match') {
-                statusIcon = '✅';
-                statusColor = 'border-green-600 bg-green-900/30';
-              } else if (p.draftStatus === 'position_conflict') {
-                statusIcon = '⚠️';
-                statusColor = 'border-amber-600/50 bg-amber-900/20 opacity-70';
-              }
-
-              return (
-                <div key={p.id} className={`flex justify-between items-center rounded-lg px-3 py-2 border ${statusColor}`}>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm">{statusIcon}</span>
-                    <span className="font-bold text-gray-200 text-sm truncate">{p.name}</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    {session.matchmaking_mode === 'strict' && (
-                      <div className="flex flex-col gap-1 items-end ml-2">
-                        {p.draftStatus === 'in_next_match' && p.draftedPosition === 'Any' && (
-                          <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">
-                            {t('any')}
-                          </span>
-                        )}
-                        
-                        {p.positionSlotFill && p.positionSlotFill.length > 0 && (
-                          (p.draftStatus === 'in_next_match' && p.draftedPosition !== 'Any'
-                            ? p.positionSlotFill.filter(f => f.position === p.draftedPosition)
-                            : p.positionSlotFill
-                          ).map(fill => (
-                            <div key={fill.position} className="flex items-center gap-2">
-                              <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">
-                                {posT(fill.position as any)}
-                              </span>
-                              <div className="flex gap-0.5">
-                                {Array.from({ length: fill.total }).map((_, i) => (
-                                  <div 
-                                    key={i} 
-                                    className={`w-1.5 h-1.5 rounded-full ${i < fill.filled ? 'bg-amber-500/70' : 'bg-gray-700'}`}
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-            {benchPlayers.length === 0 && (
-              <div className="text-gray-500 text-sm italic">{t('noBench')}</div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Match Over Modal */}
       {isMatchOver && (
         <div className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-sm overflow-hidden flex flex-col items-center p-8 shadow-2xl">
@@ -352,51 +217,16 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
         </div>
       )}
 
-      {/* Voting Panel */}
-      {votingState !== 'idle' && votingTeam && (
-        <div className="absolute bottom-0 left-0 w-full bg-gray-950 border-t border-gray-800 p-4 z-40 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)] animate-in slide-in-from-bottom-full duration-300">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-black text-lg text-white">
-              🏐 Who scored for <span className={votingTeam === 'a' ? 'text-red-500' : 'text-blue-500'}>{votingTeam === 'a' ? 'RED' : 'BLUE'}</span>?
-            </h3>
-            <div className="text-sm font-mono text-gray-400 bg-gray-900 px-2 py-1 rounded">
-              {countdown}s ⏱
-            </div>
-          </div>
-          
-          <div className="flex flex-col gap-2">
-            {(votingTeam === 'a' ? teamAPlayers : teamBPlayers).map((p: PlayerWithStatus | undefined) => {
-              if (!p) return null
-              const votes = voteCounts.get(p.id) || 0
-              const isMyVote = myVote === p.id
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => castVote(p.id, p.name)}
-                  disabled={votingState === 'voted'}
-                  className={`flex justify-between items-center p-3 rounded-xl transition ${
-                    isMyVote 
-                      ? (votingTeam === 'a' ? 'bg-red-900/40 border border-red-500' : 'bg-blue-900/40 border border-blue-500')
-                      : 'bg-gray-800 hover:bg-gray-700 border border-transparent'
-                  } ${votingState === 'voted' && !isMyVote ? 'opacity-50 grayscale' : ''}`}
-                >
-                  <span className="font-bold text-white">{p.name} {isMyVote && '✓'}</span>
-                  <span className="text-sm font-bold text-gray-400 bg-gray-900 px-2 py-1 rounded">
-                    {votes} {votes === 1 ? 'vote' : 'votes'}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-          
-          {toastMessage && (
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[120%] bg-green-600 text-white font-bold px-4 py-2 rounded-full shadow-lg animate-in fade-in zoom-in duration-200">
-              {toastMessage}
-            </div>
-          )}
-        </div>
-      )}
-
+      <VotingOverlay 
+        votingState={votingState}
+        votingTeam={votingTeam}
+        countdown={countdown}
+        teamPlayers={votingTeam === 'a' ? teamAPlayers : teamBPlayers}
+        voteCounts={voteCounts}
+        myVote={myVote}
+        castVote={castVote}
+        toastMessage={toastMessage}
+      />
     </div>
   )
 }
