@@ -33,3 +33,15 @@ export type MatchDraft = {
   teamAPositions?: Record<string, string>
   teamBPositions?: Record<string, string>
 }
+
+export interface PointAttribution {
+  id: string;
+  match_id: string;
+  session_id: string;
+  score_a: number;
+  score_b: number;
+  attributed_to: string;
+  team: 'a' | 'b';
+  voter_token?: string;
+  created_at?: string;
+}

@@ -1,4 +1,4 @@
-import { Match, MatchEvent } from '../../types/match'
+import { Match, MatchEvent, PointAttribution } from '../../types/match'
 
 export function calculateBestPartner(mvpId: string | undefined, matches: Match[], playersData: { id: string, name: string }[]) {
   let bestPartner: { name: string, wins: number } | null = null;
@@ -85,7 +85,7 @@ export function detectBiggestComebackAndDiff(matches: Match[]) {
   return { maxComeback, biggestComebackMatch, turningPoint, maxDiff, biggestDiffMatch };
 }
 
-export function calculateTopScorer(attributions: any[], playersData: { id: string, name: string }[]) {
+export function calculateTopScorer(attributions: PointAttribution[], playersData: { id: string, name: string }[]) {
   let topScorer: { id: string, name: string, points: number } | null = null;
   
   if (attributions && attributions.length > 0) {
