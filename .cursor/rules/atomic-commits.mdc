@@ -1,0 +1,21 @@
+---
+description: Automatically create atomic git commits when work is complete
+alwaysApply: true
+---
+
+# Atomic Commits (Automatic)
+
+Create git commits automatically when you finish work. **Do not wait for the user to ask.**
+
+## Rules
+
+- One logical unit of work per commit (see AGENTS.md §10)
+- Commit each completed task before starting the next unrelated one
+- Split multi-item audits (e.g. TD-043, TD-044) into separate commits per item or tightly related group
+- Run tests/typecheck when practical before committing
+- Never commit secrets (`.env`, credentials)
+- Never push unless explicitly requested
+
+## Commit messages
+
+Use conventional prefixes: `fix`, `refactor`, `i18n`, `docs`, `test`, `chore`. Include TD/issue IDs when applicable.
