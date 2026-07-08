@@ -236,6 +236,12 @@
     "createLeague": "Create Your Own League",
     "allTime": "All-Time"
   },
+  "QrCode": {
+    "buttonLabel": "QR Code",
+    "title": "Join Session",
+    "scanDescription": "Scan this QR code to self-register and join the queue.",
+    "roomPin": "Room PIN"
+  },
   "PublicJoin": {
     "appTitle": "VolleyMatch",
     "joinSession": "Join Session",

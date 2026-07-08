@@ -233,6 +233,12 @@
     "createLeague": "Crie Sua Própria Liga",
     "allTime": "Histórico Total"
   },
+  "QrCode": {
+    "buttonLabel": "QR Code",
+    "title": "Entrar na Sessão",
+    "scanDescription": "Escaneie este QR code para se registrar e entrar na fila.",
+    "roomPin": "PIN da Sala"
+  },
   "PublicJoin": {
     "appTitle": "VolleyMatch",
     "joinSession": "Entrar na Sessão",

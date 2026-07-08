@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react'
 import { QrCode, X } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
+import { useTranslations } from 'next-intl'
 
 export function QrCodeModal({ pin }: { pin: string }) {
   const [isOpen, setIsOpen] = useState(false)
   const [url, setUrl] = useState('')
+  const t = useTranslations('QrCode')
 
   useEffect(() => {
-    // Generate the URL dynamically based on current window location
     if (typeof window !== 'undefined') {
       setUrl(`${window.location.origin}/join/${pin}`)
     }
@@ -22,7 +23,7 @@ export function QrCodeModal({ pin }: { pin: string }) {
         className="inline-flex items-center gap-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition text-sm font-sans font-bold shadow-sm"
       >
         <QrCode className="w-4 h-4" />
-        QR Code
+        {t('buttonLabel')}
       </button>
 
       {isOpen && (
@@ -34,10 +35,10 @@ export function QrCodeModal({ pin }: { pin: string }) {
             >
               <X className="w-6 h-6" />
             </button>
-            
-            <h2 className="text-2xl font-black mb-2 text-white">Join Session</h2>
+
+            <h2 className="text-2xl font-black mb-2 text-white">{t('title')}</h2>
             <p className="text-gray-400 mb-8 text-center text-sm font-sans">
-              Scan this QR code to self-register and join the queue.
+              {t('scanDescription')}
             </p>
 
             <div className="bg-white p-4 rounded-2xl mb-8">
@@ -45,11 +46,11 @@ export function QrCodeModal({ pin }: { pin: string }) {
                 <QRCodeSVG
                   value={url}
                   size={240}
-                  bgColor={"#ffffff"}
-                  fgColor={"#000000"}
-                  level={"Q"}
+                  bgColor={'#ffffff'}
+                  fgColor={'#000000'}
+                  level={'Q'}
                   imageSettings={{
-                    src: "/icon.png", // Next.js standard icon or custom icon
+                    src: '/icon.png',
                     x: undefined,
                     y: undefined,
                     height: 48,
@@ -61,7 +62,7 @@ export function QrCodeModal({ pin }: { pin: string }) {
             </div>
 
             <div className="text-center font-mono">
-              <span className="text-gray-500 text-sm">Room PIN</span>
+              <span className="text-gray-500 text-sm">{t('roomPin')}</span>
               <div className="text-4xl font-black text-blue-500 tracking-widest">{pin}</div>
             </div>
           </div>
