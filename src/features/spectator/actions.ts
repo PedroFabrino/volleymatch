@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { getMatchForAttribution, insertPointAttribution } from '@/lib/services'
+import type { ScoringType } from '@/types/pointAttribution'
 
 export async function submitPointAttribution(
   matchId: string,
@@ -10,7 +11,8 @@ export async function submitPointAttribution(
   team: 'a' | 'b',
   scoreA: number,
   scoreB: number,
-  voterToken: string
+  voterToken: string,
+  scoringType: ScoringType = 'other',
 ) {
   const supabase = await createClient()
 
@@ -33,6 +35,7 @@ export async function submitPointAttribution(
     attributed_to: playerId,
     team,
     voter_token: voterToken,
+    scoring_type: scoringType,
   })
 
   if (error && error.code !== '23505') {
