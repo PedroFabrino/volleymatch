@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { Trophy, Activity, Medal, History } from 'lucide-react'
+import { Player } from '@/types/player'
 import { getTranslations } from 'next-intl/server'
 
 export default async function DashboardPage() {
@@ -22,7 +23,7 @@ export default async function DashboardPage() {
   ])
 
   const { computeDashboardStats } = await import('@/lib/stats/summaryStats')
-  const { playerStats, rankedPlayers, latestMatches } = computeDashboardStats(players, completedMatches)
+  const { playerStats, rankedPlayers, latestMatches } = computeDashboardStats(players as Player[], completedMatches)
 
   async function signOut() {
     'use server'

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateMmrChanges, MatchData, PlayerData } from './index';
+import { calculateMmrChanges, MatchData, PlayerData, PointEvent } from './index';
 
 describe('MMR Algorithm', () => {
 

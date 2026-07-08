@@ -27,7 +27,7 @@ function enqueueAttendanceToggle(playerId: string, isPresent: boolean, activeSes
   });
 }
 
-import { Player } from '../../../../types/player'
+import { Player } from '@/types/player'
 
 export default function AttendanceToggle({ player, activeSessionId }: { player: Player, activeSessionId?: string }) {
   const [isPending, startTransition] = useTransition()

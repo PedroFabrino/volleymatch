@@ -4,9 +4,9 @@ import { useState, useTransition } from 'react'
 import { generateMatch, saveMatch } from '../actions'
 import { Trophy, Users, Check, RefreshCw, PowerOff } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { Session } from '../../../../types/session'
-import { Player } from '../../../../types/player'
-import { MatchDraft } from '../../../../types/match'
+import { Session } from '@/types/session'
+import { Player } from '@/types/player'
+import { MatchDraft } from '@/types/match'
 
 import { useRouter } from 'next/navigation'
 

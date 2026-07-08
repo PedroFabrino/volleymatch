@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { startSession, endSession } from '@/features/session'
+import { Player } from '@/types/player'
 import { AttendanceToggle } from '@/features/roster'
 import { AttendanceControls } from '@/features/roster'
 import { ArrowLeft, Users, Trophy } from 'lucide-react'
@@ -28,7 +29,7 @@ export default async function SessionSetupPage() {
     .single()
 
   let activeMatch = null
-  let queuedPlayers: Player[] = []
+  let queuedPlayers: (Player & { games_played_today: number })[] = []
 
   if (activeSession) {
     const { data: match } = await supabase

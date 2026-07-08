@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { Trophy, TrendingUp, Flame, Swords, X, Share2, Copy, Check } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { Match } from '../../../../../types/match'
-import { PlayerStat } from '../../../../../types/player'
+import { Match } from '@/types/match'
+import { PlayerStat } from '@/types/player'
 
 type Props = {
   sessionId: string;

@@ -165,8 +165,8 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
 
   const isMatchOver = optScoreA >= session.target_score || optScoreB >= session.target_score
 
-  const teamAPlayers = match.team_a_players.map((id: string) => playersWithStatus.find(p => p.id === id)).filter(Boolean)
-  const teamBPlayers = match.team_b_players.map((id: string) => playersWithStatus.find(p => p.id === id)).filter(Boolean)
+  const teamAPlayers = match.team_a_players.map((id: string) => playersWithStatus.find(p => p.id === id)).filter(Boolean) as PlayerWithStatus[]
+  const teamBPlayers = match.team_b_players.map((id: string) => playersWithStatus.find(p => p.id === id)).filter(Boolean) as PlayerWithStatus[]
 
   const benchPlayers = playersWithStatus.filter(p => !match.team_a_players.includes(p.id) && !match.team_b_players.includes(p.id))
 

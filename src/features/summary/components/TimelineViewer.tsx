@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { ChevronDown, ChevronUp, Repeat, Plus } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
-import { MatchEvent } from '../../../../types/match'
+import { MatchEvent } from '@/types/match'
 
 export default function TimelineViewer({ timeline, matchStartTime, playerNames }: { timeline: MatchEvent[], matchStartTime: string, playerNames: Record<string, string> }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -22,9 +22,10 @@ export default function TimelineViewer({ timeline, matchStartTime, playerNames }
   const validScoreEvents = []
   for (const event of sortedEvents) {
     if (event.event_type === 'score') {
-      if (event.increment > 0) {
+      const increment = event.increment ?? 1;
+      if (increment > 0) {
         validScoreEvents.push(event)
-      } else if (event.increment < 0) {
+      } else if (increment < 0) {
         for (let i = validScoreEvents.length - 1; i >= 0; i--) {
           if (validScoreEvents[i].team === event.team) {
             validScoreEvents.splice(i, 1)
@@ -99,8 +100,8 @@ export default function TimelineViewer({ timeline, matchStartTime, playerNames }
                         <time className="text-xs font-mono text-gray-400">{timeString}</time>
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-300">
-                        <span className="text-red-500 line-through mr-1">{playerNames[event.player_out_id] || t('unknown')}</span>
-                        <span className="text-green-500 font-bold ml-1">{playerNames[event.player_in_id] || t('unknown')}</span>
+                        <span className="text-red-500 line-through mr-1">{event.player_out_id ? playerNames[event.player_out_id] : t('unknown')}</span>
+                        <span className="text-green-500 font-bold ml-1">{event.player_in_id ? playerNames[event.player_in_id] : t('unknown')}</span>
                       </div>
                     </div>
                   </div>

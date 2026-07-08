@@ -166,8 +166,8 @@ export default function Scoreboard({ session, match, players, playersWithStatus 
     isMatchOver = reachedTarget && diff >= 2;
   }
 
-  const teamAPlayers = match.team_a_players.map((id: string) => players.find(p => p.id === id)).filter(Boolean)
-  const teamBPlayers = match.team_b_players.map((id: string) => players.find(p => p.id === id)).filter(Boolean)
+  const teamAPlayers = match.team_a_players.map((id: string) => players.find(p => p.id === id)).filter(Boolean) as Player[]
+  const teamBPlayers = match.team_b_players.map((id: string) => players.find(p => p.id === id)).filter(Boolean) as Player[]
   const benchedPlayers = players.filter(p => p.is_present_today && !match.team_a_players.includes(p.id) && !match.team_b_players.includes(p.id))
 
   const playingIds = new Set([...match.team_a_players, ...match.team_b_players]);

@@ -30,8 +30,8 @@ export async function getSessionSummaryData(supabase: SupabaseClient, sessionId:
     .eq('session_id', sessionId)
 
   const playersData = sessionPlayers?.map(sp => ({
-    id: (sp.players as { id: string }).id,
-    name: (sp.players as { name: string }).name,
+    id: (sp.players as unknown as { id: string }).id,
+    name: (sp.players as unknown as { name: string }).name,
     games_played: sp.games_played
   })) || []
 
@@ -191,10 +191,10 @@ export async function getSessionSummaryData(supabase: SupabaseClient, sessionId:
     bestPartner,
     bestPartnerId,
     maxComeback,
-    biggestComebackMatch,
+    biggestComebackMatch: biggestComebackMatch as Match | null,
     turningPoint,
     maxDiff,
-    biggestDiffMatch,
+    biggestDiffMatch: biggestDiffMatch as Match | null,
     topScorer
   }
 }
@@ -217,10 +217,10 @@ export async function getGlobalSummaryData(supabase: SupabaseClient, hosterId: s
       bestPartner: null,
       bestPartnerId: null,
       maxComeback: 0,
-      biggestComebackMatch: null,
+      biggestComebackMatch: null as Match | null,
       turningPoint: { winningScore: 0, losingScore: 0 },
       maxDiff: 0,
-      biggestDiffMatch: null,
+      biggestDiffMatch: null as Match | null,
       topScorer: null
     }
   }
