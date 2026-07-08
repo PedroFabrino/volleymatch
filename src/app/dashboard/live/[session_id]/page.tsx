@@ -5,7 +5,7 @@ import { Scoreboard } from '@/features/live-session'
 import { Matchmaker } from '@/features/live-session'
 import { QrCodeModal } from '@/components/ui/QrCodeModal'
 import { previewNextDraft, sortPlayersByDraftPriority } from '@/lib/matchmaking'
-import RealtimeSubscriber from '@/app/view/[pin]/RealtimeSubscriber'
+import { RealtimeSubscriber } from '@/features/spectator'
 
 export default async function LiveSessionPage(props: { params: Promise<{ session_id: string }> }) {
   const params = await props.params

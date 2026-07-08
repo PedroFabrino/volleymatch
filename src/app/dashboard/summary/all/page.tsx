@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Trophy, ArrowLeft, TrendingUp, Flame, Swords, Calendar, History } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
-import HighlightsGrid from '../[session_id]/HighlightsGrid'
+import { HighlightsGrid } from '@/features/summary'
 import { getGlobalSummaryData } from '@/lib/stats'
 
 export default async function GlobalSummaryPage() {

@@ -2,7 +2,7 @@
 
 import { ChevronUp, ChevronDown, Minus } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { PlayerRosterRow } from '@/components'
+import { PlayerRosterRow } from '@/components/PlayerRosterRow'
 
 type RosterPanelProps = {
   team: 'a' | 'b'

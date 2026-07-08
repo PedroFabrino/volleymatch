@@ -4,10 +4,12 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { Clock, ChevronDown, ChevronRight } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-import { submitPointAttribution } from './actions'
+import { submitPointAttribution } from '@/app/view/[pin]/actions'
 
 import { PlayerWithStatus } from '@/lib/matchmaking'
 import { Session, Match } from '@/types'
+import { sortPlayersByPos } from '@/utils/sortPlayersByPos'
+import { PlayerRosterRow } from '@/components/PlayerRosterRow'
 
 export default function SpectatorScoreboard({ session, match, playersWithStatus }: { session: Session, match: Match, playersWithStatus: PlayerWithStatus[] }) {
   const t = useTranslations('Scoreboard')
@@ -170,18 +172,6 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
 
   const benchPlayers = playersWithStatus.filter(p => !match.team_a_players.includes(p.id) && !match.team_b_players.includes(p.id))
 
-  const sortOrder = ['Setter', 'Middle Blocker', 'Outside Hitter', 'Opposite Hitter', 'Libero', 'Any'];
-  const sortPlayersByPos = (teamPlayers: PlayerWithStatus[], positions?: Record<string, string>) => {
-    return [...teamPlayers].sort((a, b) => {
-      // Fallback to their primary position if drafted position is missing/Any
-      const posA = (positions && positions[a.id] !== 'Any') ? positions[a.id] : (a.positions?.[0] || 'Any');
-      const posB = (positions && positions[b.id] !== 'Any') ? positions[b.id] : (b.positions?.[0] || 'Any');
-      const indexA = sortOrder.indexOf(posA);
-      const indexB = sortOrder.indexOf(posB);
-      return (indexA === -1 ? 99 : indexA) - (indexB === -1 ? 99 : indexB);
-    });
-  }
-
   return (
     <div className="flex flex-col h-[80vh] bg-gray-900 overflow-hidden relative rounded-3xl border border-gray-800 shadow-2xl">
       
@@ -236,24 +226,15 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
             <h3 className="text-red-500 font-black text-lg uppercase tracking-wide">{t('redTeam')}</h3>
           </div>
           <ul className="flex flex-col gap-2">
-            {sortPlayersByPos(teamAPlayers, match.team_a_positions).map((p: PlayerWithStatus) => {
-              const pos = match.team_a_positions?.[p.id];
-              const displayPos = (pos && pos !== 'Any') ? pos : (p.positions?.[0] || 'Any');
-              const isLibero = displayPos === 'Libero';
-              return (
-              <li key={p.id} className={`rounded-lg p-3 shadow flex flex-col justify-center ${isLibero ? 'bg-amber-900/30 border border-amber-500/30' : 'bg-gray-800'}`}>
-                <div className={`font-bold ${isLibero ? 'text-amber-100' : 'text-gray-100'}`}>{p.name}</div>
-                <div className="text-[10px] text-gray-400 mt-1 flex flex-wrap gap-1 font-bold">
-                  {pos && pos !== 'Any' ? (
-                    <span className={`px-2 py-0.5 rounded ${isLibero ? 'bg-amber-900/60 text-amber-200' : 'bg-red-900/50 text-red-200'}`}>{posT(pos as any)}</span>
-                  ) : (
-                    p.positions.length > 0 ? p.positions.map((ppos: string) => (
-                      <span key={ppos} className={`px-1 rounded ${ppos === 'Libero' ? 'bg-amber-900/60 text-amber-200' : 'bg-gray-700'}`}>{posT(ppos as any)}</span>
-                    )) : t('any')
-                  )}
-                </div>
-              </li>
-            )})}
+            {sortPlayersByPos(teamAPlayers, match.team_a_positions).map((p: PlayerWithStatus) => (
+              <PlayerRosterRow
+                key={p.id}
+                player={p}
+                position={match.team_a_positions?.[p.id]}
+                team="a"
+                isSpectatorMode={true}
+              />
+            ))}
           </ul>
         </div>
 
@@ -263,24 +244,15 @@ export default function SpectatorScoreboard({ session, match, playersWithStatus 
             <h3 className="text-blue-500 font-black text-lg uppercase tracking-wide">{t('blueTeam')}</h3>
           </div>
           <ul className="flex flex-col gap-2">
-            {sortPlayersByPos(teamBPlayers, match.team_b_positions).map((p: PlayerWithStatus) => {
-              const pos = match.team_b_positions?.[p.id];
-              const displayPos = (pos && pos !== 'Any') ? pos : (p.positions?.[0] || 'Any');
-              const isLibero = displayPos === 'Libero';
-              return (
-              <li key={p.id} className={`rounded-lg p-3 shadow flex flex-col justify-center ${isLibero ? 'bg-amber-900/30 border border-amber-500/30' : 'bg-gray-800'}`}>
-                <div className={`font-bold ${isLibero ? 'text-amber-100' : 'text-gray-100'}`}>{p.name}</div>
-                <div className="text-[10px] text-gray-400 mt-1 flex flex-wrap gap-1 font-bold">
-                  {pos && pos !== 'Any' ? (
-                    <span className={`px-2 py-0.5 rounded ${isLibero ? 'bg-amber-900/60 text-amber-200' : 'bg-blue-900/50 text-blue-200'}`}>{posT(pos as any)}</span>
-                  ) : (
-                    p.positions.length > 0 ? p.positions.map((ppos: string) => (
-                      <span key={ppos} className={`px-1 rounded ${ppos === 'Libero' ? 'bg-amber-900/60 text-amber-200' : 'bg-gray-700'}`}>{posT(ppos as any)}</span>
-                    )) : t('any')
-                  )}
-                </div>
-              </li>
-            )})}
+            {sortPlayersByPos(teamBPlayers, match.team_b_positions).map((p: PlayerWithStatus) => (
+              <PlayerRosterRow
+                key={p.id}
+                player={p}
+                position={match.team_b_positions?.[p.id]}
+                team="b"
+                isSpectatorMode={true}
+              />
+            ))}
             </ul>
           </div>
         </div>
