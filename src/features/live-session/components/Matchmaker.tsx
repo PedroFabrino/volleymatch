@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { generateMatch, saveMatch } from '../actions'
+import { generateMatch, saveMatch } from '@/features/live-session'
 import { Shuffle, Check, Users, ArrowUpDown, Undo2, Ban, Trophy, RefreshCw, PowerOff } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Session } from '@/types/session'
-import { Player, POSITION_SORT_ORDER, type PlayerPosition } from '@/types/player'
+import { Player } from '@/types/player'
 import { MatchDraft } from '@/types/match'
+import { DraftTeamPanel } from './DraftTeamPanel'
 
 import { useRouter } from 'next/navigation'
 
@@ -16,8 +17,6 @@ export default function Matchmaker({ session, players, isFirstMatch, onEndSessio
   const [draft, setDraft] = useState<MatchDraft | null>((session.pending_draft as MatchDraft) ?? null)
   const [isGenerating, setIsGenerating] = useState(false)
   const t = useTranslations('Matchmaker')
-  const tPos = useTranslations('Positions')
-  const tCommon = useTranslations('Common')
 
   const handleGenerate = async () => {
     if (isGenerating) return;
@@ -37,21 +36,6 @@ export default function Matchmaker({ session, players, isFirstMatch, onEndSessio
     startTransition(() => {
       saveMatch(session.id, draft.teamA, draft.teamB, draft.teamAPositions, draft.teamBPositions)
     })
-  }
-
-  const getPlayerName = (id: string) => players.find(p => p.id === id)?.name || tCommon('unknownPlayer')
-
-  const sortOrder = POSITION_SORT_ORDER;
-  const sortPlayersByPos = (teamIds: string[], positions?: Record<string, string>) => {
-    return [...teamIds].sort((a, b) => {
-      const pA = players.find(p => p.id === a);
-      const pB = players.find(p => p.id === b);
-      const posA = (positions && positions[a] && positions[a] !== 'Any') ? positions[a] : (pA?.positions?.[0] || 'Any');
-      const posB = (positions && positions[b] && positions[b] !== 'Any') ? positions[b] : (pB?.positions?.[0] || 'Any');
-      const indexA = sortOrder.indexOf(posA as PlayerPosition);
-      const indexB = sortOrder.indexOf(posB as PlayerPosition);
-      return (indexA === -1 ? 99 : indexA) - (indexB === -1 ? 99 : indexB);
-    });
   }
 
   const getTeamAverageMMR = (teamIds: string[]) => {
@@ -116,50 +100,20 @@ export default function Matchmaker({ session, players, isFirstMatch, onEndSessio
           <h2 className="text-3xl font-black text-white">{t('draftPreview')}</h2>
           
           <div className="flex flex-col md:flex-row gap-6 w-full text-left">
-            <div className="flex-1 bg-red-900/20 border border-red-500/30 rounded-2xl p-6">
-              <h3 className="text-red-400 font-bold text-xl mb-4 border-b border-red-500/30 pb-2 flex justify-between items-end">
-                <span>{t('redTeam')}</span>
-                <span className="text-xs font-bold text-red-500/70 tracking-wider">MMR: {teamAMMR}</span>
-              </h3>
-              <ul className="flex flex-col gap-2">
-                {sortPlayersByPos(draft.teamA, draft.teamAPositions).map(id => {
-                  const pos = draft.teamAPositions?.[id];
-                  const p = players.find(p => p.id === id);
-                  const displayPos = (pos && pos !== 'Any') ? pos : (p?.positions?.[0] || 'Any');
-                  const isLibero = displayPos === 'Libero';
-                  return (
-                    <li key={id} className={`p-3 rounded-lg font-semibold flex justify-between items-center ${isLibero ? 'bg-amber-900/30 border border-amber-500/30 text-amber-100' : 'bg-gray-800/80 text-gray-100'}`}>
-                      <span>{getPlayerName(id)}</span>
-                      {displayPos !== 'Any' && (
-                        <span className={`font-bold text-xs px-2 py-1 rounded ${isLibero ? 'bg-amber-900/60 text-amber-200' : 'bg-red-900/50 text-red-200'}`}>{tPos(displayPos)}</span>
-                      )}
-                    </li>
-                  )
-                })}
-              </ul>
-            </div>
-            <div className="flex-1 bg-blue-900/20 border border-blue-500/30 rounded-2xl p-6">
-              <h3 className="text-blue-400 font-bold text-xl mb-4 border-b border-blue-500/30 pb-2 flex justify-between items-end">
-                <span>{t('blueTeam')}</span>
-                <span className="text-xs font-bold text-blue-500/70 tracking-wider">MMR: {teamBMMR}</span>
-              </h3>
-              <ul className="flex flex-col gap-2">
-                {sortPlayersByPos(draft.teamB, draft.teamBPositions).map(id => {
-                  const pos = draft.teamBPositions?.[id];
-                  const p = players.find(p => p.id === id);
-                  const displayPos = (pos && pos !== 'Any') ? pos : (p?.positions?.[0] || 'Any');
-                  const isLibero = displayPos === 'Libero';
-                  return (
-                    <li key={id} className={`p-3 rounded-lg font-semibold flex justify-between items-center ${isLibero ? 'bg-amber-900/30 border border-amber-500/30 text-amber-100' : 'bg-gray-800/80 text-gray-100'}`}>
-                      <span>{getPlayerName(id)}</span>
-                      {displayPos !== 'Any' && (
-                        <span className={`font-bold text-xs px-2 py-1 rounded ${isLibero ? 'bg-amber-900/60 text-amber-200' : 'bg-blue-900/50 text-blue-200'}`}>{tPos(displayPos)}</span>
-                      )}
-                    </li>
-                  )
-                })}
-              </ul>
-            </div>
+            <DraftTeamPanel
+              teamIds={draft.teamA}
+              positions={draft.teamAPositions}
+              players={players}
+              teamColor="red"
+              averageMmr={teamAMMR}
+            />
+            <DraftTeamPanel
+              teamIds={draft.teamB}
+              positions={draft.teamBPositions}
+              players={players}
+              teamColor="blue"
+              averageMmr={teamBMMR}
+            />
           </div>
 
           <div className="flex gap-4">
