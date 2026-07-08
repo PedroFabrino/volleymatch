@@ -8,13 +8,16 @@ import {
 } from './voting-prompts'
 import { loadStoredQueue, saveStoredQueue } from './spectator-voting-storage'
 import type { Match } from '@/types'
+import type { ScoringType } from '@/types/pointAttribution'
+import { parseStoredSpectatorVote } from '@/types/pointAttribution'
 
 type VotingState = 'idle' | 'voting' | 'voted'
+type VotingPhase = 'choose_player' | 'choose_type'
 
 type UseSpectatorVotingOptions = {
   match: Match
   sessionId: string
-  votedForLabel: (name: string) => string
+  votedForLabel: (name: string, scoringType: ScoringType) => string
 }
 
 type MatchScoreRow = {
@@ -25,19 +28,33 @@ type MatchScoreRow = {
 export function useSpectatorVoting({ match, sessionId, votedForLabel }: UseSpectatorVotingOptions) {
   const [promptQueue, setPromptQueue] = useState<VotingPrompt[]>(() => loadStoredQueue(match.id))
   const [votingState, setVotingState] = useState<VotingState>('idle')
+  const [votingPhase, setVotingPhase] = useState<VotingPhase>('choose_player')
   const [votingTeam, setVotingTeam] = useState<'a' | 'b' | null>(null)
   const [votingScoreSnapshot, setVotingScoreSnapshot] = useState<{ a: number; b: number } | null>(null)
   const votingScoreSnapshotRef = useRef<{ a: number; b: number } | null>(null)
   const [voteCounts, setVoteCounts] = useState<Map<string, number>>(new Map())
   const [myVote, setMyVote] = useState<string | null>(null)
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
+  const [selectedPlayerName, setSelectedPlayerName] = useState<string | null>(null)
+  const [selectedScoringType, setSelectedScoringType] = useState<ScoringType | null>(null)
   const [countdown, setCountdown] = useState(10)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const lastSeenScoresRef = useRef({ a: match.team_a_score, b: match.team_b_score })
   const previousMatchIdRef = useRef<string | null>(null)
+  const submitInFlightRef = useRef(false)
 
   const activePromptId = promptQueue[0]?.id ?? null
   const promptQueueRef = useRef(promptQueue)
   promptQueueRef.current = promptQueue
+
+  const votingPhaseRef = useRef(votingPhase)
+  votingPhaseRef.current = votingPhase
+  const selectedPlayerIdRef = useRef(selectedPlayerId)
+  selectedPlayerIdRef.current = selectedPlayerId
+  const selectedPlayerNameRef = useRef(selectedPlayerName)
+  selectedPlayerNameRef.current = selectedPlayerName
+  const votingStateRef = useRef(votingState)
+  votingStateRef.current = votingState
 
   const enqueuePrompts = useCallback((incoming: VotingPrompt[]) => {
     if (incoming.length === 0) return
@@ -56,7 +73,50 @@ export function useSpectatorVoting({ match, sessionId, votedForLabel }: UseSpect
   const dismissCurrentPrompt = useCallback(() => {
     setPromptQueue((prev) => prev.slice(1))
     setToastMessage(null)
+    setVotingPhase('choose_player')
+    setSelectedPlayerId(null)
+    setSelectedPlayerName(null)
+    setSelectedScoringType(null)
+    submitInFlightRef.current = false
   }, [])
+
+  const submitVote = useCallback(async (
+    playerId: string,
+    playerName: string,
+    scoringType: ScoringType,
+    options?: { showToast?: boolean },
+  ) => {
+    const snap = votingScoreSnapshotRef.current
+    const team = votingTeam
+    if (!snap || !team || submitInFlightRef.current) return
+
+    submitInFlightRef.current = true
+    setMyVote(playerId)
+    setSelectedPlayerId(playerId)
+    setSelectedPlayerName(playerName)
+    setSelectedScoringType(scoringType)
+    setVotingState('voted')
+
+    if (options?.showToast !== false) {
+      setToastMessage(votedForLabel(playerName, scoringType))
+      setTimeout(() => setToastMessage(null), 2500)
+    }
+
+    const token = getVoterToken()
+    const storedKey = `volleymatch_vote_${match.id}_${snap.a}_${snap.b}`
+    localStorage.setItem(storedKey, JSON.stringify({ playerId, scoringType, playerName }))
+
+    await submitPointAttribution(
+      match.id,
+      sessionId,
+      playerId,
+      team,
+      snap.a,
+      snap.b,
+      token,
+      scoringType,
+    )
+  }, [getVoterToken, match.id, sessionId, votedForLabel])
 
   const activatePrompt = useCallback((prompt: VotingPrompt) => {
     const snap = { a: prompt.scoreA, b: prompt.scoreB }
@@ -66,17 +126,30 @@ export function useSpectatorVoting({ match, sessionId, votedForLabel }: UseSpect
     setCountdown(10)
     setVoteCounts(new Map())
     setToastMessage(null)
+    setVotingPhase('choose_player')
+    setSelectedPlayerId(null)
+    setSelectedPlayerName(null)
+    setSelectedScoringType(null)
+    submitInFlightRef.current = false
 
     getVoterToken()
     const storedKey = `volleymatch_vote_${match.id}_${prompt.scoreA}_${prompt.scoreB}`
-    const alreadyVotedFor = localStorage.getItem(storedKey)
-    if (alreadyVotedFor) {
-      setMyVote(alreadyVotedFor)
-      setVotingState('voted')
-    } else {
-      setMyVote(null)
-      setVotingState('voting')
+    const raw = localStorage.getItem(storedKey)
+    if (raw) {
+      const stored = parseStoredSpectatorVote(raw)
+      if (stored) {
+        setMyVote(stored.playerId)
+        setSelectedPlayerId(stored.playerId)
+        setSelectedPlayerName(stored.playerName ?? null)
+        setSelectedScoringType(stored.scoringType)
+        setVotingPhase('choose_type')
+        setVotingState('voted')
+        return
+      }
     }
+
+    setMyVote(null)
+    setVotingState('voting')
   }, [getVoterToken, match.id])
 
   useEffect(() => {
@@ -106,6 +179,10 @@ export function useSpectatorVoting({ match, sessionId, votedForLabel }: UseSpect
     votingScoreSnapshotRef.current = null
     setMyVote(null)
     setVoteCounts(new Map())
+    setVotingPhase('choose_player')
+    setSelectedPlayerId(null)
+    setSelectedPlayerName(null)
+    setSelectedScoringType(null)
   }, [activePromptId, activatePrompt])
 
   useEffect(() => {
@@ -169,45 +246,54 @@ export function useSpectatorVoting({ match, sessionId, votedForLabel }: UseSpect
     if ((votingState === 'voting' || votingState === 'voted') && countdown > 0) {
       timer = setTimeout(() => setCountdown((current) => current - 1), 1000)
     } else if (countdown === 0) {
-      timer = setTimeout(() => dismissCurrentPrompt(), 0)
+      timer = setTimeout(async () => {
+        if (
+          votingStateRef.current === 'voting'
+          && votingPhaseRef.current === 'choose_type'
+          && selectedPlayerIdRef.current
+        ) {
+          await submitVote(
+            selectedPlayerIdRef.current,
+            selectedPlayerNameRef.current ?? '',
+            'other',
+            { showToast: false },
+          )
+        }
+        dismissCurrentPrompt()
+      }, 0)
     }
 
     return () => clearTimeout(timer)
-  }, [activePromptId, votingState, countdown, dismissCurrentPrompt])
+  }, [activePromptId, votingState, countdown, dismissCurrentPrompt, submitVote])
 
-  const castVote = async (playerId: string, playerName: string) => {
-    if (votingState !== 'voting' || !votingScoreSnapshot || !votingTeam) return
+  const selectPlayer = (playerId: string, playerName: string) => {
+    if (votingState !== 'voting' || votingPhase !== 'choose_player') return
+    setSelectedPlayerId(playerId)
+    setSelectedPlayerName(playerName)
+    setVotingPhase('choose_type')
+  }
 
-    setMyVote(playerId)
-    setVotingState('voted')
-    setToastMessage(votedForLabel(playerName))
-    setTimeout(() => setToastMessage(null), 2000)
-
-    const token = getVoterToken()
-    const storedKey = `volleymatch_vote_${match.id}_${votingScoreSnapshot.a}_${votingScoreSnapshot.b}`
-    localStorage.setItem(storedKey, playerId)
-
-    await submitPointAttribution(
-      match.id,
-      sessionId,
-      playerId,
-      votingTeam,
-      votingScoreSnapshot.a,
-      votingScoreSnapshot.b,
-      token
-    )
+  const selectScoringType = async (scoringType: ScoringType) => {
+    if (votingState !== 'voting' || votingPhase !== 'choose_type') return
+    if (!selectedPlayerId || !selectedPlayerName) return
+    await submitVote(selectedPlayerId, selectedPlayerName, scoringType)
   }
 
   const hasPendingVoting = promptQueue.length > 0 || votingState !== 'idle'
 
   return {
     votingState,
+    votingPhase,
     votingTeam,
     countdown,
     voteCounts,
     myVote,
+    selectedPlayerId,
+    selectedPlayerName,
+    selectedScoringType,
     toastMessage,
-    castVote,
+    selectPlayer,
+    selectScoringType,
     dismissCurrentPrompt,
     queueLength: promptQueue.length,
     hasPendingVoting,
