@@ -1,24 +1,21 @@
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { redirect } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { SpectatorScoreboard, SpectatorMatchmaker, RealtimeSubscriber } from '@/features/spectator'
-import { previewNextDraft, sortPlayersByDraftPriority } from '@/lib/matchmaking'
 import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher'
 import { unstable_cache } from 'next/cache'
-import { getPresentPlayersByHoster, getSessionPlayersList, getSessionByPin, getActiveMatchForSession, getLastCompletedMatchForSession } from '@/lib/services'
+import { getSpectatorViewData } from '@/lib/services/spectator.service'
 
-const getSessionPlayers = async (sessionId: string, hosterId: string) => {
+const getCachedSpectatorViewData = async (pin: string) => {
   return unstable_cache(
     async () => {
-      const supabase = createAdminClient()
-      const rawPlayers = await getPresentPlayersByHoster(supabase, hosterId)
-      const sessionPlayers = await getSessionPlayersList(supabase, sessionId)
-
-      return { rawPlayers, sessionPlayers }
+      const supabase = await createClient()
+      const adminSupabase = createAdminClient()
+      return getSpectatorViewData(supabase, adminSupabase, pin)
     },
-    ['spectator-players', sessionId],
-    { revalidate: 5, tags: [`session-${sessionId}`] }
+    ['spectator-view', pin],
+    { revalidate: 5, tags: [`spectator-${pin}`] }
   )()
 }
 
@@ -27,61 +24,22 @@ export default async function ViewSessionPage(props: { params: Promise<{ pin: st
   const pin = params.pin
   const t = await getTranslations('Spectator')
 
-  const supabase = await createClient()
-
-  // 1. Get Session Details by PIN (must be active)
-  const { data: session, error } = await getSessionByPin(supabase, pin)
+  const { data, error } = await getCachedSpectatorViewData(pin)
 
   if (error) {
     console.error('Supabase Error fetching session:', error)
   }
 
-  if (!session) {
-    // PIN invalid or session ended
+  if (!data) {
     redirect('/?error=invalid_pin')
   }
 
-  // 2. Get Active Match (if any)
-  const activeMatch = await getActiveMatchForSession(supabase, session.id)
-
-  // 3. Get all players for this host
-  const { rawPlayers, sessionPlayers } = await getSessionPlayers(session.id, session.hoster_id)
-
-  const players = (rawPlayers || []).map(p => {
-    const sp = sessionPlayers?.find(sp => sp.player_id === p.id)
-    return {
-      ...p,
-      games_played_today: sp ? sp.games_played : 0
-    }
-  })
-
-  // 4. Get Last Completed Match (for previewing the next draft accurately in strict mode)
-  const lastCompletedMatch = await getLastCompletedMatchForSession(supabase, session.id)
-
-  const lastWinners = activeMatch 
-    ? activeMatch.team_a_players 
-    : (lastCompletedMatch?.team_a_players || [])
-    
-  const lastLosers = activeMatch 
-    ? activeMatch.team_b_players 
-    : (lastCompletedMatch?.team_b_players || []) // Doesn't matter which is which for the preview as long as they are separated from the bench
-
-  const isFirstMatch = lastWinners.length === 0 && lastLosers.length === 0;
-
-  // Sort players by draft priority so UI Queue perfectly aligns with the engine's internal logic
-  const sortedPlayers = [...players].sort((a, b) => sortPlayersByDraftPriority(a, b, isFirstMatch))
-
-  const playersWithStatus = previewNextDraft(
-    sortedPlayers,
-    lastWinners,
-    lastLosers,
-    session.matchmaking_mode === 'strict'
-  )
+  const { session, activeMatch, playersWithStatus } = data
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col pb-8">
       <RealtimeSubscriber sessionId={session.id} />
-      
+
       <div className="bg-gray-900 border-b border-gray-800 p-4 text-center relative flex justify-between items-center">
         <div className="w-16"></div>
         <div>
@@ -95,7 +53,11 @@ export default async function ViewSessionPage(props: { params: Promise<{ pin: st
 
       <div className="flex-1 mt-4 px-4 max-w-4xl mx-auto w-full">
         {activeMatch ? (
-          <SpectatorScoreboard session={session} match={activeMatch} playersWithStatus={playersWithStatus} />
+          <SpectatorScoreboard
+            session={session}
+            match={activeMatch}
+            playersWithStatus={playersWithStatus}
+          />
         ) : (
           <SpectatorMatchmaker session={session} playersWithStatus={playersWithStatus} />
         )}
