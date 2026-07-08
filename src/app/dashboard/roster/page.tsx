@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { addPlayer, deletePlayer, updatePlayer } from '@/features/roster'
 import { User, Shield, Activity, Trash2, ArrowLeft, Edit2 } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
+import { getPlayersByHoster } from '@/lib/services'
 
 export default async function RosterPage(props: { searchParams: Promise<{ error?: string, edit?: string }> }) {
   const searchParams = await props.searchParams
@@ -19,10 +20,7 @@ export default async function RosterPage(props: { searchParams: Promise<{ error?
   }
 
   // Fetch all players for this hoster
-  const { data: players } = await supabase
-    .from('players')
-    .select('*')
-    .order('name', { ascending: true })
+  const players = await getPlayersByHoster(supabase, user.id)
 
   const availablePositions = [
     'Setter', 'Outside Hitter', 'Middle Blocker', 'Libero', 'Opposite Hitter'
