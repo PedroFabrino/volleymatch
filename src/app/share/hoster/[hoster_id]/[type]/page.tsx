@@ -10,7 +10,7 @@ export default async function PublicShareGlobalHighlightPage(props: { params: Pr
   const hosterId = params.hoster_id
   const type = params.type
 
-  if (!['mvp', 'comeback', 'blowout'].includes(type)) {
+  if (!['mvp', 'comeback', 'blowout', 'topscorer'].includes(type)) {
     redirect('/')
   }
 
@@ -34,7 +34,8 @@ export default async function PublicShareGlobalHighlightPage(props: { params: Pr
     biggestComebackMatch,
     turningPoint,
     maxDiff,
-    biggestDiffMatch
+    biggestDiffMatch,
+    topScorer
   } = await getGlobalSummaryData(supabase, hosterId)
 
   const getPlayerNames = (teamIds: string[]) => {
@@ -53,6 +54,7 @@ export default async function PublicShareGlobalHighlightPage(props: { params: Pr
       <div className={`relative w-full max-w-sm rounded-3xl p-8 text-white shadow-2xl overflow-hidden flex flex-col justify-between ${
         type === 'mvp' ? 'bg-gradient-to-br from-yellow-400 to-amber-600' : 
         type === 'comeback' ? 'bg-gradient-to-br from-red-500 to-rose-700' :
+        type === 'topscorer' ? 'bg-gradient-to-br from-emerald-500 to-green-700' :
         'bg-gradient-to-br from-indigo-500 to-blue-700'
       }`}>
         
@@ -60,13 +62,14 @@ export default async function PublicShareGlobalHighlightPage(props: { params: Pr
         {type === 'mvp' && <Trophy className="absolute -right-10 -bottom-10 w-64 h-64 opacity-20" />}
         {type === 'comeback' && <Flame className="absolute -right-10 -bottom-10 w-64 h-64 opacity-20" />}
         {type === 'blowout' && <Swords className="absolute -right-10 -bottom-10 w-64 h-64 opacity-20" />}
+        {type === 'topscorer' && <Flame className="absolute -right-10 -bottom-10 w-64 h-64 opacity-20" />}
 
         {/* Card Content */}
         <div className="relative z-10 flex-1 flex flex-col">
           {/* Header */}
           <div className="flex justify-between items-start mb-6">
             <h3 className="text-white/80 font-bold uppercase tracking-widest text-sm">
-              {type === 'mvp' ? t('mvp') : type === 'comeback' ? t('biggestComeback') : t('biggestDifference')}
+              {type === 'mvp' ? t('mvp') : type === 'comeback' ? t('biggestComeback') : type === 'topscorer' ? t('topScorer', { fallback: 'Top Scorer' }) : t('biggestDifference')}
             </h3>
           </div>
 
@@ -122,6 +125,22 @@ export default async function PublicShareGlobalHighlightPage(props: { params: Pr
                   <div className="text-xs text-indigo-200 uppercase font-bold tracking-widest mb-1">{t('unstoppables')}</div>
                   <div className="font-bold text-lg leading-snug">
                     {getPlayerNames(biggestDiffMatch.team_a_score > biggestDiffMatch.team_b_score ? biggestDiffMatch.team_a_players : biggestDiffMatch.team_b_players)}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Top Scorer Specifics */}
+            {type === 'topscorer' && topScorer && (
+              <>
+                <div className="text-white/90 font-bold text-xl mb-1">{t('offensiveMachine', { fallback: 'Offensive Machine' })}</div>
+                <div className="text-5xl font-black mb-8 leading-tight">
+                  {topScorer.name}
+                </div>
+                <div className="bg-green-900/30 rounded-2xl p-4 border border-green-500/30 backdrop-blur-md">
+                  <div className="text-xs text-emerald-200 uppercase font-bold tracking-widest mb-1">{t('pointsScored', { fallback: 'Points Scored' })}</div>
+                  <div className="font-bold text-lg leading-snug">
+                    {topScorer.points} {t('points', { count: topScorer.points, fallback: 'points' })}
                   </div>
                 </div>
               </>

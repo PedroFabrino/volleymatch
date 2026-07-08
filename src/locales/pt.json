@@ -207,6 +207,10 @@
     "winsTogether": "{count} Vitórias Juntos",
     "copiedLink": "Link Copiado!",
     "share": "Compartilhar",
-    "highlightTitle": "Destaque VolleyMatch"
+    "highlightTitle": "Destaque VolleyMatch",
+    "topScorer": "Artilheiro",
+    "offensiveMachine": "Máquina Ofensiva",
+    "pointsScored": "Pontos Marcados",
+    "points": "{count, plural, =1 {ponto} other {pontos}}"
   }
 }

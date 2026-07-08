@@ -210,6 +210,10 @@
     "ralliedToWin": "Rallied to win {scoreA}-{scoreB}",
     "totalDominance": "Total Dominance",
     "wonBy": "Won by {diff} pts",
-    "winsTogether": "{count} wins together"
+    "winsTogether": "{count} wins together",
+    "topScorer": "Top Scorer",
+    "offensiveMachine": "Offensive Machine",
+    "pointsScored": "Points Scored",
+    "points": "{count, plural, =1 {point} other {points}}"
   }
 }

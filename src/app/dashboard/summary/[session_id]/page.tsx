@@ -35,7 +35,7 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
     await supabase.from('sessions').update({ summary_data: summaryData }).eq('id', sessionId);
   }
 
-  const {
+    const {
     playersData,
     leaderboard,
     mvp,
@@ -46,7 +46,8 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
     biggestComebackMatch,
     turningPoint,
     maxDiff,
-    biggestDiffMatch
+    biggestDiffMatch,
+    topScorer
   } = summaryData;
 
   return (
@@ -86,6 +87,7 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
           biggestDiffMatch={biggestDiffMatch}
           maxDiff={maxDiff}
           playersData={playersData}
+          topScorer={topScorer}
         />
 
         {/* Leaderboard Table */}

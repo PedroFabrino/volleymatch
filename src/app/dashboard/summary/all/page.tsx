@@ -28,7 +28,8 @@ export default async function GlobalSummaryPage() {
     biggestComebackMatch,
     turningPoint,
     maxDiff,
-    biggestDiffMatch
+    biggestDiffMatch,
+    topScorer
   } = await getGlobalSummaryData(supabase, user.id)
 
   return (
@@ -67,6 +68,7 @@ export default async function GlobalSummaryPage() {
           biggestDiffMatch={biggestDiffMatch}
           maxDiff={maxDiff}
           playersData={playersData}
+          topScorer={topScorer}
           isGlobal={true}
           hosterId={user.id}
         />

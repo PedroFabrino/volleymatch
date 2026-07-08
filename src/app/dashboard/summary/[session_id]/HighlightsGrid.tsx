@@ -14,15 +14,16 @@ type Props = {
   biggestDiffMatch: any;
   maxDiff: number;
   playersData: any[];
+  topScorer?: { id: string, name: string, points: number } | null;
   isGlobal?: boolean;
   hosterId?: string;
 }
 
 export default function HighlightsGrid({ 
-  sessionId, mvp, bestPartner, biggestComebackMatch, maxComeback, turningPoint, biggestDiffMatch, maxDiff, playersData, isGlobal, hosterId 
+  sessionId, mvp, bestPartner, biggestComebackMatch, maxComeback, turningPoint, biggestDiffMatch, maxDiff, playersData, topScorer, isGlobal, hosterId 
 }: Props) {
   const t = useTranslations('Summary')
-  const [selected, setSelected] = useState<'mvp' | 'comeback' | 'blowout' | null>(null)
+  const [selected, setSelected] = useState<'mvp' | 'comeback' | 'blowout' | 'topscorer' | null>(null)
   const [copied, setCopied] = useState(false)
 
   const handleShare = async () => {
@@ -118,6 +119,23 @@ export default function HighlightsGrid({
           </div>
         </button>
 
+        {/* Top Scorer Compact */}
+        {topScorer && (
+          <button 
+            onClick={() => setSelected('topscorer')}
+            className={`bg-gradient-to-br from-emerald-500 to-green-700 rounded-3xl p-6 text-white shadow-xl shadow-green-900/20 relative overflow-hidden text-left transition hover:scale-105`}
+          >
+            <Flame className="absolute -right-4 -bottom-4 w-32 h-32 opacity-20" />
+            <div className="relative z-10">
+              <h3 className="text-emerald-200 font-bold uppercase tracking-wider text-sm mb-4">{t('topScorer', { fallback: 'Top Scorer' })}</h3>
+              <div className="text-3xl font-black mb-1">{topScorer.name}</div>
+              <div className="text-emerald-200 font-bold">
+                {topScorer.points} {t('points', { count: topScorer.points, fallback: 'points' })}
+              </div>
+            </div>
+          </button>
+        )}
+
       </div>
 
       {/* Share Modal */}
@@ -139,6 +157,7 @@ export default function HighlightsGrid({
             <div id="share-card" className={`relative rounded-3xl p-8 text-white shadow-2xl overflow-hidden flex flex-col justify-between ${
               selected === 'mvp' ? 'bg-gradient-to-br from-yellow-400 to-amber-600' : 
               selected === 'comeback' ? 'bg-gradient-to-br from-red-500 to-rose-700' :
+              selected === 'topscorer' ? 'bg-gradient-to-br from-emerald-500 to-green-700' :
               'bg-gradient-to-br from-indigo-500 to-blue-700'
             }`}>
               
@@ -146,13 +165,14 @@ export default function HighlightsGrid({
               {selected === 'mvp' && <Trophy className="absolute -right-10 -bottom-10 w-64 h-64 opacity-20" />}
               {selected === 'comeback' && <Flame className="absolute -right-10 -bottom-10 w-64 h-64 opacity-20" />}
               {selected === 'blowout' && <Swords className="absolute -right-10 -bottom-10 w-64 h-64 opacity-20" />}
+              {selected === 'topscorer' && <Flame className="absolute -right-10 -bottom-10 w-64 h-64 opacity-20" />}
 
               {/* Card Content */}
               <div className="relative z-10 flex-1 flex flex-col">
                 {/* Header */}
                 <div className="flex justify-between items-start mb-6">
                   <h3 className="text-white/80 font-bold uppercase tracking-widest text-sm">
-                    {selected === 'mvp' ? t('mvp') : selected === 'comeback' ? t('biggestComeback') : t('biggestDifference')}
+                    {selected === 'mvp' ? t('mvp') : selected === 'comeback' ? t('biggestComeback') : selected === 'topscorer' ? t('topScorer', { fallback: 'Top Scorer' }) : t('biggestDifference')}
                   </h3>
                 </div>
 
@@ -208,6 +228,22 @@ export default function HighlightsGrid({
                         <div className="text-xs text-indigo-200 uppercase font-bold tracking-widest mb-1">{t('unstoppables')}</div>
                         <div className="font-bold text-lg leading-snug">
                           {getPlayerNames(biggestDiffMatch.team_a_score > biggestDiffMatch.team_b_score ? biggestDiffMatch.team_a_players : biggestDiffMatch.team_b_players)}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Top Scorer Specifics */}
+                  {selected === 'topscorer' && topScorer && (
+                    <>
+                      <div className="text-white/90 font-bold text-xl mb-1">{t('offensiveMachine', { fallback: 'Offensive Machine' })}</div>
+                      <div className="text-5xl font-black mb-8 leading-tight">
+                        {topScorer.name}
+                      </div>
+                      <div className="bg-green-900/30 rounded-2xl p-4 border border-green-500/30 backdrop-blur-md">
+                        <div className="text-xs text-emerald-200 uppercase font-bold tracking-widest mb-1">{t('pointsScored', { fallback: 'Points Scored' })}</div>
+                        <div className="font-bold text-lg leading-snug">
+                          {topScorer.points} {t('points', { count: topScorer.points, fallback: 'points' })}
                         </div>
                       </div>
                     </>

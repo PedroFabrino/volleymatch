@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { endSession } from '@/features/session'
 import { Scoreboard } from '@/features/live-session'
 import { Matchmaker } from '@/features/live-session'
 import { QrCodeModal } from '@/components/ui/QrCodeModal'
@@ -67,7 +68,7 @@ export default async function LiveSessionPage(props: { params: Promise<{ session
         {activeMatch ? (
           <Scoreboard session={session} match={activeMatch} players={playersWithGames} playersWithStatus={playersWithStatus} />
         ) : (
-          <Matchmaker session={session} players={playersWithGames} isFirstMatch={isFirstMatch} />
+          <Matchmaker session={session} players={playersWithGames} isFirstMatch={isFirstMatch} onEndSession={endSession} />
         )}
       </div>
     </div>

@@ -21,6 +21,12 @@ export async function getSessionSummaryData(supabase: SupabaseClient, sessionId:
     .select('games_played, players ( id, name )')
     .eq('session_id', sessionId)
 
+  // 4. Fetch point attributions
+  const { data: attributions } = await supabase
+    .from('point_attributions')
+    .select('match_id, score_a, score_b, attributed_to')
+    .eq('session_id', sessionId)
+
   const playersData = sessionPlayers?.map(sp => ({
     id: (sp.players as any).id,
     name: (sp.players as any).name,
@@ -133,6 +139,48 @@ export async function getSessionSummaryData(supabase: SupabaseClient, sessionId:
     }
   })
 
+  // --- Top Scorer ---
+  let topScorer: { id: string, name: string, points: number } | null = null;
+  if (attributions && attributions.length > 0) {
+    const pointVotes: Record<string, Record<string, number>> = {};
+    attributions.forEach(attr => {
+      const pointKey = `${attr.match_id}_${attr.score_a}_${attr.score_b}`;
+      if (!pointVotes[pointKey]) pointVotes[pointKey] = {};
+      pointVotes[pointKey][attr.attributed_to] = (pointVotes[pointKey][attr.attributed_to] || 0) + 1;
+    });
+
+    const playerScores: Record<string, number> = {};
+    Object.values(pointVotes).forEach(votes => {
+      let maxVotes = 0;
+      let winnerId: string | null = null;
+      Object.entries(votes).forEach(([playerId, count]) => {
+        if (count > maxVotes) {
+          maxVotes = count;
+          winnerId = playerId;
+        }
+      });
+      if (winnerId) {
+        playerScores[winnerId] = (playerScores[winnerId] || 0) + 1;
+      }
+    });
+
+    let maxPoints = 0;
+    let topScorerId: string | null = null;
+    Object.entries(playerScores).forEach(([playerId, points]) => {
+      if (points > maxPoints) {
+        maxPoints = points;
+        topScorerId = playerId;
+      }
+    });
+
+    if (topScorerId) {
+      const pData = playersData.find(p => p.id === topScorerId);
+      if (pData) {
+        topScorer = { id: pData.id, name: pData.name, points: maxPoints };
+      }
+    }
+  }
+
   return {
     playersData,
     leaderboard,
@@ -144,7 +192,8 @@ export async function getSessionSummaryData(supabase: SupabaseClient, sessionId:
     biggestComebackMatch,
     turningPoint,
     maxDiff,
-    biggestDiffMatch
+    biggestDiffMatch,
+    topScorer
   }
 }
 
@@ -169,7 +218,8 @@ export async function getGlobalSummaryData(supabase: SupabaseClient, hosterId: s
       biggestComebackMatch: null,
       turningPoint: { winningScore: 0, losingScore: 0 },
       maxDiff: 0,
-      biggestDiffMatch: null
+      biggestDiffMatch: null,
+      topScorer: null
     }
   }
 
@@ -192,6 +242,12 @@ export async function getGlobalSummaryData(supabase: SupabaseClient, hosterId: s
     .from('players')
     .select('id, name')
     .eq('hoster_id', hosterId)
+
+  // 5. Fetch point attributions across these sessions
+  const { data: attributions } = await supabase
+    .from('point_attributions')
+    .select('match_id, score_a, score_b, attributed_to')
+    .in('session_id', sessionIds)
 
   const playersData = players || []
 
@@ -317,6 +373,48 @@ export async function getGlobalSummaryData(supabase: SupabaseClient, hosterId: s
     }
   })
 
+  // --- Top Scorer ---
+  let topScorer: { id: string, name: string, points: number } | null = null;
+  if (attributions && attributions.length > 0) {
+    const pointVotes: Record<string, Record<string, number>> = {};
+    attributions.forEach(attr => {
+      const pointKey = `${attr.match_id}_${attr.score_a}_${attr.score_b}`;
+      if (!pointVotes[pointKey]) pointVotes[pointKey] = {};
+      pointVotes[pointKey][attr.attributed_to] = (pointVotes[pointKey][attr.attributed_to] || 0) + 1;
+    });
+
+    const playerScores: Record<string, number> = {};
+    Object.values(pointVotes).forEach(votes => {
+      let maxVotes = 0;
+      let winnerId: string | null = null;
+      Object.entries(votes).forEach(([playerId, count]) => {
+        if (count > maxVotes) {
+          maxVotes = count;
+          winnerId = playerId;
+        }
+      });
+      if (winnerId) {
+        playerScores[winnerId] = (playerScores[winnerId] || 0) + 1;
+      }
+    });
+
+    let maxPoints = 0;
+    let topScorerId: string | null = null;
+    Object.entries(playerScores).forEach(([playerId, points]) => {
+      if (points > maxPoints) {
+        maxPoints = points;
+        topScorerId = playerId;
+      }
+    });
+
+    if (topScorerId) {
+      const pData = playersData.find(p => p.id === topScorerId);
+      if (pData) {
+        topScorer = { id: pData.id, name: pData.name, points: maxPoints };
+      }
+    }
+  }
+
   return {
     playersData,
     leaderboard,
@@ -328,7 +426,8 @@ export async function getGlobalSummaryData(supabase: SupabaseClient, hosterId: s
     biggestComebackMatch,
     turningPoint,
     maxDiff,
-    biggestDiffMatch
+    biggestDiffMatch,
+    topScorer
   }
 }
 
