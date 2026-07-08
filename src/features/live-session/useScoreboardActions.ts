@@ -1,10 +1,12 @@
-import { useTransition, useOptimistic, useRef, useState } from 'react'
+import { useTransition, useRef, useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { updateScore, finishMatch, cancelMatch } from './actions'
 import { substitutePlayer, swapPositions, swapTeams } from './team-actions'
 import type { PlayerPosition } from '@/types/player'
 import type { Match } from '@/types'
 
 export function useScoreboardActions(match: Match, sessionId: string) {
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [subbingPlayer, setSubbingPlayer] = useState<{ id: string; name: string; team: 'a' | 'b' } | null>(null)
   const [swappingPlayer, setSwappingPlayer] = useState<{
@@ -14,23 +16,21 @@ export function useScoreboardActions(match: Match, sessionId: string) {
     position: PlayerPosition
   } | null>(null)
 
-  const [optScoreA, addOptScoreA] = useOptimistic(
-    match.team_a_score,
-    (state: number, increment: number) => Math.max(0, state + increment)
-  )
+  const [scoreA, setScoreA] = useState(match.team_a_score)
+  const [scoreB, setScoreB] = useState(match.team_b_score)
 
-  const [optScoreB, addOptScoreB] = useOptimistic(
-    match.team_b_score,
-    (state: number, increment: number) => Math.max(0, state + increment)
-  )
+  useEffect(() => {
+    setScoreA(match.team_a_score)
+    setScoreB(match.team_b_score)
+  }, [match.id])
 
   const touchStartY = useRef<number | null>(null)
 
   const handleScoreChange = (team: 'a' | 'b', increment: number, e?: React.MouseEvent) => {
     if (e) e.stopPropagation()
+    if (team === 'a') setScoreA((prev) => Math.max(0, prev + increment))
+    if (team === 'b') setScoreB((prev) => Math.max(0, prev + increment))
     startTransition(() => {
-      if (team === 'a') addOptScoreA(increment)
-      if (team === 'b') addOptScoreB(increment)
       updateScore(match.id, sessionId, team, increment)
     })
   }
@@ -52,22 +52,27 @@ export function useScoreboardActions(match: Match, sessionId: string) {
 
   const handleSubstitute = (playerInId: string) => {
     if (!subbingPlayer) return
-    startTransition(() => {
-      substitutePlayer(match.id, sessionId, subbingPlayer.team, subbingPlayer.id, playerInId)
+    startTransition(async () => {
+      await substitutePlayer(match.id, sessionId, subbingPlayer.team, subbingPlayer.id, playerInId)
       setSubbingPlayer(null)
+      router.refresh()
     })
   }
 
   const handleSwapPositions = (targetId: string) => {
     if (!swappingPlayer) return
-    startTransition(() => {
-      swapPositions(match.id, sessionId, swappingPlayer.id, targetId)
+    startTransition(async () => {
+      await swapPositions(match.id, sessionId, swappingPlayer.id, targetId)
       setSwappingPlayer(null)
+      router.refresh()
     })
   }
 
   const handleCancelMatch = () => startTransition(() => cancelMatch(match.id, sessionId))
-  const handleSwapTeams = () => startTransition(() => swapTeams(match.id, sessionId))
+  const handleSwapTeams = () => startTransition(async () => {
+    await swapTeams(match.id, sessionId)
+    router.refresh()
+  })
   const handleFinishEarly = () => startTransition(() => finishMatch(match.id, sessionId))
 
   return {
@@ -77,8 +82,8 @@ export function useScoreboardActions(match: Match, sessionId: string) {
     setSubbingPlayer,
     swappingPlayer,
     setSwappingPlayer,
-    optScoreA,
-    optScoreB,
+    optScoreA: scoreA,
+    optScoreB: scoreB,
     handleScoreChange,
     handleTouchStart,
     handleTouchEnd,

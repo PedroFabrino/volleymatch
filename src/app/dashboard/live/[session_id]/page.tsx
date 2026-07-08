@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation'
 import { endSession } from '@/features/session'
 import { Scoreboard, Matchmaker, LiveSessionPinBar } from '@/features/live-session'
 import { getLiveSessionViewData } from '@/lib/services'
-import { RealtimeSubscriber } from '@/features/spectator'
 
 export default async function LiveSessionPage(props: { params: Promise<{ session_id: string }> }) {
   const params = await props.params
@@ -23,7 +22,6 @@ export default async function LiveSessionPage(props: { params: Promise<{ session
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
-      <RealtimeSubscriber sessionId={session.id} />
       <LiveSessionPinBar pin={pin} />
       <div className="flex-1">
         {activeMatch ? (
