@@ -8,6 +8,7 @@ type PlayerRosterRowProps = {
   position: PlayerPosition | undefined
   team: 'a' | 'b'
   isSpectatorMode?: boolean
+  isTbd?: boolean
   onSub?: (player: { id: string; name: string; team: 'a' | 'b' }) => void
   onSwap?: (player: { id: string; name: string; team: 'a' | 'b'; position: PlayerPosition }) => void
 }
@@ -17,6 +18,7 @@ export function PlayerRosterRow({
   position,
   team,
   isSpectatorMode = false,
+  isTbd = false,
   onSub,
   onSwap,
 }: PlayerRosterRowProps) {
@@ -27,7 +29,7 @@ export function PlayerRosterRow({
   const displayPos = (position && position !== 'Any') ? position : (player.positions?.[0] || 'Any')
   const isLibero = displayPos === 'Libero'
 
-  const baseContainerClass = `${isLibero ? 'bg-amber-900/30 border border-amber-500/30' : 'bg-gray-800'} rounded-lg p-3 shadow flex`
+  const baseContainerClass = `${isTbd ? 'bg-gray-900/60 border border-dashed border-gray-600' : isLibero ? 'bg-amber-900/30 border border-amber-500/30' : 'bg-gray-800'} rounded-lg p-3 shadow flex`
   const containerClass = isSpectatorMode 
     ? `${baseContainerClass} flex-col justify-center` 
     : `${baseContainerClass} justify-between items-center`
@@ -35,7 +37,7 @@ export function PlayerRosterRow({
   return (
     <li className={containerClass}>
       <div>
-        <div className={`font-bold ${isLibero ? 'text-amber-100' : 'text-gray-100'}`}>{player.name}</div>
+        <div className={`font-bold ${isTbd ? 'text-gray-500 italic' : isLibero ? 'text-amber-100' : 'text-gray-100'}`}>{player.name}</div>
         <div className="text-[10px] text-gray-400 mt-1 flex flex-wrap gap-1 font-bold">
           {position && position !== 'Any' ? (
             <span className={`${isLibero ? 'bg-amber-900/60 text-amber-200' : isTeamA ? 'bg-red-900/50 text-red-200' : 'bg-blue-900/50 text-blue-200'} px-2 py-0.5 rounded`}>
