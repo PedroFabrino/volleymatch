@@ -56,3 +56,28 @@ export async function getSessionPlayersMap(
     .eq('session_id', sessionId)
   return new Map((data ?? []).map(sp => [sp.player_id, sp.games_played]))
 }
+
+export async function getLiveSessionData(supabase: SupabaseClient, sessionId: string, userId: string) {
+  const [
+    { data: session },
+    { data: activeMatch },
+    { data: players },
+    { data: sessionPlayersData },
+    { count: completedMatchesCount }
+  ] = await Promise.all([
+    supabase.from('sessions').select('*').eq('id', sessionId).single(),
+    supabase.from('matches').select('*').eq('session_id', sessionId).eq('is_completed', false).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    supabase.from('players').select('*').eq('hoster_id', userId),
+    supabase.from('session_players').select('player_id, games_played').eq('session_id', sessionId),
+    supabase.from('matches').select('*', { count: 'exact', head: true }).eq('session_id', sessionId).eq('is_completed', true)
+  ])
+
+  return {
+    session,
+    activeMatch,
+    players,
+    sessionPlayersData,
+    completedMatchesCount
+  }
+}
+

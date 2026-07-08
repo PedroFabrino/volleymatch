@@ -6,7 +6,7 @@ import { Matchmaker } from '@/features/live-session'
 import { QrCodeModal } from '@/components/ui/QrCodeModal'
 import { previewNextDraft, sortPlayersByDraftPriority } from '@/lib/matchmaking'
 import { RealtimeSubscriber } from '@/features/spectator'
-
+import { getLiveSessionData } from '@/lib/services'
 export default async function LiveSessionPage(props: { params: Promise<{ session_id: string }> }) {
   const params = await props.params
   const sessionId = params.session_id
@@ -17,19 +17,7 @@ export default async function LiveSessionPage(props: { params: Promise<{ session
   if (!user) redirect('/login')
 
   // Run all independent queries in parallel to drastically speed up page loads and revalidatePath
-  const [
-    { data: session },
-    { data: activeMatch },
-    { data: players },
-    { data: sessionPlayersData },
-    { count: completedMatchesCount }
-  ] = await Promise.all([
-    supabase.from('sessions').select('*').eq('id', sessionId).single(),
-    supabase.from('matches').select('*').eq('session_id', sessionId).eq('is_completed', false).order('created_at', { ascending: false }).limit(1).maybeSingle(),
-    supabase.from('players').select('*').eq('hoster_id', user.id),
-    supabase.from('session_players').select('player_id, games_played').eq('session_id', sessionId),
-    supabase.from('matches').select('*', { count: 'exact', head: true }).eq('session_id', sessionId).eq('is_completed', true)
-  ])
+  const { session, activeMatch, players, sessionPlayersData, completedMatchesCount } = await getLiveSessionData(supabase, sessionId, user.id)
 
   if (!session) redirect('/dashboard')
 
