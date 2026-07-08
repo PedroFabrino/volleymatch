@@ -1,14 +1,12 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { submitPointAttribution } from './actions'
+import {
+  buildScorePrompts,
+  mergePromptQueue,
+  type VotingPrompt,
+} from './voting-prompts'
 import type { Match } from '@/types'
-
-export type VotingPrompt = {
-  id: string
-  team: 'a' | 'b'
-  scoreA: number
-  scoreB: number
-}
 
 type VotingState = 'idle' | 'voting' | 'voted'
 
@@ -18,12 +16,9 @@ type UseSpectatorVotingOptions = {
   votedForLabel: (name: string) => string
 }
 
-function buildPromptId(scoreA: number, scoreB: number) {
-  return `${scoreA}-${scoreB}`
-}
-
-function buildPrompt(team: 'a' | 'b', scoreA: number, scoreB: number): VotingPrompt {
-  return { id: buildPromptId(scoreA, scoreB), team, scoreA, scoreB }
+type MatchScoreRow = {
+  team_a_score: number
+  team_b_score: number
 }
 
 export function useSpectatorVoting({ match, sessionId, votedForLabel }: UseSpectatorVotingOptions) {
@@ -36,11 +31,16 @@ export function useSpectatorVoting({ match, sessionId, votedForLabel }: UseSpect
   const [myVote, setMyVote] = useState<string | null>(null)
   const [countdown, setCountdown] = useState(10)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
-  const prevScoreRef = useRef({ a: match.team_a_score, b: match.team_b_score })
+  const lastSeenScoresRef = useRef({ a: match.team_a_score, b: match.team_b_score })
 
   const activePromptId = promptQueue[0]?.id ?? null
   const promptQueueRef = useRef(promptQueue)
   promptQueueRef.current = promptQueue
+
+  const enqueuePrompts = useCallback((incoming: VotingPrompt[]) => {
+    if (incoming.length === 0) return
+    setPromptQueue((current) => mergePromptQueue(current, incoming))
+  }, [])
 
   const getVoterToken = useCallback(() => {
     let token = localStorage.getItem('volleymatch_voter_token')
@@ -78,6 +78,11 @@ export function useSpectatorVoting({ match, sessionId, votedForLabel }: UseSpect
   }, [getVoterToken, match.id])
 
   useEffect(() => {
+    lastSeenScoresRef.current = { a: match.team_a_score, b: match.team_b_score }
+    setPromptQueue([])
+  }, [match.id])
+
+  useEffect(() => {
     const prompt = promptQueueRef.current[0]
     if (prompt) {
       activatePrompt(prompt)
@@ -94,7 +99,29 @@ export function useSpectatorVoting({ match, sessionId, votedForLabel }: UseSpect
 
   useEffect(() => {
     const supabase = createClient()
-    const channel = supabase.channel(`spectator:point_attributions:${sessionId}`)
+    lastSeenScoresRef.current = { a: match.team_a_score, b: match.team_b_score }
+
+    const scoreChannel = supabase.channel(`spectator:match-scores:${match.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'matches',
+          filter: `id=eq.${match.id}`,
+        },
+        (payload) => {
+          const row = payload.new as MatchScoreRow
+          const prev = lastSeenScoresRef.current
+          const next = { a: row.team_a_score, b: row.team_b_score }
+          const prompts = buildScorePrompts(prev, next)
+          lastSeenScoresRef.current = next
+          enqueuePrompts(prompts)
+        }
+      )
+      .subscribe()
+
+    const attributionChannel = supabase.channel(`spectator:point_attributions:${sessionId}`)
       .on(
         'postgres_changes',
         {
@@ -119,30 +146,10 @@ export function useSpectatorVoting({ match, sessionId, votedForLabel }: UseSpect
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      supabase.removeChannel(scoreChannel)
+      supabase.removeChannel(attributionChannel)
     }
-  }, [sessionId])
-
-  useEffect(() => {
-    const prev = prevScoreRef.current
-    const newA = match.team_a_score
-    const newB = match.team_b_score
-
-    const totalNew = newA + newB
-    const totalPrev = prev.a + prev.b
-
-    if (totalNew > totalPrev) {
-      const team: 'a' | 'b' = newA > prev.a ? 'a' : 'b'
-      const prompt = buildPrompt(team, newA, newB)
-
-      setPromptQueue((current) => {
-        if (current.some((item) => item.id === prompt.id)) return current
-        return [...current, prompt]
-      })
-    }
-
-    prevScoreRef.current = { a: newA, b: newB }
-  }, [match.team_a_score, match.team_b_score, match.id])
+  }, [match.id, sessionId, enqueuePrompts])
 
   useEffect(() => {
     if (!activePromptId) return
@@ -192,3 +199,5 @@ export function useSpectatorVoting({ match, sessionId, votedForLabel }: UseSpect
     queueLength: promptQueue.length,
   }
 }
+
+export type { VotingPrompt } from './voting-prompts'
