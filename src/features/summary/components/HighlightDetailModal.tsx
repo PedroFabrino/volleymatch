@@ -1,9 +1,13 @@
 'use client'
 
-import { Trophy, TrendingUp, Flame, Swords, X, Share2, Copy, Check } from 'lucide-react'
+import { Trophy, Flame, Swords, X, Share2, Copy, Check } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Match } from '@/types/match'
 import { PlayerStat } from '@/types/player'
+import HighlightMvpPanel from './HighlightMvpPanel'
+import HighlightComebackPanel from './HighlightComebackPanel'
+import HighlightBlowoutPanel from './HighlightBlowoutPanel'
+import HighlightTopScorerPanel from './HighlightTopScorerPanel'
 
 export type HighlightSelection = 'mvp' | 'comeback' | 'blowout' | 'topscorer'
 
@@ -38,6 +42,7 @@ export default function HighlightDetailModal({
   getPlayerNames,
 }: Props) {
   const t = useTranslations('Summary')
+  const tMeta = useTranslations('Metadata')
 
   const gradientClass =
     selected === 'mvp'
@@ -59,6 +64,13 @@ export default function HighlightDetailModal({
 
   const canNativeShare =
     typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+
+  const BackgroundIcon =
+    selected === 'mvp'
+      ? Trophy
+      : selected === 'blowout'
+        ? Swords
+        : Flame
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
@@ -89,18 +101,7 @@ export default function HighlightDetailModal({
           id="share-card"
           className={`relative rounded-3xl p-8 text-white shadow-2xl overflow-hidden flex flex-col justify-between ${gradientClass}`}
         >
-          {selected === 'mvp' && (
-            <Trophy className="absolute -right-10 -bottom-10 w-64 h-64 opacity-20" />
-          )}
-          {selected === 'comeback' && (
-            <Flame className="absolute -right-10 -bottom-10 w-64 h-64 opacity-20" />
-          )}
-          {selected === 'blowout' && (
-            <Swords className="absolute -right-10 -bottom-10 w-64 h-64 opacity-20" />
-          )}
-          {selected === 'topscorer' && (
-            <Flame className="absolute -right-10 -bottom-10 w-64 h-64 opacity-20" />
-          )}
+          <BackgroundIcon className="absolute -right-10 -bottom-10 w-64 h-64 opacity-20" />
 
           <div className="relative z-10 flex-1 flex flex-col">
             <div className="flex justify-between items-start mb-6">
@@ -111,99 +112,27 @@ export default function HighlightDetailModal({
 
             <div className="flex-1 flex flex-col justify-center">
               {selected === 'mvp' && mvp && (
-                <>
-                  <div className="text-5xl font-black mb-2 leading-tight">{mvp.name}</div>
-                  <div className="text-amber-100 flex items-center gap-2 font-black text-2xl mb-8">
-                    <TrendingUp className="w-8 h-8" />
-                    +{mvp.mmrChange} MMR
-                  </div>
-                  {bestPartner && (
-                    <div className="bg-amber-900/30 rounded-2xl p-4 border border-amber-500/30 backdrop-blur-md">
-                      <div className="text-xs text-amber-200 uppercase font-bold tracking-widest mb-1">
-                        {t('dynamicDuo')}
-                      </div>
-                      <div className="font-bold flex items-center justify-between text-lg">
-                        <span>{bestPartner.name}</span>
-                        <span className="text-amber-200">
-                          {t('winsTogether', { count: bestPartner.wins })}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </>
+                <HighlightMvpPanel mvp={mvp} bestPartner={bestPartner} />
               )}
 
               {selected === 'comeback' && biggestComebackMatch && (
-                <>
-                  <div className="text-white/90 font-bold text-xl mb-1">
-                    {t('down', {
-                      losing: turningPoint.losingScore,
-                      winning: turningPoint.winningScore,
-                    })}
-                  </div>
-                  <div className="text-5xl font-black mb-8 leading-tight">
-                    {t('ralliedToWin', {
-                      scoreA: Math.max(
-                        biggestComebackMatch.team_a_score,
-                        biggestComebackMatch.team_b_score
-                      ),
-                      scoreB: Math.min(
-                        biggestComebackMatch.team_a_score,
-                        biggestComebackMatch.team_b_score
-                      ),
-                    })}
-                  </div>
-                  <div className="bg-red-900/30 rounded-2xl p-4 border border-red-500/30 backdrop-blur-md">
-                    <div className="text-xs text-red-200 uppercase font-bold tracking-widest mb-1">
-                      {t('comebackKids')}
-                    </div>
-                    <div className="font-bold text-lg leading-snug">
-                      {getPlayerNames(
-                        biggestComebackMatch.team_a_score > biggestComebackMatch.team_b_score
-                          ? biggestComebackMatch.team_a_players
-                          : biggestComebackMatch.team_b_players
-                      )}
-                    </div>
-                  </div>
-                </>
+                <HighlightComebackPanel
+                  biggestComebackMatch={biggestComebackMatch}
+                  turningPoint={turningPoint}
+                  getPlayerNames={getPlayerNames}
+                />
               )}
 
               {selected === 'blowout' && biggestDiffMatch && (
-                <>
-                  <div className="text-white/90 font-bold text-xl mb-1">{t('totalDominance')}</div>
-                  <div className="text-5xl font-black mb-8 leading-tight">
-                    {t('wonBy', { diff: maxDiff })}
-                  </div>
-                  <div className="bg-indigo-900/30 rounded-2xl p-4 border border-indigo-500/30 backdrop-blur-md">
-                    <div className="text-xs text-indigo-200 uppercase font-bold tracking-widest mb-1">
-                      {t('unstoppables')}
-                    </div>
-                    <div className="font-bold text-lg leading-snug">
-                      {getPlayerNames(
-                        biggestDiffMatch.team_a_score > biggestDiffMatch.team_b_score
-                          ? biggestDiffMatch.team_a_players
-                          : biggestDiffMatch.team_b_players
-                      )}
-                    </div>
-                  </div>
-                </>
+                <HighlightBlowoutPanel
+                  biggestDiffMatch={biggestDiffMatch}
+                  maxDiff={maxDiff}
+                  getPlayerNames={getPlayerNames}
+                />
               )}
 
               {selected === 'topscorer' && topScorer && (
-                <>
-                  <div className="text-white/90 font-bold text-xl mb-1">
-                    {t('offensiveMachine')}
-                  </div>
-                  <div className="text-5xl font-black mb-8 leading-tight">{topScorer.name}</div>
-                  <div className="bg-green-900/30 rounded-2xl p-4 border border-green-500/30 backdrop-blur-md">
-                    <div className="text-xs text-emerald-200 uppercase font-bold tracking-widest mb-1">
-                      {t('pointsScored')}
-                    </div>
-                    <div className="font-bold text-lg leading-snug">
-                      {topScorer.points} {t('points', { count: topScorer.points })}
-                    </div>
-                  </div>
-                </>
+                <HighlightTopScorerPanel topScorer={topScorer} />
               )}
             </div>
 
@@ -216,7 +145,7 @@ export default function HighlightDetailModal({
                 })}
               </div>
               <div className="text-white/80 font-black text-xl italic tracking-tighter">
-                VolleyMatch
+                {tMeta('title')}
               </div>
             </div>
           </div>
