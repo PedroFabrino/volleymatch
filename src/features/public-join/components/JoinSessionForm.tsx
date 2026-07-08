@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { ArrowRight, Loader2, Play } from 'lucide-react'
 
 export default function JoinSessionForm() {
+  const t = useTranslations('PublicJoin')
   const [pin, setPin] = useState('')
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()
@@ -14,9 +16,8 @@ export default function JoinSessionForm() {
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault()
     if (pin.length !== 4) return
-    
+
     setIsPending(true)
-    // We just redirect to the view page. The view page will handle validating the PIN.
     router.push(`/view/${pin}`)
   }
 
@@ -24,7 +25,7 @@ export default function JoinSessionForm() {
     <form onSubmit={handleJoin} className="w-full flex flex-col gap-4">
       <div>
         <label htmlFor="pin" className="block text-sm font-medium text-gray-300 mb-1">
-          Room PIN
+          {t('roomPin')}
         </label>
         <input
           id="pin"
@@ -38,7 +39,7 @@ export default function JoinSessionForm() {
           required
         />
         {error === 'invalid_pin' && (
-          <p className="text-red-500 text-sm mt-2 text-center font-bold">Invalid Room PIN or session has ended.</p>
+          <p className="text-red-500 text-sm mt-2 text-center font-bold">{t('invalidPin')}</p>
         )}
       </div>
       <button
@@ -47,7 +48,7 @@ export default function JoinSessionForm() {
         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Play className="w-5 h-5 fill-current" />}
-        Join Session
+        {t('joinSession')}
       </button>
     </form>
   )

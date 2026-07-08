@@ -2,25 +2,46 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { joinSessionAction } from './actions'
+import { useTranslations } from 'next-intl'
+import { joinSessionAction } from '../actions'
 import { Session } from '@/types/session'
-import { Player } from '@/types/player'
+import { Player, PlayerPosition } from '@/types/player'
 
-const ALL_POSITIONS = ['Setter', 'Outside Hitter', 'Middle Blocker', 'Opposite Hitter', 'Libero']
+const ALL_POSITIONS: PlayerPosition[] = [
+  'Setter',
+  'Outside Hitter',
+  'Middle Blocker',
+  'Opposite Hitter',
+  'Libero',
+]
 
-export default function PlayerJoinForm({ session, players }: { session: Session & { pin: string }, players: Player[] }) {
+export default function PlayerJoinForm({
+  session,
+  players,
+}: {
+  session: Session & { pin: string }
+  players: Player[]
+}) {
   const router = useRouter()
+  const t = useTranslations('PublicJoin')
+  const tPos = useTranslations('Positions')
+  const tRoster = useTranslations('Roster')
+
   const [name, setName] = useState('')
-  const [positions, setPositions] = useState<string[]>([])
+  const [positions, setPositions] = useState<PlayerPosition[]>([])
   const [tier, setTier] = useState('Intermediate')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
 
   const availablePlayers = players.filter(p => !p.is_present_today)
   const presentPlayers = players.filter(p => p.is_present_today)
-  
-  const matchedAvailable = availablePlayers.find(p => p.name.toLowerCase() === name.toLowerCase().trim())
-  const matchedPresent = presentPlayers.find(p => p.name.toLowerCase() === name.toLowerCase().trim())
+
+  const matchedAvailable = availablePlayers.find(
+    p => p.name.toLowerCase() === name.toLowerCase().trim()
+  )
+  const matchedPresent = presentPlayers.find(
+    p => p.name.toLowerCase() === name.toLowerCase().trim()
+  )
 
   const isReturning = !!matchedAvailable
 
@@ -29,13 +50,13 @@ export default function PlayerJoinForm({ session, players }: { session: Session 
     if (!name.trim()) return
 
     if (matchedPresent) {
-      setError('You are already in this session! You can go view the queue.')
+      setError(t('alreadyInSession'))
       setTimeout(() => router.push(`/view/${session.pin}`), 2000)
       return
     }
 
     if (!isReturning && positions.length === 0) {
-      setError('Please select at least one position.')
+      setError(t('selectPosition'))
       return
     }
 
@@ -47,7 +68,7 @@ export default function PlayerJoinForm({ session, players }: { session: Session 
       formData.append('sessionId', session.id)
       formData.append('pin', session.pin)
       formData.append('name', name.trim())
-      
+
       if (isReturning) {
         formData.append('playerId', matchedAvailable.id)
       } else {
@@ -60,12 +81,12 @@ export default function PlayerJoinForm({ session, players }: { session: Session 
         router.push(`/view/${session.pin}`)
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to join session')
+      setError(err instanceof Error ? err.message : t('joinFailed'))
       setIsSubmitting(false)
     }
   }
 
-  function togglePos(pos: string) {
+  function togglePos(pos: PlayerPosition) {
     if (positions.includes(pos)) {
       setPositions(positions.filter(p => p !== pos))
     } else {
@@ -75,8 +96,8 @@ export default function PlayerJoinForm({ session, players }: { session: Session 
 
   return (
     <div className="bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-700">
-      <h2 className="text-2xl font-black mb-6 text-white text-center">Who are you?</h2>
-      
+      <h2 className="text-2xl font-black mb-6 text-white text-center">{t('whoAreYou')}</h2>
+
       {error && (
         <div className="mb-4 bg-red-900/50 border border-red-500 text-red-200 px-4 py-2 rounded-lg text-sm">
           {error}
@@ -85,13 +106,13 @@ export default function PlayerJoinForm({ session, players }: { session: Session 
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <div>
-          <label className="block text-sm font-bold text-gray-400 mb-2">Your Name</label>
+          <label className="block text-sm font-bold text-gray-400 mb-2">{t('yourName')}</label>
           <input
             type="text"
             list="available-players"
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder="Type your name..."
+            placeholder={t('namePlaceholder')}
             className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500 outline-none"
             required
             autoComplete="off"
@@ -105,15 +126,17 @@ export default function PlayerJoinForm({ session, players }: { session: Session 
 
         {matchedAvailable && (
           <div className="bg-green-900/30 border border-green-800 p-4 rounded-xl text-center animate-pulse">
-            <p className="text-green-400 font-bold mb-1">Welcome back, {matchedAvailable.name}!</p>
-            <p className="text-sm text-gray-400">We found your profile. Just click Join below.</p>
+            <p className="text-green-400 font-bold mb-1">
+              {t('welcomeBack', { name: matchedAvailable.name })}
+            </p>
+            <p className="text-sm text-gray-400">{t('profileFound')}</p>
           </div>
         )}
 
         {!isReturning && name.trim().length > 0 && !matchedPresent && (
           <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-top-4 duration-300">
             <div>
-              <label className="block text-sm font-bold text-gray-400 mb-3">What positions do you play?</label>
+              <label className="block text-sm font-bold text-gray-400 mb-3">{t('positionsLabel')}</label>
               <div className="grid grid-cols-2 gap-2">
                 {ALL_POSITIONS.map(pos => (
                   <button
@@ -121,27 +144,27 @@ export default function PlayerJoinForm({ session, players }: { session: Session 
                     type="button"
                     onClick={() => togglePos(pos)}
                     className={`p-2 rounded-lg text-sm font-bold transition border ${
-                      positions.includes(pos) 
-                        ? 'bg-blue-600 border-blue-500 text-white' 
+                      positions.includes(pos)
+                        ? 'bg-blue-600 border-blue-500 text-white'
                         : 'bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-500'
                     }`}
                   >
-                    {pos}
+                    {tPos(pos)}
                   </button>
                 ))}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-400 mb-3">Self-Assessed Skill Tier</label>
+              <label className="block text-sm font-bold text-gray-400 mb-3">{t('skillTier')}</label>
               <select
                 value={tier}
                 onChange={e => setTier(e.target.value)}
                 className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500 outline-none"
               >
-                <option value="Beginner">Beginner</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Advanced">Advanced</option>
+                <option value="Beginner">{tRoster('beginner')}</option>
+                <option value="Intermediate">{tRoster('intermediate')}</option>
+                <option value="Advanced">{tRoster('advanced')}</option>
               </select>
             </div>
           </div>
@@ -152,7 +175,7 @@ export default function PlayerJoinForm({ session, players }: { session: Session 
           disabled={isSubmitting || !name.trim()}
           className="w-full mt-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-black py-4 rounded-xl transition shadow-lg shadow-blue-900/50"
         >
-          {isSubmitting ? 'Joining...' : 'JOIN GAME'}
+          {isSubmitting ? t('joining') : t('joinGame')}
         </button>
       </form>
     </div>
