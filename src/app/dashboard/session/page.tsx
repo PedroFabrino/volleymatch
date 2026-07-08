@@ -26,7 +26,7 @@ export default async function SessionSetupPage() {
   if (activeSession) {
     const activeMatch = await getActiveMatchForSession(supabase, activeSession.id)
     const sessionPlayersMap = await getSessionPlayersMap(supabase, activeSession.id)
-    queuedPlayers = buildQueuedPlayerList(players as Player[], activeMatch, sessionPlayersMap)
+    queuedPlayers = buildQueuedPlayerList(players, activeMatch, sessionPlayersMap)
   }
 
   const presentCount = players?.filter(p => p.is_present_today).length || 0

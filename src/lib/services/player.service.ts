@@ -1,5 +1,5 @@
 import type { TypedSupabaseClient } from '@/types/supabase'
-import type { CreatePlayerInput, DashboardPlayer } from '@/types/player'
+import type { CreatePlayerInput, DashboardPlayer, Player } from '@/types/player'
 import { parsePlayerPositions } from '@/types/player'
 import type { Database } from '@/types/database'
 
@@ -28,7 +28,7 @@ export async function getPlayers(supabase: TypedSupabaseClient, hosterId: string
 export async function getPlayersByHoster(
   supabase: TypedSupabaseClient,
   hosterId: string
-) {
+): Promise<Player[]> {
   const { data } = await supabase
     .from('players')
     .select('*')
