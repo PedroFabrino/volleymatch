@@ -1,5 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js'
-import { Match } from '../../types/match'
+import { Match, PointAttribution } from '../../types/match'
 import { calculateBestPartner, detectBiggestComebackAndDiff, calculateTopScorer } from './stat-helpers'
 
 export async function getSessionSummaryData(supabase: SupabaseClient, sessionId: string) {
@@ -60,7 +60,7 @@ export async function getSessionSummaryData(supabase: SupabaseClient, sessionId:
 
   const { bestPartner, bestPartnerId } = calculateBestPartner(mvp?.id, matches || [], playersData);
   const { maxComeback, biggestComebackMatch, turningPoint, maxDiff, biggestDiffMatch } = detectBiggestComebackAndDiff(matches || []);
-  const topScorer = calculateTopScorer(attributions || [], playersData);
+  const topScorer = calculateTopScorer((attributions || []) as PointAttribution[], playersData);
 
   return {
     playersData,
@@ -170,7 +170,7 @@ export async function getGlobalSummaryData(supabase: SupabaseClient, hosterId: s
 
   const { bestPartner, bestPartnerId } = calculateBestPartner(mvp?.id, matches || [], playersData);
   const { maxComeback, biggestComebackMatch, turningPoint, maxDiff, biggestDiffMatch } = detectBiggestComebackAndDiff(matches || []);
-  const topScorer = calculateTopScorer(attributions || [], playersData);
+  const topScorer = calculateTopScorer((attributions || []) as PointAttribution[], playersData);
 
   return {
     playersData,

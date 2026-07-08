@@ -3,11 +3,11 @@
 import { ChevronUp, ChevronDown, Minus } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { PlayerRosterRow } from '@/components/PlayerRosterRow'
-import { PlayerWithStatus } from '@/lib/matchmaking'
+import { Player } from '@/types'
 
 type RosterPanelProps = {
   team: 'a' | 'b'
-  players: PlayerWithStatus[]
+  players: Player[]
   positions: Record<string, string> | undefined
   isOpen: boolean
   onToggle: () => void

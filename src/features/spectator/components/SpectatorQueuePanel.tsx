@@ -8,7 +8,7 @@ type SpectatorQueuePanelProps = {
   queueOpen: boolean
   setQueueOpen: (open: boolean) => void
   benchPlayers: PlayerWithStatus[]
-  matchmakingMode: string
+  matchmakingMode: string | undefined
 }
 
 export default function SpectatorQueuePanel({
