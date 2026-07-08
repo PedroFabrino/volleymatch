@@ -176,7 +176,8 @@
     "expand": "Expandir",
     "swap": "Trocar",
     "swapPosition": "Trocar posição de {name}",
-    "swapSelect": "Selecione um jogador para trocar de posição"
+    "swapSelect": "Selecione um jogador para trocar de posição",
+    "swapSides": "Trocar Lados"
   },
   "Summary": {
     "title": "Resumo da Sessão",

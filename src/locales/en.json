@@ -182,7 +182,8 @@
     "expand": "Expand",
     "swap": "Swap",
     "swapPosition": "Swap position for {name}",
-    "swapSelect": "Select a player to swap positions with"
+    "swapSelect": "Select a player to swap positions with",
+    "swapSides": "Swap Sides"
   },
   "Summary": {
     "title": "Session Summary",
