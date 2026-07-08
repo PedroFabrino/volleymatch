@@ -4,6 +4,10 @@ import { PlayerStat } from '@/types/player'
 
 export const runtime = 'edge'
 
+// Note (TD-030): Hardcoded English strings are accepted here as a "Won't Fix"
+// limitation because next-intl does not easily support Edge-runtime OG image
+// generation without manual locale loading. Since these are machine-consumed
+// images, English-only is an acceptable trade-off.
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
