@@ -9,6 +9,7 @@ import {
   updatePlayerRecord,
   deletePlayerRecord,
 } from '@/lib/services'
+import { tierToMmr } from '@/types/player'
 
 export async function addPlayer(formData: FormData) {
   const supabase = await createClient()
@@ -25,7 +26,7 @@ export async function addPlayer(formData: FormData) {
   }
 
   const initial_tier = formData.get('initial_tier') as string
-  const mmr = initial_tier === 'Beginner' ? 800 : initial_tier === 'Intermediate' ? 1000 : 1200
+  const mmr = tierToMmr(initial_tier)
 
   const positions = formData.getAll('positions') as string[]
 

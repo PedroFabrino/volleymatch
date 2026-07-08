@@ -15,6 +15,8 @@ export interface Match {
   match_events?: MatchEvent[];
 }
 
+export type MatchWithEvents = Match & { match_events: MatchEvent[] }
+
 export interface MatchEvent {
   id: string;
   match_id: string;

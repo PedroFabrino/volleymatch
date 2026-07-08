@@ -5,7 +5,7 @@ import { generateMatch, saveMatch } from '../actions'
 import { Shuffle, Check, Users, ArrowUpDown, Undo2, Ban, Trophy, RefreshCw, PowerOff } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Session } from '@/types/session'
-import { Player } from '@/types/player'
+import { Player, POSITION_SORT_ORDER, type PlayerPosition } from '@/types/player'
 import { MatchDraft } from '@/types/match'
 
 import { useRouter } from 'next/navigation'
@@ -41,15 +41,15 @@ export default function Matchmaker({ session, players, isFirstMatch, onEndSessio
 
   const getPlayerName = (id: string) => players.find(p => p.id === id)?.name || tCommon('unknownPlayer')
 
-  const sortOrder = ['Setter', 'Middle Blocker', 'Outside Hitter', 'Opposite Hitter', 'Libero', 'Any'];
+  const sortOrder = POSITION_SORT_ORDER;
   const sortPlayersByPos = (teamIds: string[], positions?: Record<string, string>) => {
     return [...teamIds].sort((a, b) => {
       const pA = players.find(p => p.id === a);
       const pB = players.find(p => p.id === b);
       const posA = (positions && positions[a] && positions[a] !== 'Any') ? positions[a] : (pA?.positions?.[0] || 'Any');
       const posB = (positions && positions[b] && positions[b] !== 'Any') ? positions[b] : (pB?.positions?.[0] || 'Any');
-      const indexA = sortOrder.indexOf(posA);
-      const indexB = sortOrder.indexOf(posB);
+      const indexA = sortOrder.indexOf(posA as PlayerPosition);
+      const indexB = sortOrder.indexOf(posB as PlayerPosition);
       return (indexA === -1 ? 99 : indexA) - (indexB === -1 ? 99 : indexB);
     });
   }

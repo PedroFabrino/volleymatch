@@ -5,15 +5,9 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { joinSessionAction } from '../actions'
 import { Session } from '@/types/session'
-import { Player, PlayerPosition } from '@/types/player'
+import { Player, PlayerPosition, SELECTABLE_POSITIONS } from '@/types/player'
 
-const ALL_POSITIONS: PlayerPosition[] = [
-  'Setter',
-  'Outside Hitter',
-  'Middle Blocker',
-  'Opposite Hitter',
-  'Libero',
-]
+const ALL_POSITIONS = SELECTABLE_POSITIONS
 
 export default function PlayerJoinForm({
   session,
@@ -77,7 +71,12 @@ export default function PlayerJoinForm({
       }
 
       const res = await joinSessionAction(formData)
-      if (res?.success) {
+      if ('error' in res) {
+        setError(t(`errors.${res.error}`))
+        setIsSubmitting(false)
+        return
+      }
+      if (res.success) {
         router.push(`/view/${session.pin}`)
       }
     } catch (err: unknown) {

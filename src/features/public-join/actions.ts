@@ -1,6 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { tierToMmr } from '@/types/player'
 import {
   getSessionByIdAdmin,
   getMaxGamesPlayed,
@@ -10,7 +11,13 @@ import {
   markPlayerPresent,
 } from '@/lib/services'
 
-export async function joinSessionAction(formData: FormData) {
+export type JoinSessionError = 'invalidSession' | 'duplicateName' | 'createFailed'
+
+export type JoinSessionResult =
+  | { success: true }
+  | { error: JoinSessionError }
+
+export async function joinSessionAction(formData: FormData): Promise<JoinSessionResult> {
   const supabase = createAdminClient()
 
   const sessionId = formData.get('sessionId') as string
@@ -24,7 +31,7 @@ export async function joinSessionAction(formData: FormData) {
 
   if (sessionError || !session) {
     console.error('Session lookup error:', sessionError)
-    throw new Error('Invalid session.')
+    return { error: 'invalidSession' }
   }
 
   let finalPlayerId = playerId
@@ -32,12 +39,12 @@ export async function joinSessionAction(formData: FormData) {
   if (playerId) {
     await markPlayerPresent(supabase, playerId)
   } else {
-    const mmr = initialTier === 'Beginner' ? 800 : initialTier === 'Intermediate' ? 1000 : 1200
+    const mmr = tierToMmr(initialTier)
 
     const existingPlayer = await getPlayerByName(supabase, session.hoster_id, name.trim())
 
     if (existingPlayer) {
-      throw new Error('A player with this name already exists. Please choose a different name or select your profile.')
+      return { error: 'duplicateName' }
     }
 
     const { data: newPlayer, error: createError } = await createPlayer(supabase, {
@@ -50,7 +57,7 @@ export async function joinSessionAction(formData: FormData) {
     })
 
     if (createError || !newPlayer) {
-      throw new Error('Failed to create your profile.')
+      return { error: 'createFailed' }
     }
 
     finalPlayerId = newPlayer.id
