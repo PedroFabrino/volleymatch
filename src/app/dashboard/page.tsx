@@ -1,8 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Player } from '@/types/player'
-import { DashboardHeader, QuickActionsColumn, PlayerRankingsColumn, RecentMatchesColumn, PastSessionsRow } from '@/features/dashboard'
-import { signOut } from '@/features/dashboard/actions'
+import { DashboardHeader, QuickActionsColumn, PlayerRankingsColumn, RecentMatchesColumn, PastSessionsRow, signOut } from '@/features/dashboard'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -35,7 +34,7 @@ export default async function DashboardPage() {
             <RecentMatchesColumn latestMatches={latestMatches} playerStats={playerStats} />
           </div>
           
-          <PastSessionsRow pastSessions={pastSessions as any} />
+          <PastSessionsRow pastSessions={pastSessions} />
 
         </div>
       </div>
