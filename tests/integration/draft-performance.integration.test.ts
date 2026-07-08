@@ -25,7 +25,7 @@ const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 let app: ReturnType<typeof next>;
 let handle: ReturnType<typeof app.getRequestHandler>;
 let server: Server;
-let request: supertest.SuperTest<supertest.Test>;
+let request: ReturnType<typeof supertest>;
 
 let testUser: Awaited<ReturnType<typeof createTestUser>>['user'];
 let adminClient: Awaited<ReturnType<typeof createTestUser>>['adminClient'];
@@ -37,6 +37,7 @@ let testSessionId: string;
 // ---------------------------------------------------------------------------
 beforeAll(async () => {
   // 1. Start the Next.js server (non‑dev mode for speed)
+  // @ts-ignore: assign to NODE_ENV for test purposes
   process.env.NODE_ENV = 'production';          // avoid dev‑mode overhead
   app = next({ dev: false, dir: process.cwd() });
   handle = app.getRequestHandler();
