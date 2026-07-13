@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { assertAuthenticated } from '@/types/action-error'
+import { requireHostPermission } from '@/lib/auth/require-host-permission'
 import {
   findDuplicatePlayerName,
   insertPlayer,
@@ -17,10 +18,11 @@ export async function addPlayer(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
 
   assertAuthenticated(user)
+  const ctx = await requireHostPermission(supabase, user.id, 'roster_add')
 
   const name = (formData.get('name') as string).trim()
 
-  const existingPlayer = await findDuplicatePlayerName(supabase, user.id, name)
+  const existingPlayer = await findDuplicatePlayerName(supabase, ctx.effectiveHosterId, name)
 
   if (existingPlayer) {
     redirect('/dashboard/roster?error=Duplicate+player+name')
@@ -32,7 +34,7 @@ export async function addPlayer(formData: FormData) {
   const positions = formData.getAll('positions') as string[]
 
   const { error } = await insertPlayer(supabase, {
-    hoster_id: user.id,
+    hoster_id: ctx.effectiveHosterId,
     name,
     mmr,
     initial_tier: initial_tier as 'Beginner' | 'Intermediate' | 'Advanced',
@@ -52,18 +54,20 @@ export async function updatePlayer(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   assertAuthenticated(user)
 
+  const ctx = await requireHostPermission(supabase, user.id, 'roster_manage')
+
   const id = formData.get('id') as string
   const name = (formData.get('name') as string).trim()
   const positions = formData.getAll('positions') as string[]
   const initial_tier = formData.get('initial_tier') as string
 
-  const existingPlayer = await findDuplicatePlayerName(supabase, user.id, name, id)
+  const existingPlayer = await findDuplicatePlayerName(supabase, ctx.effectiveHosterId, name, id)
 
   if (existingPlayer) {
     redirect(`/dashboard/roster?edit=${id}&error=Duplicate+player+name`)
   }
 
-  const { error } = await updatePlayerRecord(supabase, id, user.id, {
+  const { error } = await updatePlayerRecord(supabase, id, ctx.effectiveHosterId, {
     name,
     positions: positions as ('Setter' | 'Outside Hitter' | 'Middle Blocker' | 'Libero' | 'Opposite Hitter')[],
     initial_tier: initial_tier as 'Beginner' | 'Intermediate' | 'Advanced',
@@ -82,7 +86,8 @@ export async function deletePlayer(playerId: string) {
   const { data: { user } } = await supabase.auth.getUser()
 
   assertAuthenticated(user)
+  const ctx = await requireHostPermission(supabase, user.id, 'roster_manage')
 
-  await deletePlayerRecord(supabase, playerId, user.id)
+  await deletePlayerRecord(supabase, playerId, ctx.effectiveHosterId)
   revalidatePath('/dashboard/roster')
 }

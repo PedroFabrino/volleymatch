@@ -18,7 +18,10 @@
   },
   "Errors": {
     "unauthorized": "You must be logged in to perform this action.",
-    "saveMatchFailed": "Failed to save the match. Please try again."
+    "forbidden": "You do not have permission to perform this action.",
+    "conflict": "Someone else already updated this. Refreshing…",
+    "saveMatchFailed": "Failed to save the match. Please try again.",
+    "grantFailed": "Could not update host access. Please try again."
   },
   "Dashboard": {
     "title": "VolleyMatch Dashboard",
@@ -297,5 +300,45 @@
   "Spectator": {
     "liveTitle": "VolleyMatch Live",
     "pinLabel": "PIN: {pin}"
+  },
+  "HostAccess": {
+    "pageTitle": "Share Host Access",
+    "pageDesc": "Invite another coach by email with specific permissions for today or ongoing co-host access.",
+    "shareAccessTitle": "Share Access",
+    "shareAccessCardDesc": "Let a substitute or co-host manage attendance, roster, or live sessions.",
+    "manageAccess": "Manage Access",
+    "emailLabel": "Email address",
+    "tempAccess": "Temporary (today)",
+    "fullTimeAccess": "Full-time co-host",
+    "preset_complete_control": "Complete control",
+    "preset_run_today": "Run today's session",
+    "preset_scorekeeper_only": "Scorekeeper only",
+    "permission_attendance": "Attendance",
+    "permission_roster_add": "Add players",
+    "permission_roster_manage": "Manage roster",
+    "permission_session_start": "Start session",
+    "permission_session_live": "Run live session",
+    "permission_session_end": "End session",
+    "permission_history_view": "View history",
+    "sendInvite": "Send invite",
+    "grantFailed": "Could not create or update access grant.",
+    "activeGrants": "Active grants",
+    "noActiveGrants": "No active grants.",
+    "revoke": "Revoke",
+    "myGroup": "My group",
+    "delegatedGroup": "{name}'s group",
+    "substitute": "Substitute",
+    "switchGroup": "Switch group",
+    "substituteBanner": "Substituting for {name}'s group",
+    "expiresAt": "expires {time}",
+    "permissionsSummary": "Can: {list}",
+    "inviteCardTitle": "You can host a shared group",
+    "inviteCardDesc": "{scope} access is available.",
+    "switchToGroup": "Switch to group",
+    "smartPromptTitle": "Host a shared practice today?",
+    "smartPromptDesc": "You have temporary access to run someone else's session.",
+    "hostDelegatedGroup": "Host their group",
+    "goToMyDashboard": "Go to my dashboard",
+    "you": "You"
   }
 }

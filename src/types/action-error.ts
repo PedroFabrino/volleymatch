@@ -1,4 +1,9 @@
-export type ActionErrorCode = 'unauthorized' | 'saveMatchFailed'
+export type ActionErrorCode =
+  | 'unauthorized'
+  | 'forbidden'
+  | 'conflict'
+  | 'saveMatchFailed'
+  | 'grantFailed'
 
 export class ActionError extends Error {
   readonly code: ActionErrorCode

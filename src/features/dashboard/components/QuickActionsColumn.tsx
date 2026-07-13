@@ -4,10 +4,16 @@ import { getTranslations } from 'next-intl/server'
 type QuickActionsColumnProps = {
   hasActiveSession: boolean
   playerCount: number
+  showShareAccess?: boolean
 }
 
-export default async function QuickActionsColumn({ hasActiveSession, playerCount }: QuickActionsColumnProps) {
+export default async function QuickActionsColumn({
+  hasActiveSession,
+  playerCount,
+  showShareAccess = true,
+}: QuickActionsColumnProps) {
   const t = await getTranslations('Dashboard')
+  const tAccess = await getTranslations('HostAccess')
 
   return (
     <div className="flex flex-col gap-6">
@@ -49,6 +55,16 @@ export default async function QuickActionsColumn({ hasActiveSession, playerCount
           {t('viewGlobalSummary')}
         </a>
       </div>
+
+      {showShareAccess && (
+        <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-6 shadow hover:shadow-md transition-shadow">
+          <h2 className="text-xl font-semibold mb-2 dark:text-gray-100">{tAccess('shareAccessTitle')}</h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">{tAccess('shareAccessCardDesc')}</p>
+          <a href="/dashboard/access" className="block text-center w-full bg-purple-600 text-white px-4 py-3 rounded-xl font-medium hover:bg-purple-700 transition">
+            {tAccess('manageAccess')}
+          </a>
+        </div>
+      )}
     </div>
   )
 }
