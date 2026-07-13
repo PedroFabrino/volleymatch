@@ -30,6 +30,7 @@ export async function addPlayer(formData: FormData) {
 
   const initial_tier = formData.get('initial_tier') as string
   const mmr = tierToMmr(initial_tier)
+  const is_temporary = formData.get('is_temporary') === 'on'
 
   const positions = formData.getAll('positions') as string[]
 
@@ -39,6 +40,7 @@ export async function addPlayer(formData: FormData) {
     mmr,
     initial_tier: initial_tier as 'Beginner' | 'Intermediate' | 'Advanced',
     positions: positions as ('Setter' | 'Outside Hitter' | 'Middle Blocker' | 'Libero' | 'Opposite Hitter')[],
+    is_temporary,
   })
 
   if (error) {
@@ -60,6 +62,7 @@ export async function updatePlayer(formData: FormData) {
   const name = (formData.get('name') as string).trim()
   const positions = formData.getAll('positions') as string[]
   const initial_tier = formData.get('initial_tier') as string
+  const is_temporary = formData.get('is_temporary') === 'on'
 
   const existingPlayer = await findDuplicatePlayerName(supabase, ctx.effectiveHosterId, name, id)
 
@@ -71,6 +74,7 @@ export async function updatePlayer(formData: FormData) {
     name,
     positions: positions as ('Setter' | 'Outside Hitter' | 'Middle Blocker' | 'Libero' | 'Opposite Hitter')[],
     initial_tier: initial_tier as 'Beginner' | 'Intermediate' | 'Advanced',
+    is_temporary,
   })
 
   if (error) {

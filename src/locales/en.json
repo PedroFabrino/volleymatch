@@ -88,6 +88,7 @@
     "addToRoster": "Add to Roster",
     "currentPlayers": "Current Players ({count})",
     "emptyRoster": "Your roster is empty.",
+    "isTemporary": "Temporary Player",
     "addFriends": "Add some friends to get started!",
     "removePlayer": "Remove player",
     "editPlayer": "Edit player",
@@ -146,6 +147,7 @@
     "strict": "Strict Positional (7v7 Class)",
     "strictDesc": "Drafts exactly 1 Setter, 2 Offsides, 1 Opposite, 2 Middles, and 1 Libero per team (14 players total).",
     "startSession": "Start Session",
+    "temporaries": "Temporaries",
     "needMorePlayers": "Need at least 2 players to start a session.",
     "selectAll": "Select All",
     "clearAll": "Clear All"

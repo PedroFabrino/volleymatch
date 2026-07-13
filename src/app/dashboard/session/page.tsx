@@ -57,9 +57,19 @@ export default async function SessionSetupPage() {
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 shrink-0">{t('attendanceDesc')}</p>
 
               <div className="flex flex-col gap-2 flex-1 overflow-y-auto pr-2">
-                {players?.map(player => (
+                {players?.filter(p => !p.is_temporary).map(player => (
                   <AttendanceToggle key={player.id} player={player} activeSessionId={activeSession?.id} />
                 ))}
+                
+                {players?.filter(p => p.is_temporary).length > 0 && (
+                  <>
+                    <h3 className="text-sm font-bold text-gray-500 uppercase mt-4 mb-1 dark:text-gray-400">{t('temporaries')}</h3>
+                    {players?.filter(p => p.is_temporary).map(player => (
+                      <AttendanceToggle key={player.id} player={player} activeSessionId={activeSession?.id} />
+                    ))}
+                  </>
+                )}
+                
                 {players?.length === 0 && (
                   <div className="text-center text-gray-500 py-8 dark:text-gray-400">
                     {t('emptyRoster')}

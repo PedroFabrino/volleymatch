@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS public.players (
     active_positions court_position[] DEFAULT '{}',
     games_played_today REAL NOT NULL DEFAULT 0,
     is_present_today BOOLEAN NOT NULL DEFAULT false,
+    is_temporary BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 

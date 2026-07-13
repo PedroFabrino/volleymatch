@@ -52,8 +52,9 @@ export async function joinSessionAction(formData: FormData): Promise<JoinSession
       name: name.trim(),
       mmr,
       initial_tier: initialTier,
-      positions,
+      positions: positions as string[],
       is_present_today: true,
+      is_temporary: false,
     })
 
     if (createError || !newPlayer) {

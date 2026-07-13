@@ -245,6 +245,7 @@ export type Database = {
           id: string
           initial_tier: Database["public"]["Enums"]["mmr_tier"]
           is_present_today: boolean
+          is_temporary: boolean
           mmr: number
           name: string
           positions: Database["public"]["Enums"]["court_position"][]
@@ -259,6 +260,7 @@ export type Database = {
           id?: string
           initial_tier?: Database["public"]["Enums"]["mmr_tier"]
           is_present_today?: boolean
+          is_temporary?: boolean
           mmr?: number
           name: string
           positions?: Database["public"]["Enums"]["court_position"][]
@@ -273,6 +275,7 @@ export type Database = {
           id?: string
           initial_tier?: Database["public"]["Enums"]["mmr_tier"]
           is_present_today?: boolean
+          is_temporary?: boolean
           mmr?: number
           name?: string
           positions?: Database["public"]["Enums"]["court_position"][]

@@ -194,12 +194,11 @@ export async function getLiveSessionViewData(
       mmr: row.mmr,
       hoster_id: row.hoster_id,
       is_present_today: row.is_present_today,
+      is_temporary: row.is_temporary,
       positions: parsePlayerPositions(row.positions),
-      active_positions: row.active_positions != null
-        ? parsePlayerPositions(row.active_positions)
-        : null,
+      active_positions: row.active_positions ? parsePlayerPositions(row.active_positions) : null,
       initial_tier: row.initial_tier ?? undefined,
-      games_played_today: sp ? sp.games_played : 0,
+      games_played_today: sp?.games_played ?? 0
     }
   })
 
