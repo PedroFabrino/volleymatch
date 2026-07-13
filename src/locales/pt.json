@@ -88,6 +88,7 @@
     "addToRoster": "Adicionar ao Elenco",
     "currentPlayers": "Jogadores Atuais ({count})",
     "emptyRoster": "Seu elenco está vazio.",
+    "isTemporary": "Jogador Temporário",
     "addFriends": "Adicione amigos para começar!",
     "removePlayer": "Remover jogador",
     "editPlayer": "Editar jogador",
@@ -146,6 +147,7 @@
     "strict": "Jogar 5:1",
     "strictDesc": "Sorteia exatamente 1 Levantador, 2 Ponteiros, 1 Oposto, 2 Centrais e 1 Líbero por equipe (14 jogadores).",
     "startSession": "Iniciar Sessão",
+    "temporaries": "Temporários",
     "needMorePlayers": "São necessários pelo menos 2 jogadores para iniciar.",
     "selectAll": "Marcar Todos",
     "clearAll": "Limpar Todos"

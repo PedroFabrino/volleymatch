@@ -73,6 +73,19 @@ export default async function PlayerForm({ editingPlayer, availablePositions, se
           </div>
         </div>
 
+        <div className="flex items-center gap-2">
+          <input 
+            type="checkbox" 
+            id="is_temporary"
+            name="is_temporary" 
+            defaultChecked={editingPlayer?.is_temporary}
+            className="rounded text-blue-600 w-4 h-4 dark:bg-gray-800 dark:border-gray-700" 
+          />
+          <label htmlFor="is_temporary" className="text-sm font-semibold text-gray-700 dark:text-gray-300 cursor-pointer">
+            {t('isTemporary')}
+          </label>
+        </div>
+
         <button type="submit" className="mt-4 w-full rounded-lg bg-blue-600 py-2 text-white font-bold hover:bg-blue-700 transition">
           {editingPlayer ? t('updatePlayer') : t('addToRoster')}
         </button>

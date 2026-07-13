@@ -48,7 +48,8 @@ export type CreatePlayerInput = {
   mmr: number
   initial_tier: string
   positions: string[]
-  is_present_today?: boolean
+  is_present_today: boolean
+  is_temporary: boolean
 }
 
 export type DashboardPlayer = {
@@ -63,6 +64,7 @@ export interface Player {
   mmr: number;
   hoster_id: string;
   is_present_today: boolean;
+  is_temporary: boolean;
   positions: PlayerPosition[];
   active_positions?: PlayerPosition[] | null;
   initial_tier?: string;
