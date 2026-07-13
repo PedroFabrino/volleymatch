@@ -131,6 +131,48 @@ export type Database = {
           },
         ]
       }
+      hoster_access_grants: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          grantee_user_id: string | null
+          granted_by: string
+          id: string
+          invite_email: string | null
+          owner_hoster_id: string
+          permissions: string[]
+          revoked_at: string | null
+          scope: string
+          session_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          grantee_user_id?: string | null
+          granted_by: string
+          id?: string
+          invite_email?: string | null
+          owner_hoster_id: string
+          permissions?: string[]
+          revoked_at?: string | null
+          scope?: string
+          session_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          grantee_user_id?: string | null
+          granted_by?: string
+          id?: string
+          invite_email?: string | null
+          owner_hoster_id?: string
+          permissions?: string[]
+          revoked_at?: string | null
+          scope?: string
+          session_id?: string | null
+        }
+        Relationships: []
+      }
       mmr_history: {
         Row: {
           created_at: string | null
@@ -349,6 +391,7 @@ export type Database = {
           summary_data: Json | null
           target_score: number
           tie_breaker_rule: string
+          version: number
         }
         Insert: {
           created_at?: string
@@ -361,6 +404,7 @@ export type Database = {
           summary_data?: Json | null
           target_score?: number
           tie_breaker_rule?: string
+          version?: number
         }
         Update: {
           created_at?: string
@@ -373,6 +417,7 @@ export type Database = {
           summary_data?: Json | null
           target_score?: number
           tie_breaker_rule?: string
+          version?: number
         }
         Relationships: []
       }
@@ -381,7 +426,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      apply_match_score_delta: {
+        Args: {
+          p_match_id: string
+          p_team: string
+          p_delta: number
+          p_expected_a: number
+          p_expected_b: number
+        }
+        Returns: {
+          applied: boolean
+          team_a_score: number
+          team_b_score: number
+        }[]
+      }
     }
     Enums: {
       court_position:

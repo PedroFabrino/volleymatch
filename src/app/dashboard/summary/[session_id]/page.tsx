@@ -4,6 +4,8 @@ import { HighlightsGrid, SummaryLeaderboard, SummaryPageHeader } from '@/feature
 import { getSessionSummaryData } from '@/lib/stats'
 import { storeSummaryData, getSessionById } from '@/lib/services'
 
+import { resolveEffectiveHosterId } from '@/lib/auth/host-context'
+
 type SummaryData = Awaited<ReturnType<typeof getSessionSummaryData>>
 
 export default async function SessionSummaryPage(props: { params: Promise<{ session_id: string }> }) {
@@ -14,8 +16,9 @@ export default async function SessionSummaryPage(props: { params: Promise<{ sess
   if (!user) redirect('/login')
 
   const sessionId = params.session_id
+  const effectiveHosterId = await resolveEffectiveHosterId(user.id)
 
-  const session = await getSessionById(supabase, sessionId, user.id)
+  const session = await getSessionById(supabase, sessionId, effectiveHosterId)
 
   if (!session) redirect('/dashboard')
 

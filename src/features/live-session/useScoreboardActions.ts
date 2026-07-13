@@ -2,6 +2,7 @@ import { useTransition, useRef, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateScore, finishMatch, cancelMatch } from './actions'
 import { substitutePlayer, swapPositions, swapTeams } from './team-actions'
+import { useLiveSessionSync } from './useLiveSessionSync'
 import type { PlayerPosition } from '@/types/player'
 import type { Match } from '@/types'
 
@@ -18,20 +19,39 @@ export function useScoreboardActions(match: Match, sessionId: string) {
 
   const [scoreA, setScoreA] = useState(match.team_a_score)
   const [scoreB, setScoreB] = useState(match.team_b_score)
+  const scoreARef = useRef(scoreA)
+  const scoreBRef = useRef(scoreB)
+  scoreARef.current = scoreA
+  scoreBRef.current = scoreB
 
   useEffect(() => {
     setScoreA(match.team_a_score)
     setScoreB(match.team_b_score)
   }, [match.id, match.team_a_score, match.team_b_score])
 
+  useLiveSessionSync({
+    sessionId,
+    matchId: match.id,
+    onMatchScores: ({ teamAScore, teamBScore }) => {
+      setScoreA(teamAScore)
+      setScoreB(teamBScore)
+    },
+  })
+
   const touchStartY = useRef<number | null>(null)
 
   const handleScoreChange = (team: 'a' | 'b', increment: number, e?: React.MouseEvent) => {
     if (e) e.stopPropagation()
+    const expectedA = scoreARef.current
+    const expectedB = scoreBRef.current
     if (team === 'a') setScoreA((prev) => Math.max(0, prev + increment))
     if (team === 'b') setScoreB((prev) => Math.max(0, prev + increment))
-    startTransition(() => {
-      updateScore(match.id, sessionId, team, increment)
+    startTransition(async () => {
+      const result = await updateScore(match.id, sessionId, team, increment, expectedA, expectedB)
+      if (result && !result.applied) {
+        setScoreA(result.teamAScore)
+        setScoreB(result.teamBScore)
+      }
     })
   }
 

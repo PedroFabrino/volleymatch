@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { assertAuthenticated } from '@/types/action-error'
+import { requireHostPermission } from '@/lib/auth/require-host-permission'
 import type { PlayerPosition } from '@/types/player'
 import {
   getMatchTeamsAndPositions,
@@ -20,6 +21,7 @@ export async function substitutePlayer(matchId: string, sessionId: string, team:
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   assertAuthenticated(user)
+  await requireHostPermission(supabase, user.id, 'session_live', sessionId)
 
   const match = await getMatchTeamsAndPositions(supabase, matchId)
   if (!match) return
@@ -70,6 +72,7 @@ export async function swapPositions(matchId: string, sessionId: string, playerAI
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   assertAuthenticated(user)
+  await requireHostPermission(supabase, user.id, 'session_live', sessionId)
 
   const match = await getMatchTeamsAndPositions(supabase, matchId)
   if (!match) return
@@ -105,6 +108,7 @@ export async function swapTeams(matchId: string, sessionId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   assertAuthenticated(user)
+  await requireHostPermission(supabase, user.id, 'session_live', sessionId)
 
   const match = await getMatchForTeamSwap(supabase, matchId)
   if (!match) return

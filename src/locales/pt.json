@@ -18,7 +18,10 @@
   },
   "Errors": {
     "unauthorized": "Você precisa estar logado para realizar esta ação.",
-    "saveMatchFailed": "Falha ao salvar a partida. Tente novamente."
+    "forbidden": "Você não tem permissão para realizar esta ação.",
+    "conflict": "Outra pessoa já atualizou isso. Atualizando…",
+    "saveMatchFailed": "Falha ao salvar a partida. Tente novamente.",
+    "grantFailed": "Não foi possível atualizar o acesso de host. Tente novamente."
   },
   "Dashboard": {
     "title": "Painel VolleyMatch",
@@ -295,5 +298,45 @@
   "Spectator": {
     "liveTitle": "VolleyMatch Ao Vivo",
     "pinLabel": "PIN: {pin}"
+  },
+  "HostAccess": {
+    "pageTitle": "Compartilhar Acesso de Host",
+    "pageDesc": "Convide outro treinador por e-mail com permissões específicas para hoje ou co-host permanente.",
+    "shareAccessTitle": "Compartilhar Acesso",
+    "shareAccessCardDesc": "Permita que um substituto ou co-host gerencie presença, elenco ou sessões ao vivo.",
+    "manageAccess": "Gerenciar Acesso",
+    "emailLabel": "Endereço de e-mail",
+    "tempAccess": "Temporário (hoje)",
+    "fullTimeAccess": "Co-host permanente",
+    "preset_complete_control": "Controle total",
+    "preset_run_today": "Rodar sessão de hoje",
+    "preset_scorekeeper_only": "Apenas placar",
+    "permission_attendance": "Presença",
+    "permission_roster_add": "Adicionar jogadores",
+    "permission_roster_manage": "Gerenciar elenco",
+    "permission_session_start": "Iniciar sessão",
+    "permission_session_live": "Rodar sessão ao vivo",
+    "permission_session_end": "Encerrar sessão",
+    "permission_history_view": "Ver histórico",
+    "sendInvite": "Enviar convite",
+    "grantFailed": "Não foi possível criar ou atualizar o acesso.",
+    "activeGrants": "Acessos ativos",
+    "noActiveGrants": "Nenhum acesso ativo.",
+    "revoke": "Revogar",
+    "myGroup": "Meu grupo",
+    "delegatedGroup": "Grupo de {name}",
+    "substitute": "Substituto",
+    "switchGroup": "Trocar grupo",
+    "substituteBanner": "Substituindo o grupo de {name}",
+    "expiresAt": "expira às {time}",
+    "permissionsSummary": "Pode: {list}",
+    "inviteCardTitle": "Você pode hostear um grupo compartilhado",
+    "inviteCardDesc": "Acesso {scope} disponível.",
+    "switchToGroup": "Ir para o grupo",
+    "smartPromptTitle": "Hostear um treino compartilhado hoje?",
+    "smartPromptDesc": "Você tem acesso temporário para rodar a sessão de outra pessoa.",
+    "hostDelegatedGroup": "Hostear grupo dele(a)",
+    "goToMyDashboard": "Ir para meu painel",
+    "you": "Você"
   }
 }

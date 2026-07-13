@@ -4,6 +4,7 @@ import { getPlayers, getCompletedMatchesWithEvents } from '@/lib/services'
 import { History as HistoryIcon, ArrowLeft } from 'lucide-react'
 import { HistoryMatchCard } from '@/features/summary'
 import { getTranslations } from 'next-intl/server'
+import { resolveEffectiveHosterId } from '@/lib/auth/host-context'
 
 export default async function HistoryPage() {
   const supabase = await createClient()
@@ -13,8 +14,9 @@ export default async function HistoryPage() {
 
   if (!user) redirect('/login')
 
-  const players = await getPlayers(supabase, user.id)
-  const completedMatches = await getCompletedMatchesWithEvents(supabase, user.id)
+  const effectiveHosterId = await resolveEffectiveHosterId(user.id)
+  const players = await getPlayers(supabase, effectiveHosterId)
+  const completedMatches = await getCompletedMatchesWithEvents(supabase, effectiveHosterId)
 
   const playerNames: Record<string, string> = {}
   if (players) {

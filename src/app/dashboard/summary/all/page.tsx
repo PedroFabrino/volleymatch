@@ -5,6 +5,7 @@ import { ArrowLeft, History } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import { HighlightsGrid, SummaryLeaderboard } from '@/features/summary'
 import { getGlobalSummaryData } from '@/lib/stats'
+import { resolveEffectiveHosterId } from '@/lib/auth/host-context'
 
 export default async function GlobalSummaryPage() {
   const supabase = await createClient()
@@ -14,6 +15,8 @@ export default async function GlobalSummaryPage() {
 
   const t = await getTranslations('Dashboard')
   const ts = await getTranslations('Summary')
+
+  const effectiveHosterId = await resolveEffectiveHosterId(user.id)
 
   const {
     playersData,
@@ -28,7 +31,7 @@ export default async function GlobalSummaryPage() {
     maxDiff,
     biggestDiffMatch,
     topScorer
-  } = await getGlobalSummaryData(supabase, user.id)
+  } = await getGlobalSummaryData(supabase, effectiveHosterId)
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col transition-colors p-4 md:p-8">
@@ -66,7 +69,7 @@ export default async function GlobalSummaryPage() {
           playersData={playersData}
           topScorer={topScorer}
           isGlobal={true}
-          hosterId={user.id}
+          hosterId={effectiveHosterId}
         />
 
         <SummaryLeaderboard

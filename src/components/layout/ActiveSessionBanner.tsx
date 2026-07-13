@@ -7,7 +7,11 @@ import { QrCodeModal } from '@/components/ui/QrCodeModal'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveSession } from '@/lib/services'
 
-export default async function ActiveSessionBanner() {
+type ActiveSessionBannerProps = {
+  effectiveHosterId: string
+}
+
+export default async function ActiveSessionBanner({ effectiveHosterId }: ActiveSessionBannerProps) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const t = await getTranslations('Session')
@@ -15,7 +19,7 @@ export default async function ActiveSessionBanner() {
 
   if (!user) return null
 
-  const activeSession = await getActiveSession(supabase, user.id)
+  const activeSession = await getActiveSession(supabase, effectiveHosterId)
 
   return (
     <div className="bg-yellow-500 text-black px-4 py-3 shadow-md flex justify-between items-center z-50 relative sticky top-0">
@@ -35,8 +39,8 @@ export default async function ActiveSessionBanner() {
         {activeSession && (
           <div className="flex items-center gap-2">
             <QrCodeModal pin={activeSession.pin || '0000'} />
-            <Link 
-              href={`/dashboard/live/${activeSession.id}`} 
+            <Link
+              href={`/dashboard/live/${activeSession.id}`}
               className="bg-black text-yellow-500 px-4 py-1.5 rounded-full font-bold text-sm hover:bg-gray-900 transition shadow-sm animate-pulse"
             >
               {t('resumeGame')}

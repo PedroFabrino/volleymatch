@@ -170,3 +170,8 @@ CREATE POLICY "Allow public update to session_players" ON public.session_players
 -- Grants
 -- ==========================================
 GRANT ALL ON public.mmr_history TO authenticated, service_role;
+
+-- ==========================================
+-- Host access grants (delegation)
+-- ==========================================
+-- See migration 20260708100000_host_access_sharing.sql for full RLS updates.

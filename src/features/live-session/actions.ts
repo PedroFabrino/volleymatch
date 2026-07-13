@@ -5,14 +5,15 @@ import { after } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { ActionError, assertAuthenticated } from '@/types/action-error'
+import { requireHostPermission } from '@/lib/auth/require-host-permission'
 import {
   insertMatch,
-  getMatchScores,
-  updateMatchScores,
   getMatchById,
   completeMatch,
   deleteMatch,
   updatePendingDraft,
+  applyMatchScoreDelta,
+  getActiveMatchForSession,
 } from '@/lib/services'
 import { computeMatchDraft, processBackgroundMatch } from './_draft'
 
@@ -21,7 +22,8 @@ export async function generateMatch(sessionId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   assertAuthenticated(user)
 
-  return await computeMatchDraft(supabase, sessionId, user.id)
+  const ctx = await requireHostPermission(supabase, user.id, 'session_live', sessionId)
+  return await computeMatchDraft(supabase, sessionId, ctx.effectiveHosterId)
 }
 
 export async function saveMatch(sessionId: string, teamA: string[], teamB: string[], teamAPositions?: Record<string, string>, teamBPositions?: Record<string, string>) {
@@ -29,9 +31,16 @@ export async function saveMatch(sessionId: string, teamA: string[], teamB: strin
   const { data: { user } } = await supabase.auth.getUser()
   assertAuthenticated(user)
 
+  const ctx = await requireHostPermission(supabase, user.id, 'session_live', sessionId)
+
+  const existing = await getActiveMatchForSession(supabase, sessionId)
+  if (existing) {
+    throw new ActionError('conflict')
+  }
+
   const { error } = await insertMatch(supabase, {
     session_id: sessionId,
-    hoster_id: user.id,
+    hoster_id: ctx.effectiveHosterId,
     team_a_players: teamA,
     team_b_players: teamB,
     team_a_score: 0,
@@ -46,34 +55,43 @@ export async function saveMatch(sessionId: string, teamA: string[], teamB: strin
     throw new ActionError('saveMatchFailed')
   }
 
-  const draft = await computeMatchDraft(supabase, sessionId, user.id)
+  const draft = await computeMatchDraft(supabase, sessionId, ctx.effectiveHosterId)
   await updatePendingDraft(supabase, sessionId, draft ?? null)
 
   revalidatePath(`/dashboard/live/${sessionId}`)
 }
 
-export async function updateScore(matchId: string, sessionId: string, team: 'a' | 'b', increment: number) {
+export async function updateScore(
+  matchId: string,
+  sessionId: string,
+  team: 'a' | 'b',
+  increment: number,
+  expectedA: number,
+  expectedB: number
+) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   assertAuthenticated(user)
 
-  const match = await getMatchScores(supabase, matchId)
-  if (!match) return
+  await requireHostPermission(supabase, user.id, 'session_live', sessionId)
 
-  const newScoreA = team === 'a' ? Math.max(0, match.team_a_score + increment) : match.team_a_score
-  const newScoreB = team === 'b' ? Math.max(0, match.team_b_score + increment) : match.team_b_score
-
-  const { error } = await updateMatchScores(supabase, matchId, newScoreA, newScoreB, {
-    match_id: matchId,
-    event_type: 'score',
+  const result = await applyMatchScoreDelta(
+    supabase,
+    matchId,
     team,
     increment,
-    score_a: newScoreA,
-    score_b: newScoreB,
-  })
+    expectedA,
+    expectedB
+  )
 
-  if (error) {
-    console.error('FAILED TO INSERT MATCH EVENT:', error)
+  if (result.error) {
+    console.error('FAILED TO APPLY SCORE DELTA:', result.error)
+  }
+
+  return {
+    applied: result.applied,
+    teamAScore: result.teamAScore,
+    teamBScore: result.teamBScore,
   }
 }
 
@@ -92,13 +110,15 @@ export async function finishMatch(matchId: string, sessionId: string, destinatio
   const { data: { user } } = await supabase.auth.getUser()
   assertAuthenticated(user)
 
+  const ctx = await requireHostPermission(supabase, user.id, 'session_live', sessionId)
+
   await completeMatch(supabase, matchId)
 
-  const draft = await computeMatchDraft(supabase, sessionId, user.id)
+  const draft = await computeMatchDraft(supabase, sessionId, ctx.effectiveHosterId)
   await updatePendingDraft(supabase, sessionId, draft ?? null)
 
   after(() => {
-    processBackgroundMatch(matchId, sessionId, user.id).catch(err => console.error('Background finish-match failed:', err))
+    processBackgroundMatch(matchId, sessionId, ctx.effectiveHosterId).catch(err => console.error('Background finish-match failed:', err))
   })
 
   if (destination === 'draft') {
@@ -113,6 +133,8 @@ export async function cancelMatch(matchId: string, sessionId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   assertAuthenticated(user)
+
+  await requireHostPermission(supabase, user.id, 'session_live', sessionId)
 
   await deleteMatch(supabase, matchId)
   revalidatePath('/dashboard/session', 'page')
