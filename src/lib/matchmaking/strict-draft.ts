@@ -68,11 +68,11 @@ export function sortPlayersByDraftPriority(a: Player, b: Player, _isFirstMatch: 
   return 0;
 }
 
-export function canRunStrictDraft(players: Player[]): { ok: boolean; reason?: string } {
+export function canRunStrictDraft(players: { active_positions?: PlayerPosition[] | null; positions: PlayerPosition[] | null }[]): { ok: boolean; reason?: string } {
   if (players.length < 12) return { ok: false, reason: 'minPlayers' };
   
-  const getPos = (p: Player) => (p.active_positions && p.active_positions.length > 0) ? p.active_positions : p.positions;
-  const hasPos = (p: Player, pos: PlayerPosition) => getPos(p).includes(pos);
+  const getPos = (p: { active_positions?: PlayerPosition[] | null; positions: PlayerPosition[] | null }) => (p.active_positions && p.active_positions.length > 0) ? p.active_positions : (p.positions || []);
+  const hasPos = (p: { active_positions?: PlayerPosition[] | null; positions: PlayerPosition[] | null }, pos: PlayerPosition) => getPos(p).includes(pos);
 
   if (players.filter(p => hasPos(p, 'Setter')).length < 2) return { ok: false, reason: 'minSetters' };
   if (players.filter(p => hasPos(p, 'Outside Hitter')).length < 4) return { ok: false, reason: 'minOutsides' };
