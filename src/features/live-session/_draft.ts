@@ -2,8 +2,9 @@
 // PRIVATE — do not export from index.ts
 
 import { createClient } from '@/lib/supabase/server'
-import { draftTeams, draftStrictTeams } from '@/lib/matchmaking'
+import { draftTeams, draftStrictTeams, canRunStrictDraft } from '@/lib/matchmaking'
 import { calculateMmrChanges, PlayerData, PointEvent } from '@/lib/mmr'
+import { ActionError } from '@/types/action-error'
 import type { TypedSupabaseClient } from '@/types/supabase'
 import {
   getDraftSessionData,
@@ -31,6 +32,11 @@ export async function computeMatchDraft(supabase: TypedSupabaseClient, sessionId
   const mode = session.matchmaking_mode || 'casual'
 
   if (mode === 'strict') {
+    const strictCheck = canRunStrictDraft(presentPlayers)
+    if (!strictCheck.ok) {
+      throw new ActionError(strictCheck.reason as any)
+    }
+
     const lastMatch = await getLastCompletedMatchWithScores(supabase, sessionId)
 
     let lastMatchWinningTeamIds: string[] = []

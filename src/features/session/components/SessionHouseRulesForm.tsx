@@ -3,9 +3,10 @@ import { startSession } from '@/features/session'
 
 type SessionHouseRulesFormProps = {
   presentCount: number
+  canRunStrict: boolean
 }
 
-export default async function SessionHouseRulesForm({ presentCount }: SessionHouseRulesFormProps) {
+export default async function SessionHouseRulesForm({ presentCount, canRunStrict }: SessionHouseRulesFormProps) {
   const t = await getTranslations('Session')
 
   return (
@@ -47,17 +48,20 @@ export default async function SessionHouseRulesForm({ presentCount }: SessionHou
         <label className="font-semibold text-gray-700 dark:text-gray-300">{t('matchmakingMode')}</label>
         <div className="flex flex-col gap-3">
           <label className="flex items-start gap-3 p-3 border dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-            <input type="radio" name="matchmaking_mode" value="casual" className="mt-1 dark:bg-gray-900 dark:border-gray-600" />
+            <input type="radio" name="matchmaking_mode" value="casual" defaultChecked={!canRunStrict} className="mt-1 dark:bg-gray-900 dark:border-gray-600" />
             <div>
               <div className="font-bold dark:text-gray-100">{t('casual')}</div>
               <div className="text-sm text-gray-500 dark:text-gray-400">{t('casualDesc')}</div>
             </div>
           </label>
-          <label className="flex items-start gap-3 p-3 border dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-            <input type="radio" name="matchmaking_mode" value="strict" defaultChecked className="mt-1 dark:bg-gray-900 dark:border-gray-600" />
+          <label className={`flex items-start gap-3 p-3 border dark:border-gray-700 rounded-lg transition ${canRunStrict ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800' : 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-800/50'}`}>
+            <input type="radio" name="matchmaking_mode" value="strict" defaultChecked={canRunStrict} disabled={!canRunStrict} className="mt-1 dark:bg-gray-900 dark:border-gray-600" />
             <div>
               <div className="font-bold dark:text-gray-100">{t('strict')}</div>
               <div className="text-sm text-gray-500 dark:text-gray-400">{t('strictDesc')}</div>
+              {!canRunStrict && (
+                <div className="text-xs text-red-500 font-bold mt-1">{t('strictRequirements')}</div>
+              )}
             </div>
           </label>
         </div>

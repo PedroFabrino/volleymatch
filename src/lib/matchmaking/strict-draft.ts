@@ -68,6 +68,21 @@ export function sortPlayersByDraftPriority(a: Player, b: Player, _isFirstMatch: 
   return 0;
 }
 
+export function canRunStrictDraft(players: Player[]): { ok: boolean; reason?: string } {
+  if (players.length < 12) return { ok: false, reason: 'minPlayers' };
+  
+  const getPos = (p: Player) => (p.active_positions && p.active_positions.length > 0) ? p.active_positions : p.positions;
+  const hasPos = (p: Player, pos: PlayerPosition) => getPos(p).includes(pos);
+
+  if (players.filter(p => hasPos(p, 'Setter')).length < 2) return { ok: false, reason: 'minSetters' };
+  if (players.filter(p => hasPos(p, 'Outside Hitter')).length < 4) return { ok: false, reason: 'minOutsides' };
+  if (players.filter(p => hasPos(p, 'Opposite Hitter')).length < 2) return { ok: false, reason: 'minOpposites' };
+  if (players.filter(p => hasPos(p, 'Middle Blocker')).length < 2) return { ok: false, reason: 'minMbs' };
+  if (players.filter(p => hasPos(p, 'Libero')).length < 2) return { ok: false, reason: 'minLiberos' };
+
+  return { ok: true };
+}
+
 export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinningTeamIds: string[], lastMatchLosingTeamIds: string[]): { teamA: string[], teamB: string[], teamAPositions: Record<string, PlayerPosition>, teamBPositions: Record<string, PlayerPosition> } {
   const getPos = (p: Player) => (p.active_positions && p.active_positions.length > 0) ? p.active_positions : p.positions;
   const hasPos = (p: Player, pos: PlayerPosition | PlayerPosition[]) => {
@@ -148,7 +163,7 @@ export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinning
     }
 
     // IF WE ARE SHORT ON THIS POSITION, FORCE A FALLBACK PLAYER TO PLAY THIS ROLE
-    if (picked.length < requirement.count) {
+    if (picked.length < requirement.count && requirement.pos !== 'Middle Blocker') {
       const needed = requirement.count - picked.length;
       const fallbacks = remainingPlayers.filter(p => !picked.includes(p)).slice(0, needed);
       picked.push(...fallbacks);

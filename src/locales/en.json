@@ -21,7 +21,13 @@
     "forbidden": "You do not have permission to perform this action.",
     "conflict": "Someone else already updated this. Refreshing…",
     "saveMatchFailed": "Failed to save the match. Please try again.",
-    "grantFailed": "Could not update host access. Please try again."
+    "grantFailed": "Could not update host access. Please try again.",
+    "minPlayers": "Strict mode requires at least 12 players present.",
+    "minSetters": "Strict mode requires at least 2 Setters.",
+    "minOutsides": "Strict mode requires at least 4 Outside Hitters.",
+    "minOpposites": "Strict mode requires at least 2 Opposite Hitters.",
+    "minMbs": "Strict mode requires at least 2 Middle Blockers.",
+    "minLiberos": "Strict mode requires at least 2 Liberos."
   },
   "Dashboard": {
     "title": "VolleyMatch Dashboard",
@@ -146,6 +152,7 @@
     "casualDesc": "Automatically drafts the 12 most rested players and distributes setters.",
     "strict": "Strict Positional (7v7 Class)",
     "strictDesc": "Drafts exactly 1 Setter, 2 Offsides, 1 Opposite, 2 Middles, and 1 Libero per team (14 players total).",
+    "strictRequirements": "Requires: 12+ players, 2 Setters, 4 Outsides, 2 Opposites, 2 Middles, 2 Liberos.",
     "startSession": "Start Session",
     "temporaries": "Temporaries",
     "needMorePlayers": "Need at least 2 players to start a session.",

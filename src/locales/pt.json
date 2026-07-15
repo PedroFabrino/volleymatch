@@ -21,7 +21,13 @@
     "forbidden": "Você não tem permissão para realizar esta ação.",
     "conflict": "Outra pessoa já atualizou isso. Atualizando…",
     "saveMatchFailed": "Falha ao salvar a partida. Tente novamente.",
-    "grantFailed": "Não foi possível atualizar o acesso de host. Tente novamente."
+    "grantFailed": "Não foi possível atualizar o acesso de host. Tente novamente.",
+    "minPlayers": "O modo 5:1 exige pelo menos 12 jogadores presentes.",
+    "minSetters": "O modo 5:1 exige pelo menos 2 Levantadores.",
+    "minOutsides": "O modo 5:1 exige pelo menos 4 Ponteiros.",
+    "minOpposites": "O modo 5:1 exige pelo menos 2 Opostos.",
+    "minMbs": "O modo 5:1 exige pelo menos 2 Centrais.",
+    "minLiberos": "O modo 5:1 exige pelo menos 2 Líberos."
   },
   "Dashboard": {
     "title": "Painel VolleyMatch",
@@ -146,6 +152,7 @@
     "casualDesc": "Sorteia automaticamente os 12 jogadores mais descansados e distribui os levantadores.",
     "strict": "Jogar 5:1",
     "strictDesc": "Sorteia exatamente 1 Levantador, 2 Ponteiros, 1 Oposto, 2 Centrais e 1 Líbero por equipe (14 jogadores).",
+    "strictRequirements": "Exige: 12+ jogadores, 2 Levantadores, 4 Ponteiros, 2 Opostos, 2 Centrais, 2 Líberos.",
     "startSession": "Iniciar Sessão",
     "temporaries": "Temporários",
     "needMorePlayers": "São necessários pelo menos 2 jogadores para iniciar.",

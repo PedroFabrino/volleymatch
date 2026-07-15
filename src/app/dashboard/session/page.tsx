@@ -6,6 +6,7 @@ import { SessionHouseRulesForm, ActiveSessionCard, SessionQueuePanel } from '@/f
 import { ArrowLeft, Users } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import { getActiveSession, getActiveMatchForSession, getSessionPlayersMap, getPlayersByHoster } from '@/lib/services'
+import { canRunStrictDraft } from '@/lib/matchmaking'
 import { buildQueuedPlayerList } from '@/lib/stats'
 import { Player } from '@/types/player'
 import { resolveEffectiveHosterId } from '@/lib/auth/host-context'
@@ -31,6 +32,7 @@ export default async function SessionSetupPage() {
   }
 
   const presentCount = players?.filter(p => p.is_present_today).length || 0
+  const canRunStrict = players ? canRunStrictDraft(players.filter(p => p.is_present_today)).ok : false
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col transition-colors">
@@ -90,7 +92,7 @@ export default async function SessionSetupPage() {
                   <SessionQueuePanel queuedPlayers={queuedPlayers} />
                 </div>
               ) : (
-                <SessionHouseRulesForm presentCount={presentCount} />
+                <SessionHouseRulesForm presentCount={presentCount} canRunStrict={canRunStrict} />
               )}
             </div>
 

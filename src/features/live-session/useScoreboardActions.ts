@@ -27,7 +27,7 @@ export function useScoreboardActions(match: Match, sessionId: string) {
   useEffect(() => {
     setScoreA(match.team_a_score)
     setScoreB(match.team_b_score)
-  }, [match.id, match.team_a_score, match.team_b_score])
+  }, [match.id])
 
   useLiveSessionSync({
     sessionId,
