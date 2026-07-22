@@ -26,6 +26,7 @@ export default async function LiveSessionPage(props: { params: Promise<{ session
   const { session, activeMatch, playersWithGames, playersWithStatus, isFirstMatch } = viewData
   const pin = session.pin || '0000'
   const canEndSession = hasPermission(ctx.permissions, 'session_end')
+  const isHost = hasPermission(ctx.permissions, 'session_live')
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
@@ -37,6 +38,7 @@ export default async function LiveSessionPage(props: { params: Promise<{ session
             match={activeMatch}
             players={playersWithGames}
             playersWithStatus={playersWithStatus}
+            isHost={isHost}
           />
         ) : (
           <Matchmaker

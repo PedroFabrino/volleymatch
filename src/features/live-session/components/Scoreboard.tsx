@@ -10,11 +10,12 @@ import { ScorePanel, RosterPanel, QueuePanel } from './ScoreboardPanels'
 import { AdminControls } from './AdminControls'
 import { SubstitutionModal, SwapPositionModal, MatchOverModal } from './ScoreboardModals'
 
-export default function Scoreboard({ session, match, players, playersWithStatus }: { 
+export default function Scoreboard({ session, match, players, playersWithStatus, isHost }: { 
   session: Session, 
   match: Match, 
   players: Player[],
-  playersWithStatus: PlayerWithStatus[]
+  playersWithStatus: PlayerWithStatus[],
+  isHost: boolean
 }) {
   const t = useTranslations('Scoreboard')
   
@@ -49,7 +50,7 @@ export default function Scoreboard({ session, match, players, playersWithStatus 
     sortedQueuedPlayers,
     sortedTeamA,
     sortedTeamB
-  } = useScoreboard(session, match, players, playersWithStatus)
+  } = useScoreboard(session, match, players, playersWithStatus, isHost)
 
   return (
     <div className="flex flex-col h-screen bg-gray-900 overflow-hidden relative">
@@ -75,6 +76,7 @@ export default function Scoreboard({ session, match, players, playersWithStatus 
           onDecrement={(e) => handleScoreChange('a', -1, e)}
           onTouchStart={handleTouchStart}
           onTouchEnd={(e) => handleTouchEnd(e, 'a')}
+          isHost={isHost}
         />
 
         {/* Divider */}
@@ -87,6 +89,7 @@ export default function Scoreboard({ session, match, players, playersWithStatus 
           onDecrement={(e) => handleScoreChange('b', -1, e)}
           onTouchStart={handleTouchStart}
           onTouchEnd={(e) => handleTouchEnd(e, 'b')}
+          isHost={isHost}
         />
       </div>
 
@@ -101,6 +104,7 @@ export default function Scoreboard({ session, match, players, playersWithStatus 
           onDecrementScore={(e) => handleScoreChange('a', -1, e)}
           onSub={(p) => setSubbingPlayer(p)}
           onSwap={(p) => setSwappingPlayer(p)}
+          isHost={isHost}
         />
         <RosterPanel
           team="b"
@@ -111,6 +115,7 @@ export default function Scoreboard({ session, match, players, playersWithStatus 
           onDecrementScore={(e) => handleScoreChange('b', -1, e)}
           onSub={(p) => setSubbingPlayer(p)}
           onSwap={(p) => setSwappingPlayer(p)}
+          isHost={isHost}
         />
       </div>
 
@@ -158,6 +163,7 @@ export default function Scoreboard({ session, match, players, playersWithStatus 
           onDraftNext={() => startTransition(() => finishMatch(match.id, session.id, 'draft'))}
           onBackToAttendance={() => startTransition(() => finishMatch(match.id, session.id, 'attendance'))}
           onUndoPoint={() => {
+            if (!isHost) return;
             startTransition(() => {
               if (optScoreA > optScoreB) handleScoreChange('a', -1)
               else if (optScoreB > optScoreA) handleScoreChange('b', -1)
