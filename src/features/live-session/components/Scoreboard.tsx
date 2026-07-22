@@ -53,10 +53,10 @@ export default function Scoreboard({ session, match, players, playersWithStatus,
   } = useScoreboard(session, match, players, playersWithStatus, isHost)
 
   return (
-    <div className="flex flex-col h-screen bg-gray-900 overflow-hidden relative">
+    <div className="flex flex-col landscape:h-screen portrait:min-h-screen bg-gray-900 landscape:overflow-hidden portrait:overflow-y-auto relative">
       
       {/* SCOREBOARD SECTION */}
-      <div className="relative flex flex-row w-full landscape:h-screen portrait:h-[40vh] portrait:shrink-0">
+      <div className="relative flex flex-row w-full landscape:h-screen portrait:aspect-[2/1] portrait:shrink-0">
         
         {/* Top Bar Overlay */}
         <div className="flex justify-between items-center p-2 md:p-4 bg-gray-950/60 absolute w-full top-0 z-10 text-white font-mono uppercase tracking-widest text-xs font-bold pointer-events-none">
@@ -94,7 +94,7 @@ export default function Scoreboard({ session, match, players, playersWithStatus,
       </div>
 
       {/* TEAM ROSTER SECTION (Only visible in Portrait mode) */}
-      <div className="landscape:hidden flex flex-row w-full flex-1 bg-gray-900 overflow-y-auto">
+      <div className="landscape:hidden flex flex-col w-full bg-gray-900">
         <RosterPanel
           team="a"
           players={sortedTeamA}

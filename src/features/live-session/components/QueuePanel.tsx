@@ -39,7 +39,7 @@ export function QueuePanel({
           {players.length === 0 ? (
             <p className="text-gray-500 text-xs">{t('noPlayersInQueue')}</p>
           ) : (
-            <ul className="space-y-1 max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
+            <ul className="space-y-1">
               {players.map((p, index) => (
                 <li key={p.id} className="flex items-center justify-between text-sm bg-gray-800 rounded px-3 py-2">
                   <div className="flex items-center gap-2">

@@ -34,7 +34,7 @@ export function RosterPanel({
   const isTeamA = team === 'a'
   const borderClass = isTeamA ? 'border-red-900/50' : 'border-blue-900/50'
   const titleClass = isTeamA ? 'text-red-500' : 'text-blue-500'
-  const containerClass = `flex-1 p-4 ${isTeamA ? 'border-r border-gray-800' : 'pb-20'}`
+  const containerClass = `w-full p-4 ${isTeamA ? 'border-b border-gray-800' : ''}`
   const teamName = isTeamA ? t('redTeam') : t('blueTeam')
 
   return (
