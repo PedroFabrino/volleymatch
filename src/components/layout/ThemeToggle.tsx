@@ -11,6 +11,7 @@ export function ThemeToggle() {
   const t = useTranslations('Common')
 
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 

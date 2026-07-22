@@ -12,6 +12,7 @@ export function QrCodeModal({ pin }: { pin: string }) {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUrl(`${window.location.origin}/join/${pin}`)
     }
   }, [pin])

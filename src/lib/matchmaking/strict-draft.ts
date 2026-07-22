@@ -135,7 +135,7 @@ export function draftStrictTeams(allAvailablePlayers: Player[], lastMatchWinning
   // Draft players into exact roles
   for (const requirement of blueprint) {
     // For 6v6 fallback, MB and Libero can swap if needed
-    let candidates = remainingPlayers.filter(p => hasPos(p, requirement.pos));
+    const candidates = remainingPlayers.filter(p => hasPos(p, requirement.pos));
     
     if (targetSize === 6 && candidates.length < requirement.count) {
       if (requirement.pos === 'Middle Blocker') {

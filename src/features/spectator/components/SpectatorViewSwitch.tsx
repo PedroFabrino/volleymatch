@@ -44,19 +44,23 @@ export default function SpectatorViewSwitch({
     resolveInitialPendingVoting(session.id, activeMatch)
   )
 
-  useEffect(() => {
+  const [prevActiveMatch, setPrevActiveMatch] = useState(activeMatch)
+  if (activeMatch !== prevActiveMatch) {
+    setPrevActiveMatch(activeMatch)
     if (activeMatch) {
       saveRetainedMatch(session.id, activeMatch)
       setRetainedMatch(activeMatch)
     }
-  }, [activeMatch, session.id])
+  }
 
-  useEffect(() => {
+  const [prevHasPendingVoting, setPrevHasPendingVoting] = useState(hasPendingVoting)
+  if (hasPendingVoting !== prevHasPendingVoting) {
+    setPrevHasPendingVoting(hasPendingVoting)
     if (!hasPendingVoting && !activeMatch) {
       clearRetainedMatch(session.id)
       setRetainedMatch(null)
     }
-  }, [hasPendingVoting, activeMatch, session.id])
+  }
 
   const scoreboardMatch = activeMatch ?? retainedMatch
   const showScoreboard = Boolean(activeMatch) || Boolean(retainedMatch && hasPendingVoting)

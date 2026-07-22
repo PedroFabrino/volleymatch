@@ -21,7 +21,7 @@ export function AdminControls({
   const t = useTranslations('Scoreboard')
   
   return (
-    <div className="absolute bottom-4 left-0 w-full flex justify-center gap-4 px-4 z-20 pointer-events-none">
+    <div className="landscape:absolute landscape:bottom-4 portrait:sticky portrait:bottom-0 left-0 w-full flex justify-center gap-4 p-4 z-20 pointer-events-none portrait:bg-gray-900/95 portrait:backdrop-blur-sm portrait:border-t portrait:border-gray-800">
       <div className="flex gap-4 pointer-events-auto">
         <button 
           onClick={onCancel}

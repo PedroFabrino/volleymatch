@@ -40,7 +40,7 @@ export function useSpectatorScoreboard(
       const m = Math.floor(diff / 60).toString().padStart(2, '0')
       const s = (diff % 60).toString().padStart(2, '0')
       setElapsed(`${m}:${s}`)
-    }, 1000)
+    }, 250)
     return () => clearInterval(interval)
   }, [match.created_at])
 

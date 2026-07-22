@@ -17,7 +17,9 @@ export function useLiveSessionSync({
 }: UseLiveSessionSyncOptions) {
   const router = useRouter()
   const onScoresRef = useRef(onMatchScores)
-  onScoresRef.current = onMatchScores
+  useEffect(() => {
+    onScoresRef.current = onMatchScores
+  }, [onMatchScores])
 
   useEffect(() => {
     const supabase = createClient()

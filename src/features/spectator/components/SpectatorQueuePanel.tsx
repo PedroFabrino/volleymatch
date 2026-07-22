@@ -31,7 +31,7 @@ function NextTeamColumn({
   const sortedSlots = sortNextTeamSlots(slots)
 
   return (
-    <div className={`flex-1 p-4 max-h-[35vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 ${borderClass}`}>
+    <div className={`flex-1 p-4 ${borderClass}`}>
       <div className={`flex justify-between items-center border-b pb-2 mb-3 ${team === 'a' ? 'border-red-900/50' : 'border-blue-900/50'}`}>
         <h3 className={`${teamHeaderClass} font-black text-lg uppercase tracking-wide`}>{teamTitle}</h3>
       </div>

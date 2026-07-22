@@ -58,7 +58,7 @@ export default function SpectatorScoreboard({
   }, [hasPendingVoting, onVotingPendingChange])
 
   return (
-    <div className="flex flex-col h-[80vh] bg-gray-900 overflow-hidden relative rounded-3xl border border-gray-800 shadow-2xl">
+    <div className="flex flex-col portrait:min-h-screen portrait:overflow-y-auto landscape:h-[80vh] landscape:overflow-hidden bg-gray-900 relative portrait:rounded-none landscape:rounded-3xl border border-gray-800 shadow-2xl">
       <SpectatorScorePanel
         elapsed={elapsed}
         targetScore={session.target_score}

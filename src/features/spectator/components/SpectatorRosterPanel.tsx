@@ -40,10 +40,10 @@ export default function SpectatorRosterPanel({
       </button>
       
       {teamsOpen && (
-        <div className="flex flex-row w-full bg-gray-900 border-t border-gray-800">
+        <div className="flex flex-col sm:flex-row w-full bg-gray-900 border-t border-gray-800">
           
           {/* Team A Roster */}
-          <div className="flex-1 p-4 border-r border-gray-800 max-h-[35vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700">
+          <div className="flex-1 p-4 border-b sm:border-b-0 sm:border-r border-gray-800">
             <div className="flex justify-between items-center border-b border-red-900/50 pb-2 mb-3">
               <h3 className="text-red-500 font-black text-lg uppercase tracking-wide">{t('redTeam')}</h3>
             </div>
@@ -61,7 +61,7 @@ export default function SpectatorRosterPanel({
           </div>
 
           {/* Team B Roster */}
-          <div className="flex-1 p-4 pb-4 max-h-[35vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700">
+          <div className="flex-1 p-4 pb-4">
             <div className="flex justify-between items-center border-b border-blue-900/50 pb-2 mb-3">
               <h3 className="text-blue-500 font-black text-lg uppercase tracking-wide">{t('blueTeam')}</h3>
             </div>
