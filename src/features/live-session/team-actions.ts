@@ -28,8 +28,8 @@ export async function substitutePlayer(matchId: string, sessionId: string, team:
 
   let newTeamA: string[] = [...match.team_a_players]
   let newTeamB: string[] = [...match.team_b_players]
-  let newPositionsA = parsePositionRecord(match.team_a_positions)
-  let newPositionsB = parsePositionRecord(match.team_b_positions)
+  const newPositionsA = parsePositionRecord(match.team_a_positions)
+  const newPositionsB = parsePositionRecord(match.team_b_positions)
 
   let filledPosition: PlayerPosition = 'Any'
 

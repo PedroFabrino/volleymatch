@@ -11,6 +11,12 @@ export default function TimelineViewer({ timeline, matchStartTime, playerNames }
   const scrollRef = useRef<HTMLDivElement>(null)
   const t = useTranslations('Timeline')
 
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = scrollRef.current.scrollWidth
+    }
+  }, [timeline])
+
   if (!timeline || timeline.length === 0) {
     return null
   }
@@ -36,11 +42,7 @@ export default function TimelineViewer({ timeline, matchStartTime, playerNames }
     }
   }
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollLeft = scrollRef.current.scrollWidth
-    }
-  }, [timeline])
+
 
   return (
     <div className="mt-6 border-t dark:border-gray-800 pt-4 flex flex-col gap-4">

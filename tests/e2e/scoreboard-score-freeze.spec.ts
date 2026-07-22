@@ -13,7 +13,9 @@ async function createTestUser(email?: string) {
   return { user, adminClient };
 }
 
-async function deleteTestUser(userId: string, client: any) {
+import { User } from '@supabase/supabase-js';
+
+async function deleteTestUser(userId: string, client: ReturnType<typeof createAdminClient>) {
   await client.auth.admin.deleteUser(userId);
 }
 
@@ -25,8 +27,8 @@ async function purgeStaleTestUsers() {
   await Promise.allSettled(stale.map((u) => client.auth.admin.deleteUser(u.id)));
 }
 
-let adminClient: any;
-let testUser: any;
+let adminClient: ReturnType<typeof createAdminClient>;
+let testUser: User;
 let testSessionId: string;
 let sharedContext: BrowserContext;
 let sharedPage: Page;

@@ -37,7 +37,7 @@ let testSessionId: string;
 // ---------------------------------------------------------------------------
 beforeAll(async () => {
   // 1. Start the Next.js server (non‑dev mode for speed)
-  // @ts-ignore: assign to NODE_ENV for test purposes
+  // @ts-expect-error: assign to NODE_ENV for test purposes
   process.env.NODE_ENV = 'production';          // avoid dev‑mode overhead
   app = next({ dev: false, dir: process.cwd() });
   handle = app.getRequestHandler();

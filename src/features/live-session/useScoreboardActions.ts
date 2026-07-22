@@ -21,13 +21,17 @@ export function useScoreboardActions(match: Match, sessionId: string, isHost: bo
   const [scoreB, setScoreB] = useState(match.team_b_score)
   const scoreARef = useRef(scoreA)
   const scoreBRef = useRef(scoreB)
-  scoreARef.current = scoreA
-  scoreBRef.current = scoreB
-
   useEffect(() => {
+    scoreARef.current = scoreA
+    scoreBRef.current = scoreB
+  }, [scoreA, scoreB])
+
+  const [prevMatchId, setPrevMatchId] = useState(match.id)
+  if (match.id !== prevMatchId) {
+    setPrevMatchId(match.id)
     setScoreA(match.team_a_score)
     setScoreB(match.team_b_score)
-  }, [match.id])
+  }
 
   useLiveSessionSync({
     sessionId,

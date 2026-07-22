@@ -33,6 +33,7 @@ export default function SmartLoginPrompt({ grants, hasOwnActiveSession }: SmartL
       return withinDay
     })
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setVisibleGrant(tempGrant ?? null)
   }, [grants, hasOwnActiveSession])
 

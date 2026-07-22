@@ -1,4 +1,5 @@
 import { Trophy, Medal, History } from 'lucide-react'
+import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 
 type QuickActionsColumnProps = {
@@ -24,13 +25,13 @@ export default async function QuickActionsColumn({
         </h2>
         <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">{t('gameDayDesc')}</p>
         {hasActiveSession ? (
-          <a href="/dashboard/session" className="block text-center w-full bg-yellow-500 text-black px-4 py-3 rounded-xl font-bold hover:bg-yellow-400 transition animate-pulse">
+          <Link href="/dashboard/session" className="block text-center w-full bg-yellow-500 text-black px-4 py-3 rounded-xl font-bold hover:bg-yellow-400 transition animate-pulse">
             {t('resumeSession')}
-          </a>
+          </Link>
         ) : (
-          <a href="/dashboard/session" className="block text-center w-full bg-green-600 text-white px-4 py-3 rounded-xl font-medium hover:bg-green-700 transition">
-            {t('startNewSession')}
-          </a>
+          <Link href="/dashboard/session" className="block text-center w-full bg-green-600 text-white px-4 py-3 rounded-xl font-medium hover:bg-green-700 transition">
+            {t('hostNewSession')}
+          </Link>
         )}
       </div>
 
@@ -40,9 +41,9 @@ export default async function QuickActionsColumn({
           <Medal className="w-5 h-5 text-blue-500" /> {t('myRoster')}
         </h2>
         <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">{t('myRosterDesc')}</p>
-        <a href="/dashboard/roster" className="block text-center w-full bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-4 py-3 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition border dark:border-gray-700">
-          {t('manageRoster', { count: playerCount })}
-        </a>
+        <Link href="/dashboard/roster" className="block text-center w-full bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-4 py-3 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition border dark:border-gray-700">
+          {t('managePlayers')}
+        </Link>
       </div>
 
       {/* Global Summary Card */}
@@ -51,18 +52,18 @@ export default async function QuickActionsColumn({
           <History className="w-5 h-5 text-indigo-500" /> {t('globalSummary')}
         </h2>
         <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">{t('globalSummaryDesc')}</p>
-        <a href="/dashboard/summary/all" className="block text-center w-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-4 py-3 rounded-xl font-medium hover:bg-indigo-200 dark:hover:bg-indigo-800/60 transition border border-indigo-200 dark:border-indigo-800">
+        <Link href="/dashboard/summary/all" className="block text-center w-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-4 py-3 rounded-xl font-medium hover:bg-indigo-200 dark:hover:bg-indigo-800/60 transition border border-indigo-200 dark:border-indigo-800">
           {t('viewGlobalSummary')}
-        </a>
+        </Link>
       </div>
 
       {showShareAccess && (
         <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-6 shadow hover:shadow-md transition-shadow">
           <h2 className="text-xl font-semibold mb-2 dark:text-gray-100">{tAccess('shareAccessTitle')}</h2>
           <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">{tAccess('shareAccessCardDesc')}</p>
-          <a href="/dashboard/access" className="block text-center w-full bg-purple-600 text-white px-4 py-3 rounded-xl font-medium hover:bg-purple-700 transition">
-            {tAccess('manageAccess')}
-          </a>
+          <Link href="/dashboard/access" className="block text-center w-full bg-purple-600 text-white px-4 py-3 rounded-xl font-medium hover:bg-purple-700 transition">
+            {t('shareAccess')}
+          </Link>
         </div>
       )}
     </div>

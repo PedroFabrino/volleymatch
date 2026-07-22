@@ -150,9 +150,11 @@ export default function VotingOverlay({
   const t = useTranslations('Scoreboard')
   const [isMinimized, setIsMinimized] = useState(false)
 
-  useEffect(() => {
+  const [prevVotingTeam, setPrevVotingTeam] = useState(votingTeam)
+  if (votingTeam !== prevVotingTeam) {
+    setPrevVotingTeam(votingTeam)
     setIsMinimized(false)
-  }, [votingTeam])
+  }
 
   if (votingState === 'idle' || !votingTeam) return null
 

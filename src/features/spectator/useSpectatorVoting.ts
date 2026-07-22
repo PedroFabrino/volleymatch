@@ -40,21 +40,29 @@ export function useSpectatorVoting({ match, sessionId, votedForLabel }: UseSpect
   const [countdown, setCountdown] = useState(10)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const lastSeenScoresRef = useRef({ a: match.team_a_score, b: match.team_b_score })
+
   const previousMatchIdRef = useRef<string | null>(null)
   const submitInFlightRef = useRef(false)
+  
+  const votedForLabelRef = useRef(votedForLabel)
+  useEffect(() => {
+    votedForLabelRef.current = votedForLabel
+  }, [votedForLabel])
 
   const activePromptId = promptQueue[0]?.id ?? null
   const promptQueueRef = useRef(promptQueue)
-  promptQueueRef.current = promptQueue
-
   const votingPhaseRef = useRef(votingPhase)
-  votingPhaseRef.current = votingPhase
   const selectedPlayerIdRef = useRef(selectedPlayerId)
-  selectedPlayerIdRef.current = selectedPlayerId
   const selectedPlayerNameRef = useRef(selectedPlayerName)
-  selectedPlayerNameRef.current = selectedPlayerName
   const votingStateRef = useRef(votingState)
-  votingStateRef.current = votingState
+
+  useEffect(() => {
+    promptQueueRef.current = promptQueue
+    votingPhaseRef.current = votingPhase
+    selectedPlayerIdRef.current = selectedPlayerId
+    selectedPlayerNameRef.current = selectedPlayerName
+    votingStateRef.current = votingState
+  }, [promptQueue, votingPhase, selectedPlayerId, selectedPlayerName, votingState])
 
   const enqueuePrompts = useCallback((incoming: VotingPrompt[]) => {
     if (incoming.length === 0) return
@@ -98,7 +106,7 @@ export function useSpectatorVoting({ match, sessionId, votedForLabel }: UseSpect
     setVotingState('voted')
 
     if (options?.showToast !== false) {
-      setToastMessage(votedForLabel(playerName, scoringType))
+      setToastMessage(votedForLabelRef.current(playerName, scoringType))
       setTimeout(() => setToastMessage(null), 2500)
     }
 
@@ -116,7 +124,7 @@ export function useSpectatorVoting({ match, sessionId, votedForLabel }: UseSpect
       token,
       scoringType,
     )
-  }, [getVoterToken, match.id, sessionId, votedForLabel])
+  }, [getVoterToken, match.id, sessionId])
 
   const activatePrompt = useCallback((prompt: VotingPrompt) => {
     const snap = { a: prompt.scoreA, b: prompt.scoreB }

@@ -29,8 +29,8 @@ export function draftTeams(playersToDraft: Player[]): { teamA: string[], teamB: 
     }
   }
 
-  let teamAMissingSetter = teamA.filter(isSetter).length === 0;
-  let teamBMissingSetter = teamB.filter(isSetter).length === 0;
+  const teamAMissingSetter = teamA.filter(isSetter).length === 0;
+  const teamBMissingSetter = teamB.filter(isSetter).length === 0;
 
   // Distribute non-setters
   for (const player of nonSetters) {

@@ -97,7 +97,7 @@ function draftStrictFromPool(
   const teamBSlots: NextTeamSlot[] = []
 
   for (const requirement of blueprint) {
-    let candidates = remainingPlayers.filter(p => hasPos(p, requirement.pos))
+    const candidates = remainingPlayers.filter(p => hasPos(p, requirement.pos))
 
     if (targetSize === 6 && candidates.length < requirement.count) {
       if (requirement.pos === 'Middle Blocker') {
