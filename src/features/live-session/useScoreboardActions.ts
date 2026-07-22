@@ -6,7 +6,7 @@ import { useLiveSessionSync } from './useLiveSessionSync'
 import type { PlayerPosition } from '@/types/player'
 import type { Match } from '@/types'
 
-export function useScoreboardActions(match: Match, sessionId: string) {
+export function useScoreboardActions(match: Match, sessionId: string, isHost: boolean) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [subbingPlayer, setSubbingPlayer] = useState<{ id: string; name: string; team: 'a' | 'b' } | null>(null)
@@ -42,6 +42,7 @@ export function useScoreboardActions(match: Match, sessionId: string) {
 
   const handleScoreChange = (team: 'a' | 'b', increment: number, e?: React.MouseEvent) => {
     if (e) e.stopPropagation()
+    if (!isHost) return
     const expectedA = scoreARef.current
     const expectedB = scoreBRef.current
     if (team === 'a') setScoreA((prev) => Math.max(0, prev + increment))
@@ -56,10 +57,12 @@ export function useScoreboardActions(match: Match, sessionId: string) {
   }
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    if (!isHost) return
     touchStartY.current = e.touches[0].clientY
   }
 
   const handleTouchEnd = (e: React.TouchEvent, team: 'a' | 'b') => {
+    if (!isHost) return
     if (touchStartY.current === null) return
     const touchEndY = e.changedTouches[0].clientY
     const diff = touchEndY - touchStartY.current

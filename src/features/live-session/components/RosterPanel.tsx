@@ -14,6 +14,7 @@ type RosterPanelProps = {
   onDecrementScore: (e: React.MouseEvent) => void
   onSub: (player: { id: string; name: string; team: 'a' | 'b' }) => void
   onSwap: (player: { id: string; name: string; team: 'a' | 'b'; position: PlayerPosition }) => void
+  isHost: boolean
 }
 
 export function RosterPanel({
@@ -25,6 +26,7 @@ export function RosterPanel({
   onDecrementScore,
   onSub,
   onSwap,
+  isHost,
 }: RosterPanelProps) {
   const t = useTranslations('Scoreboard')
   const posT = useTranslations('Positions')
@@ -48,9 +50,11 @@ export function RosterPanel({
           </button>
           <h3 className={`${titleClass} font-black text-lg uppercase tracking-wide`}>{teamName}</h3>
         </div>
-        <button data-testid={`roster-decrement-${team}`} onClick={onDecrementScore} className="bg-gray-800 text-gray-400 p-1 rounded-md hover:text-white">
-          <Minus className="w-4 h-4" />
-        </button>
+        {isHost && (
+          <button data-testid={`roster-decrement-${team}`} onClick={onDecrementScore} className="bg-gray-800 text-gray-400 p-1 rounded-md hover:text-white">
+            <Minus className="w-4 h-4" />
+          </button>
+        )}
       </div>
       {isOpen && (
         <ul className="flex flex-col gap-2">

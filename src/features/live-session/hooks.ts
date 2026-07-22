@@ -11,11 +11,12 @@ export function useScoreboard(
   session: Session,
   match: Match,
   players: Player[],
-  playersWithStatus: PlayerWithStatus[]
+  playersWithStatus: PlayerWithStatus[],
+  isHost: boolean
 ) {
   const elapsed = useScoreboardTimer(match.created_at)
   const toastMessage = useScoreboardVotes(session.id, players)
-  const actions = useScoreboardActions(match, session.id)
+  const actions = useScoreboardActions(match, session.id, isHost)
 
   const [showTeamARoster, setShowTeamARoster] = useState(true)
   const [showTeamBRoster, setShowTeamBRoster] = useState(true)
@@ -57,6 +58,7 @@ export function useScoreboard(
 
   return {
     ...actions,
+    isHost,
     elapsed,
     toastMessage,
     showTeamARoster,

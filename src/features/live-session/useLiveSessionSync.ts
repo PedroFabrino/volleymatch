@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, startTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -35,9 +35,11 @@ export function useLiveSessionSync({
         },
         (payload) => {
           const row = payload.new as { team_a_score: number; team_b_score: number }
-          onScoresRef.current?.({
-            teamAScore: row.team_a_score,
-            teamBScore: row.team_b_score,
+          startTransition(() => {
+            onScoresRef.current?.({
+              teamAScore: row.team_a_score,
+              teamBScore: row.team_b_score,
+            })
           })
         }
       )
