@@ -1,5 +1,7 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+import { ChevronUp } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { PlayerWithStatus } from '@/lib/matchmaking'
 import { SCORING_TYPES, SCORING_TYPE_EMOJI } from '@/types/pointAttribution'
@@ -146,6 +148,11 @@ export default function VotingOverlay({
   toastMessage,
 }: VotingOverlayProps) {
   const t = useTranslations('Scoreboard')
+  const [isMinimized, setIsMinimized] = useState(false)
+
+  useEffect(() => {
+    setIsMinimized(false)
+  }, [votingTeam])
 
   if (votingState === 'idle' || !votingTeam) return null
 
@@ -168,66 +175,104 @@ export default function VotingOverlay({
 
   const expandedPlayerName = selectedPlayerName ?? teamPlayers.find((p) => p?.id === selectedPlayerId)?.name
 
+  if (isMinimized) {
+    return (
+      <div
+        onClick={() => setIsMinimized(false)}
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-gray-900/95 backdrop-blur-md border border-gray-700 text-white rounded-full px-4 py-2.5 shadow-2xl flex items-center gap-3 cursor-pointer animate-in slide-in-from-bottom-4 duration-200 hover:bg-gray-800"
+      >
+        <div className="flex items-center gap-2">
+          <span className={`w-2.5 h-2.5 rounded-full ${votingTeam === 'a' ? 'bg-red-500' : 'bg-blue-500'}`} />
+          <span className="font-bold text-sm">
+            {t('whoScoredForPrefix')} <span className={teamClass}>{teamLabel}</span>{t('whoScoredForSuffix')}
+          </span>
+        </div>
+        <div className="text-xs font-mono text-gray-400 bg-gray-800 px-2 py-1 rounded-full border border-gray-700">
+          {countdown}s
+        </div>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            setIsMinimized(false)
+          }}
+          className="text-xs font-bold text-blue-400 bg-blue-950/60 border border-blue-800/60 px-2.5 py-1 rounded-full hover:bg-blue-900 transition flex items-center gap-1"
+        >
+          <ChevronUp className="w-3.5 h-3.5" />
+          {t('open') ?? 'Open'}
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <div className="absolute bottom-0 left-0 w-full max-h-[70vh] overflow-y-auto bg-gray-950 border-t border-gray-800 p-4 z-40 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)] animate-in slide-in-from-bottom-full duration-300">
-      <div className="flex justify-between items-center mb-4 gap-3">
-        <div className="min-w-0">
-          <h3 className="font-black text-lg text-white">
-            {t('whoScoredForPrefix')}{' '}
-            <span className={teamClass}>{teamLabel}</span>
-            {t('whoScoredForSuffix')}
-          </h3>
-          {queueLength > 1 && (
-            <p className="text-xs font-semibold text-gray-400 mt-1">
-              {t('votingQueuePosition', { current: 1, total: queueLength })}
-            </p>
-          )}
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="text-sm font-mono text-gray-400 bg-gray-900 px-2 py-1 rounded">
-            {t('votingCountdown', { seconds: countdown })}
+    <div
+      onClick={() => setIsMinimized(true)}
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md max-h-[85vh] overflow-y-auto bg-gray-950 border border-gray-800 p-5 rounded-3xl shadow-2xl relative animate-in zoom-in-95 duration-200"
+      >
+        <div className="flex justify-between items-center mb-4 gap-3">
+          <div className="min-w-0">
+            <h3 className="font-black text-lg text-white">
+              {t('whoScoredForPrefix')}{' '}
+              <span className={teamClass}>{teamLabel}</span>
+              {t('whoScoredForSuffix')}
+            </h3>
+            {queueLength > 1 && (
+              <p className="text-xs font-semibold text-gray-400 mt-1">
+                {t('votingQueuePosition', { current: 1, total: queueLength })}
+              </p>
+            )}
           </div>
-          <button
-            type="button"
-            onClick={onDone}
-            className="text-sm font-bold text-white bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-1 rounded transition"
-          >
-            {t('votingDone')}
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="text-sm font-mono text-gray-400 bg-gray-900 px-2 py-1 rounded">
+              {t('votingCountdown', { seconds: countdown })}
+            </div>
+            <button
+              type="button"
+              onClick={onDone}
+              className="text-sm font-bold text-white bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-1 rounded transition"
+            >
+              {t('votingDone')}
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div className="flex flex-col gap-2">
-        {teamPlayers.map((p: PlayerWithStatus | undefined) => {
-          if (!p) return null
-          const isSelected = selectedPlayerId === p.id || myVote === p.id
-          const isExpanded = isSelected && (votingPhase === 'choose_type' || votingState === 'voted')
+        <div className="flex flex-col gap-2">
+          {teamPlayers.map((p: PlayerWithStatus | undefined) => {
+            if (!p) return null
+            const isSelected = selectedPlayerId === p.id || myVote === p.id
+            const isExpanded = isSelected && (votingPhase === 'choose_type' || votingState === 'voted')
 
-          return (
-            <PlayerVoteCard
-              key={p.id}
-              player={p}
-              isSelected={isSelected}
-              isExpanded={isExpanded}
-              playerSelectionLocked={playerSelectionLocked}
-              votingState={votingState}
-              selectedScoringType={isSelected ? selectedScoringType : null}
-              teamTone={teamTone}
-              scoringTypeLabel={scoringTypeLabel}
-              voteCountLabel={t('voteCount', { count: voteCounts.get(p.id) || 0 })}
-              howDidScoreLabel={expandedPlayerName ? t('howDidScore', { name: expandedPlayerName }) : t('howDidScoreShort')}
-              onSelectPlayer={() => selectPlayer(p.id, p.name)}
-              onSelectScoringType={selectScoringType}
-            />
-          )
-        })}
-      </div>
-
-      {toastMessage && (
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[120%] bg-green-600 text-white font-bold px-4 py-2 rounded-full shadow-lg animate-in fade-in zoom-in duration-200">
-          {toastMessage}
+            return (
+              <PlayerVoteCard
+                key={p.id}
+                player={p}
+                isSelected={isSelected}
+                isExpanded={isExpanded}
+                playerSelectionLocked={playerSelectionLocked}
+                votingState={votingState}
+                selectedScoringType={isSelected ? selectedScoringType : null}
+                teamTone={teamTone}
+                scoringTypeLabel={scoringTypeLabel}
+                voteCountLabel={t('voteCount', { count: voteCounts.get(p.id) || 0 })}
+                howDidScoreLabel={expandedPlayerName ? t('howDidScore', { name: expandedPlayerName }) : t('howDidScoreShort')}
+                onSelectPlayer={() => selectPlayer(p.id, p.name)}
+                onSelectScoringType={selectScoringType}
+              />
+            )
+          })}
         </div>
-      )}
+
+        {toastMessage && (
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[120%] bg-green-600 text-white font-bold px-4 py-2 rounded-full shadow-lg animate-in fade-in zoom-in duration-200">
+            {toastMessage}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -82,13 +82,13 @@ export default function SpectatorQueuePanel({
       </button>
 
       {queueOpen && (
-        <div className="flex flex-col sm:flex-row w-full bg-gray-950 flex-1 min-h-0">
+        <div className="flex flex-row w-full bg-gray-950 flex-1 min-h-0">
           <NextTeamColumn
             slots={nextTeamPreview.teamA}
             team="a"
             teamTitle={t('redTeam')}
             teamHeaderClass="text-red-500"
-            borderClass="border-b sm:border-b-0 sm:border-r border-gray-800"
+            borderClass="border-r border-gray-800"
             t={t}
           />
           <NextTeamColumn
