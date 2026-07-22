@@ -31,7 +31,7 @@ function NextTeamColumn({
   const sortedSlots = sortNextTeamSlots(slots)
 
   return (
-    <div className={`flex-1 p-4 max-h-[35vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 ${borderClass}`}>
+    <div className={`flex-1 p-4 ${borderClass}`}>
       <div className={`flex justify-between items-center border-b pb-2 mb-3 ${team === 'a' ? 'border-red-900/50' : 'border-blue-900/50'}`}>
         <h3 className={`${teamHeaderClass} font-black text-lg uppercase tracking-wide`}>{teamTitle}</h3>
       </div>
@@ -82,13 +82,13 @@ export default function SpectatorQueuePanel({
       </button>
 
       {queueOpen && (
-        <div className="flex flex-row w-full bg-gray-950 flex-1 min-h-0">
+        <div className="flex flex-col sm:flex-row w-full bg-gray-950 flex-1 min-h-0">
           <NextTeamColumn
             slots={nextTeamPreview.teamA}
             team="a"
             teamTitle={t('redTeam')}
             teamHeaderClass="text-red-500"
-            borderClass="border-r border-gray-800"
+            borderClass="border-b sm:border-b-0 sm:border-r border-gray-800"
             t={t}
           />
           <NextTeamColumn
