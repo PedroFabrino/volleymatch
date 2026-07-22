@@ -27,15 +27,17 @@ export function ScorePanel({
 
   return (
     <div 
+      data-testid={`score-panel-${teamLabel}`}
       className={`relative flex-1 flex items-center justify-center ${bgColor} ${activeBgColor} transition-colors cursor-pointer select-none touch-none`}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
       onClick={onIncrement}
     >
-      <div className="landscape:text-[40vh] portrait:text-[20vh] font-black text-white leading-none pt-4">
+      <div data-testid={`score-value-${teamLabel}`} className="landscape:text-[40vh] portrait:text-[20vh] font-black text-white leading-none pt-4">
         {score}
       </div>
       <button 
+        data-testid={`decrement-${teamLabel}`}
         onClick={onDecrement}
         className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/20 hover:bg-black/40 text-white p-3 rounded-full md:hidden landscape:flex z-20 pointer-events-auto"
         title={t('decreaseScore')}

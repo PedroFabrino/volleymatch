@@ -22,7 +22,7 @@ export function MatchOverModal({
   const t = useTranslations('Scoreboard')
 
   return (
-    <div className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div data-testid="match-over-modal" className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
       <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-sm overflow-hidden flex flex-col items-center p-8 shadow-2xl">
         <h2 className="text-4xl font-black text-white mb-2 text-center uppercase tracking-wider">
           {t('matchDone')}
@@ -51,6 +51,7 @@ export function MatchOverModal({
           
           <div className="mt-4 pt-4 border-t border-gray-800 w-full">
             <button 
+              data-testid="undo-point-btn"
               onClick={onUndoPoint}
               disabled={isPending}
               className="w-full bg-transparent text-gray-500 hover:text-gray-300 font-bold py-2 transition disabled:opacity-50"

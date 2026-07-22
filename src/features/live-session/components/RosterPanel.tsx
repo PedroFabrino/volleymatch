@@ -48,7 +48,7 @@ export function RosterPanel({
           </button>
           <h3 className={`${titleClass} font-black text-lg uppercase tracking-wide`}>{teamName}</h3>
         </div>
-        <button onClick={onDecrementScore} className="bg-gray-800 text-gray-400 p-1 rounded-md hover:text-white">
+        <button data-testid={`roster-decrement-${team}`} onClick={onDecrementScore} className="bg-gray-800 text-gray-400 p-1 rounded-md hover:text-white">
           <Minus className="w-4 h-4" />
         </button>
       </div>
